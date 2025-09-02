@@ -114,6 +114,16 @@
   # Enable touchpad support (enabled default in most desktopManager).
   # services.libinput.enable = true;
 
+  # https://nixos.wiki/wiki/Flatpak
+  services.flatpak.enable = true;
+  #systemd.services.flatpak-repo = {
+  #  wantedBy = [ "multi-user.target" ];
+  #  path = [ pkgs.flatpak ];
+  #  script = ''
+  #    flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+  #  '';
+  #};
+
   hardware.nvidia.prime = {
     reverseSync.enable = true;
     # Enable if using an external GPU
@@ -170,6 +180,7 @@
     kdePackages.partitionmanager
     kdePackages.discover
     kdePackages.sddm-kcm
+    kdePackages.flatpak-kcm
     kdiff3
 
     hardinfo2
