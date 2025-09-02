@@ -200,6 +200,7 @@
     kdePackages.kclock
     kdePackages.ksystemlog
     kdePackages.partitionmanager
+    kdePackages.plasma-systemmonitor  
     kdePackages.discover
     kdePackages.sddm-kcm
     kdePackages.flatpak-kcm
