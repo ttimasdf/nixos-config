@@ -206,6 +206,8 @@
     kdePackages.flatpak-kcm
     kdiff3
 
+    # Utilities
+    freerdp
     hardinfo2
     vlc
     wayland-utils
