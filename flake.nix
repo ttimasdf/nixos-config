@@ -10,14 +10,25 @@
       url = "github:nix-community/lanzaboote/v0.4.2";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    winapps = {
+      url = "github:winapps-org/winapps";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
-  outputs = inputs@{ self, nixpkgs, lanzaboote, nixos-hardware, ... }: {
-    # NOTE: 'nixos' is the default hostname
+  outputs = inputs@{ self, nixpkgs, nixos-hardware, lanzaboote, winapps, ... }: {
     nixosConfigurations."Nokia-N97" = nixpkgs.lib.nixosSystem {
       modules = [
         lanzaboote.nixosModules.lanzaboote
         nixos-hardware.nixosModules.lenovo-legion-16irx9h
         ./configuration.nix
+        # WinApps config
+        ({ pkgs, ... }: {
+          environment.systemPackages = [
+            winapps.packages."${pkgs.system}".winapps
+            winapps.packages."${pkgs.system}".winapps-launcher # optional
+          ];
+        })
       ];
     };
   };
