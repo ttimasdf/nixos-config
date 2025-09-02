@@ -213,6 +213,11 @@
     wayland-utils
     wl-clipboard
     xclip
+    keepassxc
+    
+    # dev tools
+    uv
+    git-credential-keepassxc 
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
