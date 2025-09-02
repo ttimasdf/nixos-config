@@ -210,6 +210,7 @@
   # networking.firewall.enable = false;
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.substituters = [ "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store" ];
 
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
