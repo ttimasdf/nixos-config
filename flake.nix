@@ -26,6 +26,7 @@
             winapps.packages."${pkgs.system}".winapps-launcher # optional
           ];
         })
+        ./revision.nix
       ];
     };
     homeConfigurations."u" = home-manager.lib.homeManagerConfiguration {
