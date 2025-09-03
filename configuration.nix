@@ -190,7 +190,11 @@
     vim
     wget
     git
+
+    # Secure Boot
     sbctl
+    # Disk Encryption
+    cryptsetup
 
     # KDE optional packages
     kdePackages.partitionmanager
