@@ -10,17 +10,17 @@
       ./hardware-configuration.nix
     ];
 
-  # Use the systemd-boot EFI boot loader.
+  boot.lanzaboote = {
+    enable = true;
+    pkiBundle = "/var/lib/sbctl";
+  };
+  # systemd-boot is configured by lanzaboote
   boot.loader.systemd-boot.enable = lib.mkForce false;
   boot.loader.systemd-boot.rebootForBitlocker = true;
   boot.loader.systemd-boot.configurationLimit = 5;
 
   boot.loader.efi.canTouchEfiVariables = true;
 
-  boot.lanzaboote = {
-    enable = true;
-    pkiBundle = "/var/lib/sbctl";
-  };
 
   # Use latest kernel.
   boot.kernelPackages = pkgs.linuxPackages_latest;
