@@ -11,9 +11,12 @@
     ];
 
   # Use the systemd-boot EFI boot loader.
-  #boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.enable = lib.mkForce false;
+  boot.loader.systemd-boot.rebootForBitlocker = true;
+  boot.loader.systemd-boot.configurationLimit = 5;
+
   boot.loader.efi.canTouchEfiVariables = true;
+
   boot.lanzaboote = {
     enable = true;
     pkiBundle = "/var/lib/sbctl";
