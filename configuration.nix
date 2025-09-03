@@ -186,41 +186,45 @@
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
   environment.systemPackages = with pkgs; [
+    # Basic packages for editing nix config
     vim
     wget
     git
     sbctl
 
+    # KDE optional packages
+    kdePackages.partitionmanager
+    kdePackages.ksystemlog
+    kdePackages.plasma-systemmonitor
+    kdePackages.sddm-kcm
+    kdePackages.flatpak-kcm
+
+    kdePackages.discover
+    kdePackages.kcalc
+    kdePackages.kclock
+
+    wayland-utils
+    wl-clipboard
+    xclip
+
+    # SysAdmin
+    kdiff3
+    freerdp
+    hardinfo2
+
     # containers
-    dive # look into docker   image layers
+    dive # look into docker image layers
     podman-tui # status of containers in the terminal
     #docker-compose # start group of containers for dev
     podman-compose # start group of containers for dev
 
-
-    # KDE
-    kdePackages.kcalc
-    kdePackages.kclock
-    kdePackages.ksystemlog
-    kdePackages.partitionmanager
-    kdePackages.plasma-systemmonitor  
-    kdePackages.discover
-    kdePackages.sddm-kcm
-    kdePackages.flatpak-kcm
-    kdiff3
-
-    # Utilities
-    freerdp
-    hardinfo2
+    # Productivity
     vlc
-    wayland-utils
-    wl-clipboard
-    xclip
     keepassxc
-    
-    # dev tools
+    git-credential-keepassxc
+
+    # Development
     uv
-    git-credential-keepassxc 
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
