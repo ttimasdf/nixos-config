@@ -5,7 +5,13 @@ let
   cfg = config.system.nixos;
 in
 {
-  config = lib.mkIf (envLabelSuffix != "") {
+  config = {
+    assertions = [
+      {
+        assertion = envLabelSuffix != "";
+        message = "NIXOS_LABEL_SUFFIX should not be empty";
+      }
+    ];
     system.configurationRevision = lib.mkDefault envLabelSuffix;
     system.nixos.label = lib.maybeEnv "NIXOS_LABEL" (
         lib.concatStringsSep "-" (
