@@ -166,6 +166,8 @@
   };
 
   programs.firefox.enable = true;
+  programs.vim.enable = true;
+  programs.vim.defaultEditor = true;
 
   nixpkgs.config.allowUnfree = true;
 
@@ -187,8 +189,6 @@
   # You can use https://search.nixos.org/ to find more packages (and options).
   environment.systemPackages = with pkgs; [
     # Basic packages for editing nix config
-    vim
-    wget
     git
 
     # Secure Boot
