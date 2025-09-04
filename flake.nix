@@ -19,14 +19,16 @@
         lanzaboote.nixosModules.lanzaboote
         nixos-hardware.nixosModules.lenovo-legion-16irx9h
         ./configuration.nix
-        # WinApps config
-        ({ pkgs, ... }: {
+        ({ lib, pkgs, ... }: {
+          # WinApps config
           environment.systemPackages = [
             winapps.packages."${pkgs.system}".winapps
             winapps.packages."${pkgs.system}".winapps-launcher # optional
           ];
+          # nixos-version --configuration-revision
+          system.configurationRevision = lib.mkOverride 100 self.rev;
         })
-        ./revision.nix
+        ./nixos-label-suffix.nix
       ];
     };
     homeConfigurations."u" = home-manager.lib.homeManagerConfiguration {
