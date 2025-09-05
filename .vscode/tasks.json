@@ -6,7 +6,7 @@
         {
             "label": "nixos-rebuild",
             "type": "shell",
-            "command": "sudo git -C /etc/nixos reset --hard && sudo git -C /etc/nixos pull --rebase && sudo https_proxy=$https_proxy NIXOS_LABEL_SUFFIX=\"${input:labelSuffix}\" nixos-rebuild switch --impure && cp /etc/nixos/*.lock .",
+            "command": "sudo git -C /etc/nixos reset --hard && sudo git -C /etc/nixos pull --rebase && sudo https_proxy=$https_proxy NIXOS_LABEL_SUFFIX=\"${input:labelSuffix}\" nixos-rebuild switch --impure --show-trace --verbose && cp /etc/nixos/*.lock .",
             "group": {
                 "kind": "build",
                 "isDefault": true
