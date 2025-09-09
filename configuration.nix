@@ -236,8 +236,9 @@
   environment.etc.crypttab = {
     mode = "0600";
     text = ''
-      # <volume-name> <encrypted-device> [key-file] [options]
-      windows UUID=72932a38-260b-4616-af6f-748f396852f6 /root/.secrets/24860161-2878-4FA2-A9D2-4238687ED9BF.BEK bitlk,read-only
+      # <volume-name> <encrypted-device>                        [key-file]                                              [options]
+      crypt-windows   UUID=72932a38-260b-4616-af6f-748f396852f6 /root/.secrets/24860161-2878-4FA2-A9D2-4238687ED9BF.BEK bitlk,read-only
+      crypt-vm-images UUID=a854d8d7-9e44-4bf2-b02a-a995c30209f0 /root/.secrets/a854d8d7-9e44-4bf2-b02a-a995c30209f0.key discard
     '';
   };
 
