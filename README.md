@@ -58,3 +58,25 @@ nix flake update
 To rebuild the system after changes:
 ```bash
 sudo nixos-rebuild switch
+```
+
+## Development Workflow
+
+This repository is designed to be cloned directly into your user's home directory (e.g., `/home/u/nixos-config`). This setup allows for seamless integration with the provided VS Code tasks.
+
+### Building with VS Code Tasks
+
+The `.vscode/tasks.json` file defines a `nixos-rebuild` task that automates the process of updating and rebuilding your NixOS system. This task performs the following steps:
+
+1.  **Resets `/etc/nixos`**: Ensures your system's `/etc/nixos` directory is clean and matches the current Git branch.
+2.  **Checks out current branch**: Switches `/etc/nixos` to the branch you are currently on in your `nixos-config` repository.
+3.  **Pulls and rebase**: Updates the `/etc/nixos` repository with the latest changes from your current branch.
+4.  **Runs `nixos-rebuild switch`**: Executes the NixOS rebuild command with necessary flags, prompting for a label suffix.
+5.  **Copies lock files**: Updates the `flake.lock` and `nixos-label-suffix.nix.lock` files in your repository.
+
+To run this task:
+
+1.  Open the Command Palette (Ctrl+Shift+P or Cmd+Shift+P).
+2.  Type "Tasks: Run Build Task" and select it.
+3.  Choose `nixos-rebuild` from the list.
+4.  Enter the desired NixOS label suffix when prompted.
