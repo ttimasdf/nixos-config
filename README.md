@@ -72,7 +72,7 @@ The `.vscode/tasks.json` file defines a `nixos-rebuild` task that automates the 
 2.  **Checks out current branch**: Switches `/etc/nixos` to the branch you are currently on in your `nixos-config` repository.
 3.  **Pulls and rebase**: Updates the `/etc/nixos` repository with the latest changes from your current branch.
 4.  **Runs `nixos-rebuild switch`**: Executes the NixOS rebuild command with necessary flags, prompting for a label suffix.
-5.  **Copies lock files**: Updates the `flake.lock` and `nixos-label-suffix.nix.lock` files in your repository.
+5.  **Copies lock files**: Updates the `flake.lock` back to your repository.
 
 To run this task:
 
@@ -80,3 +80,23 @@ To run this task:
 2.  Type "Tasks: Run Build Task" and select it.
 3.  Choose `nixos-rebuild` from the list.
 4.  Enter the desired NixOS label suffix when prompted.
+
+### Understanding `NIXOS_LABEL_SUFFIX`
+
+The `nixos-label-suffix.nix` file configures `system.configurationRevision` and `system.nixos.label` using the `NIXOS_LABEL_SUFFIX` environment variable. This suffix helps uniquely identify system generations within the systemd-boot menu.
+
+*   **`NIXOS_LABEL_SUFFIX`**: This acts as a unique identifier or version for your specific NixOS build. It's used to differentiate between various configurations or updates. This variable is prompted for when running the `nixos-rebuild` VS Code task. The `nixos-label-suffix.nix` module asserts that this suffix should not be empty.
+*   **`system.configurationRevision`**: This NixOS option defaults to the Git commit hash of `/etc/nixos`. However, if the `/etc/nixos` repository is "dirty" (i.e., has uncommitted changes or is not a Git repository), it will be set to the value of `NIXOS_LABEL_SUFFIX`, providing a clear revision string for your system.
+*   **`system.nixos.label`**: This label is constructed using a combination of system tags, version, and the `NIXOS_LABEL_SUFFIX`, creating a descriptive name for your NixOS generation.
+
+When you run the `nixos-rebuild` task, you will be prompted to "Enter the desired NixOS label suffix". This input directly sets the `NIXOS_LABEL_SUFFIX` environment variable for the build process.
+
+Below is an example of NixOS generations, demonstrating how `NIXOS_LABEL_SUFFIX` influences the `Configuration Revision` and `NixOS version` fields:
+
+```
+$ nixos-rebuild list-generations
+Generation  Build-date           NixOS version                           Kernel      Configuration Revision                    Specialisation  Current
+31          2025-09-09 15:16:37  25.11.20250830.d7600c7-mnt-vm-images    6.16.4      9301c2756f491458ae456c3928bf20c50b593a90  []              True
+30          2025-09-06 23:20:30  25.11.20250830.d7600c7-bcachefs-no-kde  6.17.0-rc3  0e561649368ae14a1db8b1d3e76ff25967538c15  []              False
+28          2025-09-06 22:56:29  25.11.20250830.d7600c7-crypttab         6.16.4      17622260d3b8647ca21faee79cebceb6a6b5eadb  []              False
+```
