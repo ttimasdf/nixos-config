@@ -10,6 +10,7 @@
       ./hardware-configuration.nix
     ];
 
+  # region boot & kernel
   boot.lanzaboote = {
     enable = true;
     pkiBundle = "/var/lib/sbctl";
@@ -21,10 +22,28 @@
 
   boot.loader.efi.canTouchEfiVariables = true;
 
-
-  # Use latest kernel.
   boot.kernelPackages = pkgs.linuxPackages_latest;
+  # endregion boot & kernel
 
+  # region partitions
+  # https://nixos.wiki/wiki/Full_Disk_Encryption
+  # sudo cryptsetup open /dev/nvme0n1p3 --type bitlk --key-file /root/.secrets/24860161-2878-4FA2-A9D2-4238687ED9BF.BEK windows
+  environment.etc.crypttab = {
+    mode = "0600";
+    text = ''
+      # <volume-name> <encrypted-device>                        [key-file]                                              [options]
+      crypt-windows   UUID=72932a38-260b-4616-af6f-748f396852f6 /root/.secrets/24860161-2878-4FA2-A9D2-4238687ED9BF.BEK bitlk,read-only
+      crypt-vm-images UUID=a854d8d7-9e44-4bf2-b02a-a995c30209f0 /root/.secrets/a854d8d7-9e44-4bf2-b02a-a995c30209f0.key discard
+    '';
+  };
+
+  fileSystems."/mnt/vm-images" =
+    { device = "/dev/mapper/crypt-vm-images";
+      options = [ "defaults,discard" ];
+    };
+  # endregion partitions
+
+  # region network
   networking.hostName = "Nokia-N97"; # Define your hostname.
   # Pick only one of the below networking options.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -36,7 +55,9 @@
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+  # endregion network
 
+  # region UI/UX
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
   console = {
@@ -104,30 +125,6 @@
     ];
   };
 
-  # Enable CUPS to print documents.
-  # services.printing.enable = true;
-
-  # Enable sound.
-  # services.pulseaudio.enable = true;
-  # OR
-  # services.pipewire = {
-  #   enable = true;
-  #   pulse.enable = true;
-  # };
-
-  # Enable touchpad support (enabled default in most desktopManager).
-  # services.libinput.enable = true;
-
-  # https://nixos.wiki/wiki/Flatpak
-  services.flatpak.enable = true;
-  #systemd.services.flatpak-repo = {
-  #  wantedBy = [ "multi-user.target" ];
-  #  path = [ pkgs.flatpak ];
-  #  script = ''
-  #    flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-  #  '';
-  #};
-
   hardware.nvidia.prime = {
     reverseSync.enable = true;
     # Enable if using an external GPU
@@ -156,6 +153,22 @@
     };
   };
 
+  # Enable CUPS to print documents.
+  # services.printing.enable = true;
+
+  # Enable sound.
+  # services.pulseaudio.enable = true;
+  # OR
+  # services.pipewire = {
+  #   enable = true;
+  #   pulse.enable = true;
+  # };
+
+  # Enable touchpad support (enabled default in most desktopManager).
+  # services.libinput.enable = true;
+  # endregion UI/UX
+
+  # region user
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.u = {
     isNormalUser = true;
@@ -164,6 +177,19 @@
       tree
     ];
   };
+  # endregion user
+
+  # region software
+  # https://nixos.wiki/wiki/Flatpak
+  services.flatpak.enable = true;
+  #systemd.services.flatpak-repo = {
+  #  wantedBy = [ "multi-user.target" ];
+  #  path = [ pkgs.flatpak ];
+  #  script = ''
+  #    flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+  #  '';
+  #};
+
 
   programs.firefox.enable = true;
   programs.vim.enable = true;
@@ -231,23 +257,6 @@
     uv
   ];
 
-  # https://nixos.wiki/wiki/Full_Disk_Encryption
-  # sudo cryptsetup open /dev/nvme0n1p3 --type bitlk --key-file /root/.secrets/24860161-2878-4FA2-A9D2-4238687ED9BF.BEK windows
-  environment.etc.crypttab = {
-    mode = "0600";
-    text = ''
-      # <volume-name> <encrypted-device>                        [key-file]                                              [options]
-      crypt-windows   UUID=72932a38-260b-4616-af6f-748f396852f6 /root/.secrets/24860161-2878-4FA2-A9D2-4238687ED9BF.BEK bitlk,read-only
-      crypt-vm-images UUID=a854d8d7-9e44-4bf2-b02a-a995c30209f0 /root/.secrets/a854d8d7-9e44-4bf2-b02a-a995c30209f0.key discard
-    '';
-  };
-
-  fileSystems."/mnt/vm-images" =
-    { device = "/dev/mapper/crypt-vm-images";
-      options = [ "defaults,discard" ];
-    };
-
-
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
@@ -266,7 +275,9 @@
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
+  # endregion software
 
+  # region nix config
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.substituters = [ "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store" ];
 
@@ -293,6 +304,6 @@
   #
   # For more information, see `man configuration.nix` or https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion .
   system.stateVersion = "25.05"; # Did you read the comment?
-
+  # endregion nix config
 }
 
