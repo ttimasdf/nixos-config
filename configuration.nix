@@ -180,6 +180,14 @@
   # endregion user
 
   # region software
+  nixpkgs.config.allowUnfree = true;
+
+  programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [
+    # Add any missing dynamic libraries for unpackaged programs
+    # here, NOT in environment.systemPackages
+  ];
+
   # https://nixos.wiki/wiki/Flatpak
   services.flatpak.enable = true;
   #systemd.services.flatpak-repo = {
@@ -190,12 +198,10 @@
   #  '';
   #};
 
-
   programs.firefox.enable = true;
   programs.vim.enable = true;
   programs.vim.defaultEditor = true;
 
-  nixpkgs.config.allowUnfree = true;
 
   # Enable common container config files in /etc/containers
   virtualisation.containers.enable = true;
