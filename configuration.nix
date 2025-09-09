@@ -242,6 +242,12 @@
     '';
   };
 
+  fileSystems."/mnt/vm-images" =
+    { device = "/dev/mapper/crypt-vm-images";
+      options = [ "defaults,discard" ];
+    };
+
+
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
