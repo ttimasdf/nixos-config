@@ -226,6 +226,12 @@
       };
     };
   };
+  # Add 'newuidmap' and 'sh' to the PATH for users' Systemd units.
+  # Required for Rootless podman.
+  systemd.user.extraConfig = ''
+    DefaultEnvironment="PATH=/run/current-system/sw/bin:/run/wrappers/bin:${lib.makeBinPath [ pkgs.bash ]}"
+  '';
+
 
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
