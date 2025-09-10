@@ -23,6 +23,9 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernel.sysctl = {
+    "net.ipv4.ip_forward" = 1;
+  };
   # endregion boot & kernel
 
   # region partitions
