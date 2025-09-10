@@ -217,9 +217,6 @@
   # endregion software
 
   # region nix config
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
-  nix.settings.substituters = [ "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store" ];
-
   systemd.services."nix-daemon".serviceConfig = {
     Environment = [
       "http_proxy=http://127.0.0.1:28888"
