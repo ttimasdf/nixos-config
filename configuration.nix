@@ -218,6 +218,12 @@
       # Required for containers under podman-compose to be able to talk to each other.
       defaultNetwork.settings.dns_enabled = true;
     };
+    containers.containersConf.settings = {
+      engine = {
+        compose_providers = ["/run/current-system/sw/bin/podman-compose"];
+        compose_warning_logs = false;
+      };
+    };
   };
 
   # List packages installed in system profile.
