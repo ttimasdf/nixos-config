@@ -1,40 +1,27 @@
-# https://nixos.wiki/wiki/flakes
 {
+  description = "KnownRabbit NixOS Config based on juspay/nixos-unified-template";
+
   inputs = {
-    # This is pointing to an unstable release.
-    # If you prefer a stable release instead, you can this to the latest number shown here: https://nixos.org/download
-    # i.e. nixos-24.11
-    # Use `nix flake update` to update the flake to the latest revision of the chosen release channel.
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
-    lanzaboote = { url = "github:nix-community/lanzaboote/v0.4.2"; inputs.nixpkgs.follows = "nixpkgs"; };
-    winapps = { url = "github:winapps-org/winapps"; inputs.nixpkgs.follows = "nixpkgs"; };
-    home-manager = { url = "github:nix-community/home-manager/release-25.05"; inputs.nixpkgs.follows = "nixpkgs"; };
+    # Principle inputs (updated by `nix run .#update`)
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nix-darwin.url = "github:LnL7/nix-darwin";
+    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
+    home-manager.url = "github:nix-community/home-manager";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    nixos-unified.url = "github:srid/nixos-unified";
 
+    # Software inputs
+    nix-index-database.url = "github:nix-community/nix-index-database";
+    nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
+    nixvim.url = "github:nix-community/nixvim";
+    nixvim.inputs.nixpkgs.follows = "nixpkgs";
+    nixvim.inputs.flake-parts.follows = "flake-parts";
+    vertex.url = "github:juspay/vertex";
   };
-  outputs = inputs@{ self, nixpkgs, nixos-hardware, lanzaboote, winapps, home-manager, ... }: {
-    # Used with `nixos-rebuild switch --flake .#<hostname>`
-    nixosConfigurations."Nokia-N97" = nixpkgs.lib.nixosSystem {
-      modules = [
-        lanzaboote.nixosModules.lanzaboote
-        nixos-hardware.nixosModules.lenovo-legion-16irx9h
-        ./configuration.nix
-        ({ lib, pkgs, ... }: {
-          # WinApps config
-          environment.systemPackages = [
-            winapps.packages."${pkgs.system}".winapps
-            winapps.packages."${pkgs.system}".winapps-launcher # optional
-          ];
-          # nixos-version --configuration-revision
-          system.configurationRevision = lib.mkOverride 100 self.rev;
-        })
-        ./nixos-label-suffix.nix
-      ];
-    };
-    homeConfigurations."u" = home-manager.lib.homeManagerConfiguration {
-      pkgs = nixpkgs.legacyPackages."${nixpkgs.system}";
-      modules = [ ./home.nix ];
-    };
-  };
+
+  # Wired using https://nixos-unified.org/autowiring.html
+  outputs = inputs:
+    inputs.nixos-unified.lib.mkFlake
+      { inherit inputs; root = ./.; };
 }
-

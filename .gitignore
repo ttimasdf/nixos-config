@@ -1,5 +1,2 @@
-# nixos-rebuild build
 result
-
-# temp directory
-/source
+.direnv
