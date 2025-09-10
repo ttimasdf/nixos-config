@@ -306,6 +306,14 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.substituters = [ "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store" ];
 
+  systemd.services."nix-daemon".serviceConfig = {
+    Environment = [
+      "http_proxy=http://127.0.0.1:28888"
+      "https_proxy=http://127.0.0.1:28888"
+      "no_proxy=localhost,127.0.0.1,192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,172.29.0.0/16,::1"
+    ];
+  };
+
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
   # accidentally delete configuration.nix.
@@ -331,4 +339,3 @@
   system.stateVersion = "25.05"; # Did you read the comment?
   # endregion nix config
 }
-
