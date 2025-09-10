@@ -205,6 +205,9 @@
   programs.vim.enable = true;
   programs.vim.defaultEditor = true;
 
+  ## Container config
+
+  # hardware.nvidia-container-toolkit.enable = true;
 
   # Enable common container config files in /etc/containers
   virtualisation.containers.enable = true;
