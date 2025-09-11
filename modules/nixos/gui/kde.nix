@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, lib, pkgs, ... }:
 {
   services.displayManager.sddm.enable = true;
   services.desktopManager.plasma6.enable = true;
@@ -8,7 +8,6 @@
     kdePackages.ksystemlog
     kdePackages.plasma-systemmonitor
     kdePackages.sddm-kcm
-    kdePackages.flatpak-kcm
 
     kdePackages.discover
     kdePackages.kcalc
@@ -17,5 +16,7 @@
     wayland-utils
     wl-clipboard
     xclip
+  ] ++ lib.optionals (config.services.flatpak.enable) [
+    kdePackages.flatpak-kcm
   ];
 }
