@@ -30,6 +30,9 @@
     siyuan
     vscode
     microsoft-edge
+    vlc
+    keepassxc
+    git-credential-keepassxc
 
     # On ubuntu, we need this less for `man home-configuration.nix`'s pager to
     # work.

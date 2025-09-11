@@ -186,9 +186,6 @@
     podman-compose # start group of containers for dev
 
     # Productivity
-    vlc
-    keepassxc
-    git-credential-keepassxc
 
     # Development
     uv
