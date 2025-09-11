@@ -6,11 +6,18 @@
         {
             "label": "nixos-rebuild",
             "type": "shell",
-            "command": "nix run",
+            "command": "printf '${input:labelSuffix}' > nixos-label-suffix.txt && nix run ; git checkout nixos-label-suffix.txt",
             "group": {
                 "kind": "build",
                 "isDefault": true
             }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "labelSuffix",
+            "type": "promptString",
+            "description": "NixOS label suffix"
         }
     ]
 }
