@@ -163,6 +163,9 @@
     DefaultEnvironment="PATH=/run/current-system/sw/bin:/run/wrappers/bin:${lib.makeBinPath [ pkgs.bash ]}"
   '';
 
+  systemd.services."user@".serviceConfig = {
+    TimeoutStopSec = "30s";
+  };
 
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
