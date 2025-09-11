@@ -4,10 +4,11 @@
 
 let
   inherit (flake) inputs;
-  inherit (inputs) self;
+  inherit (inputs) self nixos-hardware;
 in
 {
   imports = [
+    nixos-hardware.nixosModules.lenovo-legion-16irx9h
     self.nixosModules.default
     self.nixosModules.secure-boot
     self.nixosModules.gui
