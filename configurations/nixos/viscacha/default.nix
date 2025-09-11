@@ -9,6 +9,7 @@ in
 {
   imports = [
     self.nixosModules.default
+    self.nixosModules.secure-boot
     self.nixosModules.gui
     ./configuration.nix
   ];

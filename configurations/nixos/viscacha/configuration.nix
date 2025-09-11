@@ -11,12 +11,6 @@
     ];
 
   # region boot & kernel
-  boot.lanzaboote = {
-    enable = true;
-    pkiBundle = "/var/lib/sbctl";
-  };
-  # systemd-boot is configured by lanzaboote
-  boot.loader.systemd-boot.enable = lib.mkForce false;
   boot.loader.systemd-boot.rebootForBitlocker = true;
   # boot.loader.systemd-boot.configurationLimit = 5;
 
