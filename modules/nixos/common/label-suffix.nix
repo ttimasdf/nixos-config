@@ -1,21 +1,36 @@
-{ config, lib, ... }:
+# This module adds a suffix to the NixOS system label.
+# The suffix is read from the `nixos-label-suffix.txt` file in the root of the repository.
+# This is useful for differentiating between builds with the same version number.
+#
+# To use this feature:
+# 1. Create a file named `nixos-label-suffix.txt` in the root of the repository.
+# 2. Add your desired suffix to this file.
+#    For example: `my-custom-build`
+# 3. The build will fail if the file is empty or contains `changeme`.
+{ flake, config, lib, ... }:
 
 let
-  envLabelSuffix = builtins.getEnv "NIXOS_LABEL_SUFFIX";
+  inherit (flake.inputs) self;
   cfg = config.system.nixos;
+  labelSuffix = builtins.readFile (toString self + "/nixos-label-suffix.txt");
+  sanitizedSuffix = builtins.replaceStrings [ "\n" ] [ "" ] labelSuffix;
 in
 {
   config = {
     assertions = [
       {
-        assertion = envLabelSuffix != "";
-        message = "NIXOS_LABEL_SUFFIX should not be empty";
+        assertion = sanitizedSuffix != "";
+        message = "nixos-label-suffix.txt should not be empty";
+      }
+      {
+        assertion = sanitizedSuffix != "changeme";
+        message = "Please change the content of nixos-label-suffix.txt before building";
       }
     ];
-    system.configurationRevision = lib.mkDefault envLabelSuffix;
+    system.configurationRevision = lib.mkDefault sanitizedSuffix;
     system.nixos.label = lib.maybeEnv "NIXOS_LABEL" (
         lib.concatStringsSep "-" (
-          (lib.sort (x: y: x < y) cfg.tags) ++ [ (lib.maybeEnv "NIXOS_LABEL_VERSION" cfg.version) envLabelSuffix ]
+          (lib.sort (x: y: x < y) cfg.tags) ++ [ (lib.maybeEnv "NIXOS_LABEL_VERSION" cfg.version) sanitizedSuffix ]
         )
       );
   };
