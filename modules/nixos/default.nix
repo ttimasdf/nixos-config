@@ -4,6 +4,6 @@
 {
   imports = [
     flake.inputs.self.nixosModules.common
+    flake.inputs.self.nixosModules.hosts
   ];
-  # services.openssh.enable = true;
 }
