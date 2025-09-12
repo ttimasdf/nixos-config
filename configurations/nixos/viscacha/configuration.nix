@@ -177,6 +177,9 @@
     # Basic packages for editing nix config
     git
 
+    # sysadmin
+    htop
+
     # Disk Encryption
     cryptsetup
 

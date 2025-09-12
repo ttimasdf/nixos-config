@@ -12,7 +12,6 @@
     sd
     tree
     gnumake
-    htop
 
     # Nix dev
     cachix
