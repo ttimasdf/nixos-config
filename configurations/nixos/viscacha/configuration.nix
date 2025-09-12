@@ -178,7 +178,11 @@
     git
 
     # sysadmin
+    inetutils   # ftp  hostname  ifconfig  telnet  tftp  traceroute  whois
+    net-tools   # netstat
     htop
+    tcpdump
+    wireshark
 
     # Disk Encryption
     cryptsetup
