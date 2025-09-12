@@ -12,6 +12,7 @@
     sd
     tree
     gnumake
+    pv
 
     # Nix dev
     cachix
