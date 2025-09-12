@@ -33,6 +33,7 @@
     vlc
     keepassxc
     git-credential-keepassxc
+    wpsoffice-cn
 
     # On ubuntu, we need this less for `man home-configuration.nix`'s pager to
     # work.
