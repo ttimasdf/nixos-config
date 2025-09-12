@@ -13,5 +13,7 @@ in
     };
     # systemd-boot is configured by lanzaboote
     boot.loader.systemd-boot.enable = lib.mkForce false;
+
+    environment.systemPackages = with pkgs; [ sbctl ];
   };
 }

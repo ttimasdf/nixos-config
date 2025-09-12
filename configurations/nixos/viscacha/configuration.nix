@@ -177,8 +177,6 @@
     # Basic packages for editing nix config
     git
 
-    # Secure Boot
-    sbctl
     # Disk Encryption
     cryptsetup
 
