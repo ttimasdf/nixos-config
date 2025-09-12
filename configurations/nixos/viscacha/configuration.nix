@@ -206,10 +206,15 @@
   # services.openssh.enable = true;
 
   # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
+  networking.firewall = {
+    enable = true;
+    allowedTCPPorts = [
+      22000   # syncthing
+    ];
+    allowedUDPPorts = [
+      22000   # syncthing
+    ];
+  };
   # endregion software
 
   # region nix config
