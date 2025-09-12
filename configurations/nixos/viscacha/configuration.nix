@@ -213,9 +213,11 @@
     enable = true;
     allowedTCPPorts = [
       22000   # syncthing
+      53317   # localsend
     ];
     allowedUDPPorts = [
       22000   # syncthing
+      53317   # localsend
     ];
   };
   # endregion software
