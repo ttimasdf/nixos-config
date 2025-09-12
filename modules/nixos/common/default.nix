@@ -1,6 +1,6 @@
 {
   imports = [
-    ./label-suffix.nix
+    ./version-hint.nix
     ./myusers.nix
     ./nix-options.nix
   ];

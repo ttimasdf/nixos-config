@@ -24,7 +24,7 @@ The repository is organized into the following main directories:
     *   `modules/home/`: Home Manager modules.
     *   `modules/nixos/`: NixOS modules, including common settings, GUI environments, and specific features like `label-suffix`.
 *   `justfile`: Defines convenient `just` commands for common development tasks like updating the flake, linting, checking, and entering a development shell.
-*   `nixos-label-suffix.txt`: (Optional) A file to specify a custom suffix for the NixOS system label.
+*   `nixos-version-hint.txt`: (Optional) A file to specify a custom suffix for the NixOS system label.
 
 ## Development Workflow
 
@@ -57,12 +57,12 @@ The `label-suffix` feature allows you to append a custom string to your NixOS sy
 
 **How to Use:**
 
-1.  **Create the Suffix File**: In the root of this repository, create a file named `nixos-label-suffix.txt`.
-2.  **Add Your Suffix**: Open `nixos-label-suffix.txt` and add your desired suffix. For example:
+1.  **Create the Suffix File**: In the root of this repository, create a file named `nixos-version-hint.txt`.
+2.  **Add Your Suffix**: Open `nixos-version-hint.txt` and add your desired suffix. For example:
     ```
     my-custom-build
     ```
     *   **Important**: The build will fail if this file is empty or contains the string `changeme`.
-3.  **Rebuild Your System**: When you rebuild your NixOS system, the content of `nixos-label-suffix.txt` will be appended to your system's label.
+3.  **Rebuild Your System**: When you rebuild your NixOS system, the content of `nixos-version-hint.txt` will be appended to your system's label.
 
-This feature is implemented via the `modules/nixos/common/label-suffix.nix` module.
+This feature is implemented via the `modules/nixos/common/version-hint.nix` module.

@@ -1,9 +1,9 @@
 # This module adds a suffix to the NixOS system label.
-# The suffix is read from the `nixos-label-suffix.txt` file in the root of the repository.
+# The suffix is read from the `nixos-version-hint.txt` file in the root of the repository.
 # This is useful for differentiating between builds with the same version number.
 #
 # To use this feature:
-# 1. Create a file named `nixos-label-suffix.txt` in the root of the repository.
+# 1. Create a file named `nixos-version-hint.txt` in the root of the repository.
 # 2. Add your desired suffix to this file.
 #    For example: `my-custom-build`
 # 3. The build will fail if the file is empty or contains `changeme`.
@@ -12,7 +12,7 @@
 let
   inherit (flake.inputs) self;
   cfg = config.system.nixos;
-  labelSuffix = builtins.readFile (toString self + "/nixos-label-suffix.txt");
+  labelSuffix = builtins.readFile (toString self + "/nixos-version-hint.txt");
   sanitizedSuffix = builtins.replaceStrings [ "\n" ] [ "" ] labelSuffix;
 in
 {
@@ -20,11 +20,11 @@ in
     assertions = [
       {
         assertion = sanitizedSuffix != "";
-        message = "nixos-label-suffix.txt should not be empty";
+        message = "nixos-version-hint.txt should not be empty";
       }
       {
         assertion = sanitizedSuffix != "changeme";
-        message = "Please change the content of nixos-label-suffix.txt before building";
+        message = "Please change the content of nixos-version-hint.txt before building";
       }
     ];
     system.configurationRevision = lib.mkDefault self.rev or "dirty-${sanitizedSuffix}";
