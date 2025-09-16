@@ -11,6 +11,19 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "update version hint",
+            "type": "shell",
+            "command": "printf '${input:versionHint}' > nixos-version-hint.txt && git add nixos-version-hint.txt",
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "versionHint",
+            "type": "promptString",
+            "description": "NixOS version hint"
         }
     ]
 }
