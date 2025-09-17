@@ -25,6 +25,9 @@ in {
       freerdp
       hardinfo2
 
+      # dev tools
+      android-tools
+      file
 
       # Nix dev
       cachix
