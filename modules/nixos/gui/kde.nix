@@ -1,22 +1,29 @@
 { config, lib, pkgs, ... }:
-{
-  services.displayManager.sddm.enable = true;
-  services.desktopManager.plasma6.enable = true;
 
-  environment.systemPackages = with pkgs; [
-    kdePackages.partitionmanager
-    kdePackages.ksystemlog
-    kdePackages.plasma-systemmonitor
-    kdePackages.sddm-kcm
+let
+  cfg = config.rabit.modules.gui.kde;
+in {
+  options.rabit.modules.gui.kde.enable = lib.mkEnableOption "Desktop Environment: KDE";
+  config = lib.mkIf cfg.enable {
+    services.xserver.enable = true;
+    services.displayManager.sddm.enable = true;
+    services.desktopManager.plasma6.enable = true;
 
-    kdePackages.discover
-    kdePackages.kcalc
-    kdePackages.kclock
+    environment.systemPackages = with pkgs; [
+      kdePackages.partitionmanager
+      kdePackages.ksystemlog
+      kdePackages.plasma-systemmonitor
+      kdePackages.sddm-kcm
 
-    wayland-utils
-    wl-clipboard
-    xclip
-  ] ++ lib.optionals (config.services.flatpak.enable) [
-    kdePackages.flatpak-kcm
-  ];
+      kdePackages.discover
+      kdePackages.kcalc
+      kdePackages.kclock
+
+      wayland-utils
+      wl-clipboard
+      xclip
+    ] ++ lib.optionals (config.services.flatpak.enable) [
+      kdePackages.flatpak-kcm
+    ];
+  };
 }
