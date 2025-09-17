@@ -16,5 +16,9 @@ in
     email = "opensource@rabit.pw";
   };
 
+  rabit.home.packages.productivity.enable = true;
+  rabit.home.packages.unixtools.enable = true;
+  rabit.home.packages.pentest.enable = true;
+
   home.stateVersion = "24.11";
 }
