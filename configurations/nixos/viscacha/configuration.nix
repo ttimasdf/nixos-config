@@ -48,6 +48,56 @@
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
   networking.networkmanager.enable = true;  # Easiest to use and most distros use this by default.
 
+  # Define the NetworkManager dispatcher script
+  networking.networkmanager.dispatcherScripts = [
+    {
+      source = pkgs.writeText "nm-wifiap-firewall" ''
+        #!${pkgs.bash}/bin/bash
+
+        # nixos-firewall-tool depends on iptables
+        export PATH="$PATH:${pkgs.iptables}/bin"
+
+        # The UUID of your NetworkManager hotspot profile
+        HOTSPOT_UUID="95d537de-b03a-4d9a-b5f4-30e2c759e7b0"
+
+        # The interface of the connection is passed as the first argument
+        INTERFACE=$1
+
+        # The action (up/down) is passed as the second argument
+        ACTION=$2
+
+        # Logging for troubleshooting
+        logger "NetworkManager dispatcher script for hotspot firewall triggered for interface $INTERFACE with action $ACTION and connection UUID $CONNECTION_UUID"
+
+        open_ports() {
+            logger "Opening firewall ports for hotspot on $INTERFACE"
+            /run/current-system/sw/bin/nixos-firewall-tool open udp 67
+            /run/current-system/sw/bin/nixos-firewall-tool open udp 53
+            /run/current-system/sw/bin/nixos-firewall-tool open tcp 53
+        }
+
+        close_ports() {
+            logger "Closing firewall ports for hotspot on $INTERFACE"
+            /run/current-system/sw/bin/nixos-firewall-tool reset
+        }
+
+        if [ "$CONNECTION_UUID" = "$HOTSPOT_UUID" ]; then
+            case "$ACTION" in
+                up)
+                    open_ports
+                    ;;
+                down)
+                    close_ports
+                    ;;
+                *)
+                    ;;
+            esac
+        fi
+      '';
+    }
+  ];
+
+
   # Set your time zone.
   time.timeZone = "Asia/Shanghai";
 
