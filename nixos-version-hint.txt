@@ -1,1 +1,1 @@
-enable-flatpak
+add-group-wireshark
