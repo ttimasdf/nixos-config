@@ -186,7 +186,6 @@
     net-tools   # netstat
     htop
     tcpdump
-    wireshark
 
     # Disk Encryption
     cryptsetup
@@ -211,6 +210,9 @@
   #   enable = true;
   #   enableSSHSupport = true;
   # };
+  programs.wireshark.enable = true;
+  programs.wireshark.dumpcap.enable = true;
+  programs.wireshark.usbmon.enable = true;
 
   # List services that you want to enable:
 
