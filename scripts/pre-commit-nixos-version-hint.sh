@@ -8,15 +8,15 @@ fi
 
 FILE_NAME="nixos-version-hint.txt"
 
+# Get current value from the work tree
+work_tree_value=$(cat "$FILE_NAME" 2>/dev/null || echo "")
+echo -n "Current value in work tree: '$work_tree_value' "
+
 # Check if $FILE_NAME is staged for commit
-if git diff --cached --name-only | grep -q "$FILE_NAME"; then
+if [ "$work_tree_value" == "skip" ] || git diff --cached --name-only | grep -q "$FILE_NAME"; then
   echo "$FILE_NAME is staged for commit. Proceeding with commit."
 else
   echo -n "Error: $FILE_NAME was not updated. Please update it before committing. "
-
-  # Get current value from the work tree
-  work_tree_value=$(cat "$FILE_NAME" 2>/dev/null || echo "")
-  echo -n "Current value in work tree: '$work_tree_value' "
 
   # Check if the file has been modified in the work tree compared to HEAD
   if ! git diff --quiet "$FILE_NAME"; then
