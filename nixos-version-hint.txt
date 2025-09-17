@@ -1,1 +1,1 @@
-gui-package-refactor
+enable-flatpak

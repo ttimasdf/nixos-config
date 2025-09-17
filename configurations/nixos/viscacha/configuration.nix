@@ -139,6 +139,8 @@
   programs.vim.enable = true;
   programs.vim.defaultEditor = true;
 
+  services.flatpak.enable = true;
+
   ## Container config
 
   # hardware.nvidia-container-toolkit.enable = true;
