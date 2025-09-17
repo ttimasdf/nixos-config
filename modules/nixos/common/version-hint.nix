@@ -27,7 +27,7 @@ in
         message = "Please change the content of nixos-version-hint.txt before building";
       }
     ];
-    system.configurationRevision = lib.mkDefault self.rev or "dirty-${sanitizedSuffix}";
+    system.configurationRevision = self.rev or self.dirtyRev;
     system.nixos.label = lib.maybeEnv "NIXOS_LABEL" (
         lib.concatStringsSep "-" (
           (lib.sort (x: y: x < y) cfg.tags) ++ [ (lib.maybeEnv "NIXOS_LABEL_VERSION" cfg.version) sanitizedSuffix ]
