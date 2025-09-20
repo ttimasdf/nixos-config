@@ -236,6 +236,7 @@
     net-tools   # netstat
     htop
     tcpdump
+    dig.dnsutils
 
     # Disk Encryption
     cryptsetup
