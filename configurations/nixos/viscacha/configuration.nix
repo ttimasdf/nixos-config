@@ -2,8 +2,11 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ config, lib, pkgs, ... }:
+{ flake, config, lib, pkgs, ... }:
 
+let
+  inherit (flake.inputs) self;
+in
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -283,6 +286,10 @@
       53317   # localsend
     ];
   };
+
+  security.pki.certificateFiles = [
+    (toString self + "/files/cacerts/mitmca.pem")
+  ];
   # endregion software
 
   # region nix config
