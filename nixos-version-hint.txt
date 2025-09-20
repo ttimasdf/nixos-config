@@ -1,1 +1,1 @@
-add-packages
+add-wireshark-qt
