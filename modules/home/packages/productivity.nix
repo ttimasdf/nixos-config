@@ -12,7 +12,6 @@ in {
       # Productivity apps
       cherry-studio
       fsearch
-      clash-verge-rev
       syncthing
       syncthingtray
       siyuan
@@ -26,6 +25,11 @@ in {
       aria2
       typora
       pandoc
+      flameshot
+
+      clash-verge-rev
+      daed
+      v2rayn
     ];
 
     programs.firefox.enable = true;

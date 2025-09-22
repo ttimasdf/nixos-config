@@ -19,11 +19,15 @@ in {
       gnumake
       pv
       killall
+      ascii
 
       # SysAdmin
       kdiff3
       freerdp
       hardinfo2
+      openssl
+      proxychains-ng
+      sshpass
 
       # dev tools
       android-tools
