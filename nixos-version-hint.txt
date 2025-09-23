@@ -1,1 +1,1 @@
-add-die
+remove-module-default
