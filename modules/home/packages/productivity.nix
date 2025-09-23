@@ -15,6 +15,7 @@ in {
       syncthing
       syncthingtray
       siyuan
+      obsidian
       vscode
       microsoft-edge
       vlc
