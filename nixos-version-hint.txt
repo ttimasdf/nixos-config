@@ -1,1 +1,1 @@
-pkg-obsidian
+pkg-dbeaver
