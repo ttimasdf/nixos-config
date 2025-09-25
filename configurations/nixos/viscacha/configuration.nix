@@ -169,17 +169,6 @@ in
   # services.libinput.enable = true;
   # endregion UI/UX
 
-  # region user
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.u = {
-    isNormalUser = true;
-    extraGroups = [ "wheel" "wireshark" ]; # Enable ‘sudo’ for the user.
-    packages = with pkgs; [
-      tree
-    ];
-  };
-  # endregion user
-
   # region software
   nixpkgs.config.allowUnfree = true;
 
