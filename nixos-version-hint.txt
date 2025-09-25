@@ -1,1 +1,1 @@
-users-module
+fcitx-addons-rime
