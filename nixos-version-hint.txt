@@ -1,1 +1,1 @@
-pkg-dbeaver
+bash-cfg

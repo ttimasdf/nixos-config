@@ -4,6 +4,15 @@
     # on macOS, you probably don't need this
     bash = {
       enable = true;
+
+      historyFileSize = 100000;
+      historySize = 50000;
+      historyControl = [ "ignoredups" "erasedups" ];
+      historyIgnore = [
+        "ls"
+        "cd"
+        "exit"
+      ];
       initExtra = ''
         # Custom bash profile goes here
       '';
