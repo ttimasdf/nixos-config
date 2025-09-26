@@ -114,6 +114,7 @@ in
   # region UI/UX
   rabit.modules.gui.kde.enable = true;
   rabit.modules.gui.l10n-chinese.enable = true;
+  rabit.modules.gui.espanso-wayland-fix.enable = true;
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
   console = {

@@ -1,1 +1,1 @@
-flake-update
+pkg-espanso
