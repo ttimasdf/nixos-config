@@ -28,6 +28,7 @@ in {
       openssl
       proxychains-ng
       sshpass
+      ncdu
 
       # dev tools
       android-tools

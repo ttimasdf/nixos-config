@@ -27,6 +27,7 @@ in {
       typora
       pandoc
       flameshot
+      asciinema_3
 
       clash-verge-rev
       daed

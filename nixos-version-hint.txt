@@ -1,1 +1,1 @@
-fcitx-addons-rime
+pkg-ncdu-asciinema
