@@ -6,7 +6,7 @@
         {
             "label": "nixos-rebuild",
             "type": "shell",
-            "command": "branch=\"$(git rev-parse --abbrev-ref HEAD)\"; sudo git -C /etc/nixos reset --hard && sudo git -C /etc/nixos checkout \"$branch\" && sudo git -C /etc/nixos pull --rebase && nixos-rebuild switch --show-trace --verbose --sudo && cp /etc/nixos/*.lock .",
+            "command": "branch=\"$(git rev-parse --abbrev-ref HEAD)\"; sudo git -C /etc/nixos reset --hard && sudo git -C /etc/nixos fetch --all && sudo git -C /etc/nixos checkout \"$branch\" && sudo git -C /etc/nixos pull --rebase && nixos-rebuild switch --show-trace --verbose --sudo && cp /etc/nixos/*.lock .",
             "group": {
                 "kind": "build",
                 "isDefault": true
