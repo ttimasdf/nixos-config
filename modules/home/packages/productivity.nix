@@ -21,7 +21,7 @@ in {
       vlc
       keepassxc
       git-credential-keepassxc
-      wpsoffice-cn
+      wpsoffice-cn-fixup
       localsend
       aria2
       typora
