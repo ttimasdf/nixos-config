@@ -10,7 +10,6 @@ in {
     # Search for packages here: https://search.nixos.org/packages
     home.packages = with pkgs; [
       # Productivity apps
-      cherry-studio
       fsearch
       syncthing
       syncthingtray

@@ -1,1 +1,1 @@
-wps-version-pin
+pkg-remove-cherry-studio
