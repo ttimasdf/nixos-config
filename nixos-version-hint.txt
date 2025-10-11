@@ -1,1 +1,1 @@
-flake-nur
+gui-ms-fonts-nur

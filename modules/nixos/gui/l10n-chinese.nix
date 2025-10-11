@@ -22,9 +22,9 @@ in {
         #mplus-outline-fonts.githubRelease  # Japanese font
 
         # Microsoft Fonts
-        corefonts
-        vista-fonts
-        vista-fonts-chs
+        # https://github.com/nix-community/nur-combined/blob/90a344dfa259d85ae0cd3d11398384d1bb5c1d16/repos/hexadecimalDinosaur/pkgs/ttf-ms-win11/lists.nix#L85-L90
+        nur.repos.hexadecimalDinosaur.ttf-ms-win11.default
+        nur.repos.hexadecimalDinosaur.ttf-ms-win11.zh-cn
       ];
 
       # enable /run/current-system/sw/share/X11/fonts
