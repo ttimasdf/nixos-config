@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [ ! -d .git ]; then
+  echo "Run this script from project directory"
+  exit 1
+fi
+
 # Create .git/hooks directory if it doesn't exist
 mkdir -p .git/hooks
 cd .git/hooks
