@@ -30,9 +30,22 @@ The repository is organized into the following main directories:
 
 This repository uses `just` for task automation. Ensure you have `just` installed (`nix-shell -p just` or `cargo install just`).
 
+### NixOS Commands
+
 *   **Update Flake Inputs**:
     ```bash
     just update
+    ```
+*   **Rebuild NixOS Configuration**:
+    ```bash
+    just rebuild
+    ```
+
+### Development Commands
+
+*   **Install Git pre-commit hooks**:
+    ```bash
+    just pre-commit-hook
     ```
 *   **Format Nix Files**:
     ```bash
@@ -42,27 +55,58 @@ This repository uses `just` for task automation. Ensure you have `just` installe
     ```bash
     just check
     ```
+*   **Manage Version Hint File Before Git Commit**:
+    ```bash
+    # Set custom version hint
+    just version-hint "my-custom-build"
+
+    # Skip version hint check
+    just version-hint skip
+
+    # Reset version hint to last committed value
+    just version-hint reset
+    ```
+
+### Obsolete commands
+
+*   **Activate Configuration (Obsolete)**:
+    ```bash
+    just run
+    ```
+    > **Note**: This command is obsolete and will prompt for confirmation. Use `just rebuild` instead.
+
 *   **Enter Development Shell**:
     ```bash
     just dev
     ```
-*   **Activate Configuration**:
-    ```bash
-    just run
-    ```
+    > **Note**: dev shell is automatically activated by direnv, so this command is not
+    useful in any way.
 
-### Label Suffix Feature
+### Version Hint Feature
 
-The `label-suffix` feature allows you to append a custom string to your NixOS system label, which is useful for distinguishing between different builds or versions.
+The version hint feature allows you to append a custom string to your NixOS system label, which is useful for distinguishing between different builds or versions.
 
 **How to Use:**
 
-1.  **Create the Suffix File**: In the root of this repository, create a file named `nixos-version-hint.txt`.
-2.  **Add Your Suffix**: Open `nixos-version-hint.txt` and add your desired suffix. For example:
+1.  **Create the Version Hint File**: In the root of this repository, create a file named `nixos-version-hint.txt`.
+2.  **Add Your Version Hint**: Open `nixos-version-hint.txt` and add your desired version hint. For example:
     ```
     my-custom-build
     ```
     *   **Important**: The build will fail if this file is empty or contains the string `changeme`.
 3.  **Rebuild Your System**: When you rebuild your NixOS system, the content of `nixos-version-hint.txt` will be appended to your system's label.
 
-This feature is implemented via the `modules/nixos/common/version-hint.nix` module.
+**Pre-commit Hook Integration:**
+
+A pre-commit hook automatically validates version hint updates:
+- When committing `.nix` files, the hook ensures `nixos-version-hint.txt` is also staged for commit
+- The hook displays current work tree value and last committed value for reference
+
+**Skip and Reset Functionality:**
+
+- **Skip Version Hint Check**: Create a `.nixos-version-hint-skip` file to bypass version hint validation for the current commit
+  > **Warning**: The skip file remains valid for the current worktree until manually deleted. Remember to delete it after use to re-enable version hint validation.
+- **Reset Version Hint**: Use `just version-hint reset` to restore the version hint to the last committed value
+- **Skip via Command**: Use `just version-hint skip` to create the skip file automatically
+
+This feature is implemented via the `modules/nixos/common/version-hint.nix` module and validated by `scripts/pre-commit-nixos-version-hint.sh`.
