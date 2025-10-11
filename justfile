@@ -36,19 +36,24 @@ version_hint_file := "nixos-version-hint.txt"
 version_hint_skip_file := ".nixos-version-hint-skip"
 
 
-# Update version hint file, set content=`skip` to skip check
+# Update version hint file, set `skip` to skip check, set `reset` to restore last value
 [group('dev')]
 version-hint content:
   #!/usr/bin/env bash
   set -euxo pipefail
 
-  if [ '{{content}}' != "skip" ]; then
+  if [ '{{content}}' == "skip" ]; then
+    git restore --staged '{{version_hint_file}}'
+    git restore '{{version_hint_file}}'
+    touch '{{version_hint_skip_file}}'
+  elif [ '{{content}}' == "reset" ]; then
+    git restore --staged '{{version_hint_file}}'
+    git restore '{{version_hint_file}}'
+    rm -f '{{version_hint_skip_file}}'
+  else
     rm -f '{{version_hint_skip_file}}'
     printf '{{content}}' > '{{version_hint_file}}'
     git add '{{version_hint_file}}'
-  else
-    git checkout -- '{{version_hint_file}}'
-    touch '{{version_hint_skip_file}}'
   fi
 
 branch := "$(git rev-parse --abbrev-ref HEAD)"
