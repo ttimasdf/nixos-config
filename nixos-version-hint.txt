@@ -1,1 +1,1 @@
-gui-ms-fonts-nur
+gui-font-fangsong-dengxian

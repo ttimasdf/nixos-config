@@ -25,6 +25,7 @@ in {
         # https://github.com/nix-community/nur-combined/blob/90a344dfa259d85ae0cd3d11398384d1bb5c1d16/repos/hexadecimalDinosaur/pkgs/ttf-ms-win11/lists.nix#L85-L90
         nur.repos.hexadecimalDinosaur.ttf-ms-win11.default
         nur.repos.hexadecimalDinosaur.ttf-ms-win11.zh-cn
+        nur.repos.chillcicada.ttf-ms-win10-sc-sup
       ];
 
       # enable /run/current-system/sw/share/X11/fonts
@@ -37,6 +38,20 @@ in {
           sansSerif = [ "Liberation Sans" "Sarasa UI SC" "Noto Sans CJK SC" ];
           monospace = [ "FiraCode Nerd Font" "Sarasa Mono SC" "Noto Sans Mono CJK SC" ];
         };
+
+        localConf = ''
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE fontconfig SYSTEM "urn:fontconfig:fonts.dtd">
+          <fontconfig>
+            <alias>
+              <family>FangSong_GB2312</family>
+              <prefer>
+                <family>Liberation Serif</family>
+                <family>Noto Serif CJK SC</family>
+              </prefer>
+            </alias>
+          </fontconfig>
+        '';
       };
     };
 
