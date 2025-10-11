@@ -9,8 +9,6 @@ in {
     #
     # Search for packages here: https://search.nixos.org/packages
     home.packages = with pkgs; [
-      omnix
-
       # Unix tools
       ripgrep # Better `grep`
       fd
@@ -35,6 +33,8 @@ in {
       file
 
       # Nix dev
+      omnix
+      just
       cachix
       nil # Nix language server
       nix-info

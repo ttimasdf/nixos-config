@@ -1,1 +1,1 @@
-pkg-remove-cherry-studio
+pkg-just
