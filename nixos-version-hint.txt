@@ -1,1 +1,1 @@
-pkg-just
+gui-ms-fonts

@@ -20,6 +20,11 @@ in {
         nerd-fonts.fira-code
         fira-code-symbols
         #mplus-outline-fonts.githubRelease  # Japanese font
+
+        # Microsoft Fonts
+        corefonts
+        vista-fonts
+        vista-fonts-chs
       ];
 
       # enable /run/current-system/sw/share/X11/fonts
