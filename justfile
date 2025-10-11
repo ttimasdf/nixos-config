@@ -27,12 +27,28 @@ check:
 dev:
   nix develop
 
-# Update version hint file
+# Install pre-commit hook
+[group('dev')]
+pre-commit-hook:
+  sh ./scripts/install-pre-commit-hook.sh
+
+version_hint_file := "nixos-version-hint.txt"
+version_hint_skip_file := ".nixos-version-hint-skip"
+
+
+# Update version hint file, set content=`skip` to skip check
 [group('dev')]
 version-hint content:
-  printf '{{content}}' > nixos-version-hint.txt
-  if [ '{{content}}' != "skip" ]; then \
-    git add nixos-version-hint.txt; \
+  #!/usr/bin/env bash
+  set -euxo pipefail
+
+  if [ '{{content}}' != "skip" ]; then
+    rm -f '{{version_hint_skip_file}}'
+    printf '{{content}}' > '{{version_hint_file}}'
+    git add '{{version_hint_file}}'
+  else
+    git checkout -- '{{version_hint_file}}'
+    touch '{{version_hint_skip_file}}'
   fi
 
 branch := "$(git rev-parse --abbrev-ref HEAD)"

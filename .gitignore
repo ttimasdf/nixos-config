@@ -1,3 +1,4 @@
 result
 .direnv
+.nixos-version-hint-skip
 /source
