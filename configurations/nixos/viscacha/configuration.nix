@@ -127,10 +127,16 @@ in
   services.xserver.xkb.layout = "us";
   # services.xserver.xkb.options = "eurosign:e,caps:escape";
 
+  # Provided by:
+  # https://github.com/NixOS/nixos-hardware/blob/9ed85f8afebf2b7478f25db0a98d0e782c0ed903/common/gpu/nvidia/prime.nix#L7
+  hardware.nvidia.primeBatterySaverSpecialisation = false;
   hardware.nvidia.prime = {
+    # Use NVIDIA GPU for rendering
+    sync.enable = false;
+    # Use Intel GPU for rendering
     reverseSync.enable = true;
-    # Enable if using an external GPU
-    allowExternalGpu = true;
+    # Enable if using an external GPU via Thunderbolt/USB4 enclosure
+    # allowExternalGpu = true;
   };
 
   hardware.bluetooth = {
