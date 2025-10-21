@@ -27,6 +27,7 @@ in {
       pandoc
       flameshot
       asciinema_3
+      tail-tray
 
       clash-verge-rev
       daed

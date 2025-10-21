@@ -201,6 +201,9 @@ in
 
   services.flatpak.enable = true;
 
+  # Tailscale
+  services.tailscale.enable = true;
+
   ## Container config
 
   # hardware.nvidia-container-toolkit.enable = true;
