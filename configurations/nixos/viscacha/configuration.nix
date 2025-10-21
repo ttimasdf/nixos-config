@@ -205,6 +205,11 @@ in
   programs.vim.enable = true;
   programs.vim.defaultEditor = true;
 
+  programs.clash-verge.enable = true;
+  programs.clash-verge.autoStart = true;
+  programs.clash-verge.serviceMode = true;
+  programs.clash-verge.tunMode = true;
+
   services.flatpak.enable = true;
 
   # Tailscale

@@ -29,7 +29,6 @@ in {
       asciinema_3
       tail-tray
 
-      clash-verge-rev
       daed
       v2rayn
     ];
