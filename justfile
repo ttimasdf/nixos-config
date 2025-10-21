@@ -68,6 +68,33 @@ rebuild:
   nixos-rebuild switch --show-trace --verbose --sudo
   cp /etc/nixos/*.lock .
 
+# list generations
+[group('NixOS')]
+list-generations profile="system":
+  [ "{{profile}}" == "system" ] && nixos-rebuild list-generations || nix-env --list-generations
+
+
+# trim-generations <keep-generations> <keep-days> <profile>
+[group('NixOS')]
+trim-generations generations="3" days="3" profile="system":
+  [ "{{profile}}" == "system" ] && sudo=sudo; \
+  $sudo bash scripts/nixos-trim-generations.sh {{generations}} {{days}} {{profile}}
+
+# interactively remove generations
+[group('NixOS')]
+remove-generation:
+  nixos-rebuild list-generations ; \
+  while read -p 'remove generation:' n; do \
+    sudo nix-env -p /nix/var/nix/profiles/system --delete-generations "$n"; \
+    nixos-rebuild list-generations; \
+  done
+
+# cleanup nix store
+[group('NixOS')]
+clean:
+  nix-store --gc
+  sudo nix store optimise
+
 # [obsolete] Activate the configuration (similar to rebuild)
 [group('NixOS')]
 [confirm('This command is obsolete, please use `rebuild` command instead. are you really sure to run this?')]
