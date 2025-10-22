@@ -278,6 +278,12 @@ in
     uv
   ];
 
+  # Fix uv python ssl.SSLCertVerificationError
+  environment.etc.certfile = {
+    source = "/etc/ssl/certs/ca-bundle.crt";
+    target = "ssl/cert.pem";
+  };
+
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
 
