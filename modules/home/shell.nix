@@ -15,6 +15,10 @@
       ];
       initExtra = ''
         # Custom bash profile goes here
+        fs_root=$(df --output=target "$PWD" | tail -n 1)
+        if [[ "$fs_root" != "/" ]]; then
+          export UV_CACHE_DIR="$fs_root/.cache/uv"
+        fi
       '';
     };
 
