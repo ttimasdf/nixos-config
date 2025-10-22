@@ -1,5 +1,5 @@
 {
-  description = "KnownRabbit NixOS Config based on juspay/nixos-unified-template";
+  description = "KnownRabbit's NixOS Config";
 
   inputs = {
     # Principle inputs (updated by `nix run .#update`)
