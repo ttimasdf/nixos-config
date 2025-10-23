@@ -194,8 +194,6 @@ in
   # endregion UI/UX
 
   # region software
-  nixpkgs.config.allowUnfree = true;
-
   programs.nix-ld.enable = true;
   programs.nix-ld.libraries = with pkgs; [
     # Add any missing dynamic libraries for unpackaged programs
