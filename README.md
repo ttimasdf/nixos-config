@@ -156,3 +156,97 @@ This configuration uses a streamlined approach to manage overlays:
     ```
 
 This automatic discovery and flexible definition make it easy to add and manage custom package overlays in a modular and organized way.
+
+## Writing a New Package
+
+This repository allows for easy integration of custom Nix packages. All `.nix` files and directories placed in the `packages/` directory are automatically discovered and transformed into a nested attribute set of derivations using `lib.packagesFromDirectoryRecursive`. This means you don't typically need to manually add new packages from `packages/` to your `flake.nix`.
+
+### Example Directory Structure
+
+Consider the following structure within `packages/`:
+
+```
+packages/
+├── a.nix
+├── b.nix
+├── c
+│  ├── my-extra-feature.patch
+│  ├── package.nix
+│  └── support-definitions.nix
+└── my-namespace
+   ├── d.nix
+   ├── e.nix
+   └── f
+      └── package.nix
+```
+
+### Accessing Packages from the Example Structure
+
+Based on the `packagesFromDirectoryRecursive` mechanism, these packages would be accessible as follows:
+
+*   `pkgs.a` (from `packages/a.nix`)
+*   `pkgs.b` (from `packages/b.nix`)
+*   `pkgs.c` (from `packages/c/package.nix`)
+*   `pkgs.my-namespace.d` (from `packages/my-namespace/d.nix`)
+*   `pkgs.my-namespace.e` (from `packages/my-namespace/e.nix`)
+*   `pkgs.my-namespace.f` (from `packages/my-namespace/f/package.nix`)
+
+To add a new package:
+
+1.  **Create a New Directory**: Inside `packages/`, create a new directory for your package. For example, `packages/my-new-package/`.
+2.  **Create `package.nix` or other `.nix` files**: Inside your new package directory, create a `package.nix` file (for a single package definition) or multiple `.nix` files (for multiple packages within a namespace).
+
+    **Example: Single package in `package.nix`**
+    ```nix
+    # packages/my-new-package/package.nix
+    { lib, stdenv, fetchurl }:
+
+    stdenv.mkDerivation {
+      pname = "my-new-package";
+      version = "1.0.0";
+
+      src = fetchurl {
+        url = "https://example.com/my-new-package-1.0.0.tar.gz";
+        hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Replace with actual hash
+      };
+
+      # Add build and install phases as needed
+      installPhase = ''
+        mkdir -p $out/bin
+        echo "Hello from my new package!" > $out/bin/my-new-package
+        chmod +x $out/bin/my-new-package
+      '';
+
+      meta = {
+        description = "A simple example package";
+        homepage = "https://example.com/my-new-package";
+        license = lib.licenses.mit;
+        platforms = lib.platforms.linux;
+      };
+    }
+    ```
+
+    **Example: Multiple packages within a directory (creating a namespace)**
+    If your directory contains multiple `.nix` files or subdirectories with `package.nix`, they will be exposed under a namespace corresponding to the directory name.
+
+    ```
+    packages/my-namespace/
+    ├── my-app.nix
+    └── my-tool/
+        └── package.nix
+    ```
+    In this case, `my-app.nix` would be accessible as `pkgs.my-namespace.my-app`, and `my-tool/package.nix` as `pkgs.my-namespace.my-tool`.
+
+3.  **Using your new package**:
+    You can then use your new package in your NixOS configuration or Home Manager.
+
+    - If your package directory (`packages/your-package-name/`) contains a single `package.nix` file, it will typically be accessible directly as `pkgs.your-package-name`.
+    - If your package directory returns more than one package (e.g., it contains multiple `.nix` files or subdirectories defining packages), you will need to use the directory name as a namespace. For example, if `packages/my-namespace/` contains `my-app.nix`, you would refer to it as `pkgs.my-namespace.my-app`.
+
+    ```nix
+    # In configurations/nixos/viscacha/configuration.nix
+    environment.systemPackages = with pkgs; [
+      my-new-package # For a single package defined in packages/my-new-package/package.nix
+      my-namespace.my-app # For a package within a namespace
+    ];
+    ```
