@@ -112,12 +112,12 @@ let
         runHook preInstall
 
         # Create the main installation directory
-        mkdir -p $out/opt/binaryninja
+        mkdir -p $out/opt/${pname}
         # Copy all extracted contents into it
-        cp -r . $out/opt/binaryninja
+        cp -r . $out/opt/${pname}
 
         # Clean up redundant shared libraries to reduce closure size and avoid conflicts
-        find $out/opt/binaryninja \
+        find $out/opt/${pname} \
           -type f \
           -name '*.so.*' \
           -not -name 'libbinaryninjacore.so.*' \
@@ -129,9 +129,9 @@ let
 
         # Create bin directory and wrapper
         mkdir -p $out/bin
-        makeWrapper $out/opt/binaryninja/binaryninja $out/bin/${pname} \
+        makeWrapper $out/opt/${pname}/binaryninja $out/bin/${pname} \
           --prefix PYTHONPATH : "$program_PYTHONPATH" \
-          --prefix LD_LIBRARY_PATH : "$out/opt/binaryninja" \
+          --prefix LD_LIBRARY_PATH : "$out/opt/${pname}" \
           "''${qtWrapperArgs[@]}" # Pass Qt specific arguments if any
 
         # Install icon
@@ -151,8 +151,8 @@ let
         ln -s "${lib.getLib libxml2}/lib/libxml2.so" "$out/lib/libxml2.so.2"
 
         # Patch liblldb.so if it exists and links against libxml2.so.2
-        if [ -f "$out/opt/binaryninja/plugins/lldb/lib/liblldb.so" ]; then
-          patchelf "$out/opt/binaryninja/plugins/lldb/lib/liblldb.so" \
+        if [ -f "$out/opt/${pname}/plugins/lldb/lib/liblldb.so" ]; then
+          patchelf "$out/opt/${pname}/plugins/lldb/lib/liblldb.so" \
             --replace-needed libxml2.so.2 libxml2.so
         fi
       '';
@@ -161,10 +161,10 @@ let
 
       desktopItems = [
         (makeDesktopItem {
-          name = "Binary Ninja (''${lib.toSentenceCase edition})";
+          name = "Binary Ninja ${lib.toSentenceCase edition}" + (if isDevVersion then " (Dev Channel)" else "");
           exec = pname;
           icon = "binaryninja";
-          desktopName = "Binary Ninja (''${lib.toSentenceCase edition})";
+          desktopName = "Binary Ninja ${lib.toSentenceCase edition}" + (if isDevVersion then " (Dev Channel)" else "");
           mimeTypes = [
             "application/x-binaryninja"
             "x-scheme-handler/binaryninja"
