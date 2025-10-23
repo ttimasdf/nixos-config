@@ -20,6 +20,7 @@ lint:
 # Check nix flake
 [group('dev')]
 check:
+  git add .
   nix flake check
 
 # Manually enter dev shell
