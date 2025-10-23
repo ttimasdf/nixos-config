@@ -56,7 +56,6 @@ let
       src = if binaryNinjaSource != null then binaryNinjaSource else defaultSource;
 
       nativeBuildInputs = [
-        unzip
         autoPatchelfHook
         makeWrapper
         copyDesktopItems
@@ -65,6 +64,7 @@ let
       ];
 
       buildInputs = [
+        unzip
         dbus
         fontconfig
         freetype
@@ -85,7 +85,7 @@ let
         libxml2.out
       ];
 
-      pythonDeps = [ python3.pkgs.pip ]; # Example, add more if needed for specific plugins
+      pythonPath = with python3.pkgs; [ pip ];
       appendRunpaths = [ "${lib.getLib python3}/lib" ];
 
       unpackPhase = ''
@@ -129,6 +129,7 @@ let
 
         # Create bin directory and wrapper
         mkdir -p $out/bin
+        buildPythonPath "$pythonPath"
         makeWrapper $out/opt/${pname}/binaryninja $out/bin/${pname} \
           --prefix PYTHONPATH : "$program_PYTHONPATH" \
           --prefix LD_LIBRARY_PATH : "$out/opt/${pname}" \
