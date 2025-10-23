@@ -19,9 +19,9 @@ lint:
 
 # Check nix flake
 [group('dev')]
-check:
+check nix-args='':
   git add .
-  nix flake check
+  nix flake check {{nix-args}}
 
 # Manually enter dev shell
 [group('dev')]
