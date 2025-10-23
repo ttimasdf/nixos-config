@@ -1,1 +1,1 @@
-pkg-binaryninja
+pkg-binaryninja-dev
