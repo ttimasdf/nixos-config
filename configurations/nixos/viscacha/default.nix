@@ -13,7 +13,6 @@ in
     self.nixosModules.hosts
     self.nixosModules.secure-boot
     self.nixosModules.gui
-    self.nixosModules.packages
     self.nixosModules.winapps
     ./configuration.nix
   ];
