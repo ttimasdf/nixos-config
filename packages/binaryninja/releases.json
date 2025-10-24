@@ -1,9 +1,6 @@
 {
   "commercial": {
-    "5.1.8005": "sha256-hZtbsEad7Lkb22D1nNB2S4bq3972yDkXkkNoSbZKAE8=",
-    "5.2.8089-dev": "sha256-Ial9y3e095H7p91tpRyo+XQ7+suMswpHdGQeUBzv5ro="
-  },
-  "free": {
-    "5.1.8005": "sha256-vXR0TXcQwEoYz1qiGO3TYajUt+QR9wfV0es6yTZvYLs="
+    "5.1.8005": "sha256-Z+5GB7V13rlzFcBrx0SpqRZBOLHIxlXLH8r7NfL4vWQ=",
+    "5.2.8089-dev": "sha256-8OLI2D84MyzG9qkzArwIXHk8Jf0LKBegOzSzCKvazXc="
   }
 }

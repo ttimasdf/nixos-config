@@ -32,21 +32,21 @@ passthru attribute. For example:
 To use this package, you need to add Binary Ninja files to the Nix store and populate the `releases.json` file with their SHA256 hashes.
 
 ### Manual Method
-1. Download Binary Ninja files (e.g., `binaryninja_linux_stable_commercial.5.1.8005.zip`)
+1. Download Binary Ninja files (e.g., `binaryninja_linux_stable_commercial.5.1.8005.7z`)
 2. Add each file to the Nix store and get its hash:
    ```bash
-   nix-prefetch-url file:///path/to/binaryninja_linux_stable_commercial.5.1.8005.zip
+   nix-prefetch-url file:///path/to/binaryninja_linux_stable_commercial.5.1.8005.7z
    ```
 3. Add the hash to `releases.json` under the appropriate edition and version
 
 ### Automated Method
-Use the provided `nix-add.sh` script to automatically process Binary Ninja files:
+Use the provided `nix-store-add.sh` script to automatically process Binary Ninja files:
 ```bash
-# Process all binaryninja_linux*.zip files in current and subdirectories
-./nix-add.sh
+# Process all binaryninja_linux*.7z files in current and subdirectories
+./nix-store-add.sh
 
 # Process specific files
-./nix-add.sh binaryninja_linux_stable_commercial.5.1.8005.zip binaryninja_linux_dev_personal.5.2.8089-dev.zip
+./nix-store-add.sh binaryninja_linux_stable_commercial.5.1.8005.7z binaryninja_linux_dev_personal.5.2.8089-dev.7z
 ```
 
 The script will:

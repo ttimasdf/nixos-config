@@ -7,7 +7,7 @@
   makeWrapper,
   makeDesktopItem,
   fetchurl,
-  unzip,
+  p7zip,
   dbus,
   fontconfig,
   freetype,
@@ -35,7 +35,7 @@ let
     let
       isDevVersion = lib.hasSuffix "-dev" version;
       fileNamePrefix = if isDevVersion then "" else "_stable";
-      fileName = "binaryninja_linux${fileNamePrefix}_${edition}.${version}.zip";
+      fileName = "binaryninja_linux${fileNamePrefix}_${edition}.${version}.7z";
       pname = "binaryninja-${edition}" + (if isDevVersion then "-dev" else "");
 
       defaultSource = requireFile {
@@ -64,7 +64,7 @@ let
       ];
 
       buildInputs = [
-        unzip
+        p7zip
         dbus
         fontconfig
         freetype
@@ -90,9 +90,9 @@ let
 
       unpackPhase = ''
         runHook preUnpack
-        unzip $src
+        7z x $src
 
-        # The zip file should contain a single directory with the application contents.
+        # The 7z file should contain a single directory with the application contents.
         # We verify this and move the contents to the top level of the build directory.
         local dir_path
         dir_path=$(find . -maxdepth 1 -mindepth 1 -type d)
