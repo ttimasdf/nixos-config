@@ -2,11 +2,11 @@
   lib,
   stdenv,
   requireFile,
-  autoPatchelfHook,
-  copyDesktopItems,
-  makeWrapper,
-  makeDesktopItem,
   fetchurl,
+  autoPatchelfHook,
+  makeWrapper,
+  copyDesktopItems,
+  makeDesktopItem,
   p7zip,
   dbus,
   fontconfig,
@@ -72,6 +72,7 @@ let
         libGL
         libGLU
         libxkbcommon
+        libxml2
         wayland
         xorg.libXi
         xorg.libXrender
@@ -82,7 +83,6 @@ let
         kdePackages.qtbase
         kdePackages.qtdeclarative
         kdePackages.qtwayland
-        libxml2.out
       ];
 
       pythonPath = with python3.pkgs; [ pip ];
@@ -90,20 +90,29 @@ let
 
       unpackPhase = ''
         runHook preUnpack
-        7z x $src
+
+        # Create a temporary directory for unpacking
+        local tmp_dir
+        tmp_dir=$(mktemp -d)
+
+        # Unpack the 7z file into the temporary directory
+        7z x $src -o"$tmp_dir"
 
         # The 7z file should contain a single directory with the application contents.
         # We verify this and move the contents to the top level of the build directory.
         local dir_path
-        dir_path=$(find . -maxdepth 1 -mindepth 1 -type d)
+        dir_path=$(find "$tmp_dir" -maxdepth 1 -mindepth 1 -type d)
 
         if [ -z "$dir_path" ] || [ "$(echo "$dir_path" | wc -l)" -ne 1 ]; then
           echo "error: The archive must contain exactly one directory."
           exit 1
         fi
 
+        # Move contents from the found directory to the current build directory
         mv "$dir_path"/* .
-        rmdir "$dir_path"
+
+        # Clean up the temporary directory
+        rm -rf "$tmp_dir"
 
         runHook postUnpack
       '';
