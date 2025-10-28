@@ -9,15 +9,11 @@ let
   # Import each file and apply the necessary arguments
   importOverlay = path:
     let
-      imported = import path;
+      imported_module = import path;
     in
     # The overlay file is a function that takes flake inputs
     # and returns the final overlay function.
-    if lib.isFunction imported then
-      imported { inherit flake lib config; }
-    else
-      # Support for raw overlay files that don't need flake inputs
-      (_final: _prev: imported);
+      imported_module { inherit flake lib config; };
 
   overlays = (map importOverlay overlayFiles);
 
