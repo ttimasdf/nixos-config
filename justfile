@@ -59,9 +59,15 @@ version-hint content:
 
 branch := "$(git rev-parse --abbrev-ref HEAD)"
 
-# Rebuild NixOS configuration
+# Build and activate the new configuration, and make it the boot default
 [group('NixOS')]
-rebuild:
+switch:
+  nh os switch
+
+# Rebuild NixOS configuration with nixos-rebuild *(deprecated)*
+[group('NixOS')]
+[confirm('This command is obsolete, please use `switch` command instead. are you really sure to run this?')]
+rebuild-with-nixos-rebuild:
   sudo git -C /etc/nixos reset --hard
   sudo git -C /etc/nixos fetch --all
   sudo git -C /etc/nixos checkout "{{branch}}"
@@ -75,7 +81,8 @@ list-generations profile="system":
   [ "{{profile}}" == "system" ] && nixos-rebuild list-generations || nix-env --list-generations
 
 
-# trim-generations <keep-generations> <keep-days> <profile>
+# trim-generations *(deprecated)*
+[confirm('This command is obsolete, please use `clean` command instead. are you really sure to run this?')]
 [group('NixOS')]
 trim-generations generations="3" days="3" profile="system":
   [ "{{profile}}" == "system" ] && sudo=sudo; \
@@ -93,8 +100,7 @@ remove-generation:
 # cleanup nix store
 [group('NixOS')]
 clean:
-  nix-store --gc
-  sudo nix store optimise
+  nh clean all
 
 # [obsolete] Activate the configuration (similar to rebuild)
 [group('NixOS')]

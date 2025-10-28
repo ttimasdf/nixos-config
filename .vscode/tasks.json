@@ -6,7 +6,7 @@
         {
             "label": "nixos-rebuild",
             "type": "shell",
-            "command": ["just", "rebuild"],
+            "command": ["just", "switch"],
             "group": {
                 "kind": "build",
                 "isDefault": true

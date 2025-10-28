@@ -5,8 +5,13 @@
       meta.description = "Shell environment for modifying this Nix configuration";
       packages = with pkgs; [
         just
-        nixd
+        nh
       ];
+
+      # Set NH_FLAKE environment variable to the current flake's path
+      shellHook = ''
+        export NH_FLAKE=$(pwd)
+      '';
     };
   };
 }
