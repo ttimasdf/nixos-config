@@ -48,12 +48,14 @@ for zip_file in "${files_to_process[@]}"; do
     # bn-release-5.1.8104 commercial-win64.zip
     # bn-release-5.1.8104 commercial-macos.zip
     extracted_part=""
+    edition=""
     os_type=""
-    if [[ "$filename_no_ext" =~ ^bn-(.*)\ commercial-(linux|win64|macos)$ ]]; then
+    if [[ "$filename_no_ext" =~ ^bn-(.*)\ (commercial|personal|ultimate|free)-(linux|win64|macosx)$ ]]; then
         extracted_part="${BASH_REMATCH[1]}"
-        os_type="${BASH_REMATCH[2]}"
+        edition="${BASH_REMATCH[2]}"
+        os_type="${BASH_REMATCH[3]}"
     else
-        echo "Could not parse filename for version/edition and OS: $filename"
+        echo "Could not parse filename for version/edition, edition, and OS: $filename"
         continue
     fi
 
@@ -61,10 +63,10 @@ for zip_file in "${files_to_process[@]}"; do
     version_and_edition=""
     if [[ "$extracted_part" == release-* ]]; then
         # For "release-5.1.8104", the output should be "stable_commercial.5.1.8104"
-        version_and_edition="stable_commercial.${extracted_part#release-}"
+        version_and_edition="stable_${edition}.${extracted_part#release-}"
     elif [[ "$extracted_part" == dev-* ]]; then
         # For "dev-5.2.8482-dev", the output should be "commercial.${version}"
-        version_and_edition="commercial.${extracted_part#dev-}"
+        version_and_edition="${edition}.${extracted_part#dev-}"
     else
         echo "Unknown edition type in filename: $filename"
         continue
