@@ -1,1 +1,1 @@
-pkgs-binaryninja-update
+home-pkg-binaryninja-update
