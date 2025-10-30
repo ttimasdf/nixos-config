@@ -220,6 +220,23 @@ in
   # Tailscale
   services.tailscale.enable = true;
 
+  # ssh
+  # https://wiki.nixos.org/wiki/SSH
+  services.openssh = {
+    enable = true;
+    settings = {
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+      PermitRootLogin = "no";
+    };
+  };
+
+
+  # https://wiki.nixos.org/wiki/Fail2ban
+  services.fail2ban = {
+    enable = true;
+  };
+
   ## Container config
 
   # hardware.nvidia-container-toolkit.enable = true;
