@@ -295,6 +295,7 @@ in
 
     # Productivity
     p7zip
+    rar
 
     # Development
     uv
