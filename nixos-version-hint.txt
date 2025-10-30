@@ -1,1 +1,1 @@
-enable-ssh
+espanso-config
