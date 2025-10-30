@@ -33,6 +33,11 @@ in {
       v2rayn
     ];
 
+    # Add symlink for edge for Apps to work
+    home.file = {
+      ".local/bin/microsoft-edge-stable".source = "${pkgs.microsoft-edge}/bin/microsoft-edge";
+    };
+
     programs.firefox.enable = true;
   };
 }
