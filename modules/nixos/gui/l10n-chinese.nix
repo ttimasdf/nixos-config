@@ -13,7 +13,7 @@ in {
         #noto-fonts
         nerd-fonts.noto
         noto-fonts-cjk-sans   # CJK font
-        noto-fonts-emoji
+        noto-fonts-color-emoji
         liberation_ttf        # include serif, sans serif, mono
         nerd-fonts.liberation
         #fira-code
