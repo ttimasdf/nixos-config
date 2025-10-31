@@ -73,3 +73,41 @@ Example `releases.json` entry:
     "3.4.4200": "sha256-..."
   }
 }
+```
+
+## Development
+
+To diagnose build error of this package, you can use the following two methods.
+
+### Build Shell
+
+open a shell to diagnose build phase.
+
+```bash
+nix-shell -E "let nixpkgs = import (builtins.getFlake \"$(realpath ../../..)\").inputs.nixpkgs {}; in (with nixpkgs; (callPackage ./package.nix {}).binaryninja-commercial-dev)"
+```
+
+in build shell, run each phase interactively.
+
+```bash
+mkdir -p unpack build && pushd unpack
+runPhase unpackPhase
+export out=$(realpath ../build)
+# runPhase patchPhase
+# runPhase configurePhase
+# runPhase buildPhase
+# runPhase checkPhase
+runPhase installPhase
+runPhase fixupPhase
+runPhase installCheckPhase
+runPhase distPhase
+```
+
+### Run Shell
+
+Open a shell to diagnose runtime issues like pip, link issue etc.
+
+```bash
+nix-shell .
+```
+
