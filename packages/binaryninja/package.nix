@@ -20,6 +20,8 @@
   xorg,
   kdePackages,
   python3,
+  coreutils,
+  gcc,
 }:
 
 let
@@ -83,6 +85,8 @@ let
         kdePackages.qtbase
         kdePackages.qtdeclarative
         kdePackages.qtwayland
+        coreutils
+        gcc
       ];
 
       pythonPath = with python3.pkgs; [ pip ];
@@ -135,11 +139,14 @@ let
           -not -name 'libshiboken6.abi*.so.*' \
           -not -name 'libpyside6.abi*.so.*' \
           -delete
+        # Also cleanup qt plugins since they are provided by nixpkgs
+        find $out/opt/${pname}/qt -type f -name '*.so' -delete
 
         # Create bin directory and wrapper
         mkdir -p $out/bin
         buildPythonPath "$pythonPath"
         makeWrapper $out/opt/${pname}/binaryninja $out/bin/${pname} \
+          --prefix PATH : "${lib.makeBinPath [ coreutils gcc ]}" \
           --prefix PYTHONPATH : "$program_PYTHONPATH" \
           --prefix LD_LIBRARY_PATH : "$out/opt/${pname}" \
           "''${qtWrapperArgs[@]}" # Pass Qt specific arguments if any
