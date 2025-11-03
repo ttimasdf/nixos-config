@@ -203,10 +203,10 @@ in
   programs.vim.enable = true;
   programs.vim.defaultEditor = true;
 
-  programs.clash-verge.enable = true;
-  programs.clash-verge.autoStart = true;
-  programs.clash-verge.serviceMode = true;
-  programs.clash-verge.tunMode = true;
+  services.mihomo.enable = true;
+  services.mihomo.tunMode = true;
+  services.mihomo.webui = pkgs.metacubexd;
+  services.mihomo.configFile = "/home/u/Documents/clash-config/cfg-2aym2a2s/client.yml";
 
   programs.nh = {
     enable = true;
