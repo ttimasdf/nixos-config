@@ -4,9 +4,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "nixos-rebuild",
+            "label": "build nixos system",
             "type": "shell",
-            "command": ["just", "switch"],
+            "command": ["just", "build"],
             "group": {
                 "kind": "build",
                 "isDefault": true
