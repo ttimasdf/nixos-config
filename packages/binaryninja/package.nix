@@ -18,14 +18,39 @@
   libxml2,
   wayland,
   xorg,
-  kdePackages,
-  python3,
+  qt68Packages,
+  qt68python312,
   coreutils,
   gcc,
+  enableQtPatch ? false,
 }:
 
 let
+  qt6Packages = qt68Packages;
+  python3 = qt68python312;
   releases = builtins.fromJSON (builtins.readFile ./releases.json);
+
+  patchSharedLibs = lib.optionalString stdenv.hostPlatform.isLinux ''
+    # libxml2 soname changes now follow ABI breaks.
+    # https://gitlab.gnome.org/GNOME/libxml2/-/issues/751
+    # This is of course ultimately good, but we can't recompile binja
+    # So let's just force it to use whatever NixOS has. It's Probably Fine™
+    # https://github.com/NixOS/nixpkgs/blob/2fb006b87f04c4d3bdf08cfdbc7fab9c13d94a15/pkgs/applications/editors/jetbrains/default.nix#L170-L182
+    ls -d \
+      $out/opt/*/plugins/lldb/lib/liblldb.so |
+    xargs patchelf \
+      "--replace-needed libxml2.so.2 libxml2.so"
+
+    ${lib.optionalString enableQtPatch ''
+      # Force python/binaryninjaui/binaryninjaui.abi3.so to use Qt 6.10
+      ls -d \
+        $out/**/*.abi3.so |
+      xargs patchelf \
+        --replace-needed libshiboken6.abi3.so.6.8 libshiboken6.abi3.so.6.10 \
+        --replace-needed libpyside6.abi3.so.6.8 libpyside6.abi3.so.6.10
+    ''}
+  '';
+
 
   # Helper function to create a derivation for a specific version and edition
   mkBinaryNinjaDerivation = {
@@ -62,7 +87,7 @@ let
         makeWrapper
         copyDesktopItems
         python3.pkgs.wrapPython # For Python plugins
-        kdePackages.wrapQtAppsHook # For Qt applications
+        qt6Packages.wrapQtAppsHook # For Qt applications
       ];
 
       buildInputs = [
@@ -82,14 +107,21 @@ let
         xorg.xcbutilkeysyms
         xorg.xcbutilrenderutil
         xorg.xcbutilwm
-        kdePackages.qtbase
-        kdePackages.qtdeclarative
-        kdePackages.qtwayland
+        qt6Packages.qtbase
+        qt6Packages.qtdeclarative
+        qt6Packages.qtwayland
+        python3.pkgs.pip
+        python3.pkgs.pyside6
+        python3.pkgs.shiboken6
         coreutils
         gcc
       ];
 
-      pythonPath = with python3.pkgs; [ pip ];
+      pythonPath = with python3.pkgs; [
+        pip
+        pyside6
+        shiboken6
+      ];
       appendRunpaths = [ "${lib.getLib python3}/lib" ];
 
       unpackPhase = ''
@@ -136,11 +168,11 @@ let
           -not -name 'libbinaryninjacore.so.*' \
           -not -name 'libbinaryninjaui.so.*' \
           -not -name 'liblldb.so.*' \
-          -not -name 'libshiboken6.abi*.so.*' \
-          -not -name 'libpyside6.abi*.so.*' \
           -delete
-        # Also cleanup qt plugins since they are provided by nixpkgs
+        # Clean up Qt plugins
         find $out/opt/${pname}/qt -type f -name '*.so' -delete
+        # Use PyQt6 binding from nixpkgs
+        rm -r $out/opt/${pname}/python3/{PySide6,shiboken6}
 
         # Create bin directory and wrapper
         mkdir -p $out/bin
@@ -158,20 +190,9 @@ let
         runHook postInstall
       '';
 
-      # libxml2 soname changes now follow ABI breaks.
-      # https://gitlab.gnome.org/GNOME/libxml2/-/issues/751
-      # This is of course ultimately good, but we can't recompile binja
-      # So let's just force it to use whatever NixOS has. It's Probably Fine™
       preFixup = ''
-        # Fix libxml2 breakage. See https://github.com/NixOS/nixpkgs/pull/396195#issuecomment-2881757108
-        mkdir -p "$out/lib"
-        ln -s "${lib.getLib libxml2}/lib/libxml2.so" "$out/lib/libxml2.so.2"
+        ${patchSharedLibs}
 
-        # Patch liblldb.so if it exists and links against libxml2.so.2
-        if [ -f "$out/opt/${pname}/plugins/lldb/lib/liblldb.so" ]; then
-          patchelf "$out/opt/${pname}/plugins/lldb/lib/liblldb.so" \
-            --replace-needed libxml2.so.2 libxml2.so
-        fi
       '';
 
       dontWrapQtApps = true; # Handled by makeWrapper and qtWrapperArgs

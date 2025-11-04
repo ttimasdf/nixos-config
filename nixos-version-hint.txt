@@ -1,1 +1,1 @@
-pkg-wps-latest
+pkgs-binaryninja-qt68
