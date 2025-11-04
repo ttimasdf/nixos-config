@@ -1,1 +1,1 @@
-pkg-mihomo
+pkg-wps-latest
