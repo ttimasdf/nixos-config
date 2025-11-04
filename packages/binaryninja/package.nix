@@ -22,35 +22,12 @@
   qt68python312,
   coreutils,
   gcc,
-  enableQtPatch ? false,
 }:
 
 let
   qt6Packages = qt68Packages;
   python3 = qt68python312;
   releases = builtins.fromJSON (builtins.readFile ./releases.json);
-
-  patchSharedLibs = lib.optionalString stdenv.hostPlatform.isLinux ''
-    # libxml2 soname changes now follow ABI breaks.
-    # https://gitlab.gnome.org/GNOME/libxml2/-/issues/751
-    # This is of course ultimately good, but we can't recompile binja
-    # So let's just force it to use whatever NixOS has. It's Probably Fine™
-    # https://github.com/NixOS/nixpkgs/blob/2fb006b87f04c4d3bdf08cfdbc7fab9c13d94a15/pkgs/applications/editors/jetbrains/default.nix#L170-L182
-    ls -d \
-      $out/opt/*/plugins/lldb/lib/liblldb.so |
-    xargs patchelf \
-      "--replace-needed libxml2.so.2 libxml2.so"
-
-    ${lib.optionalString enableQtPatch ''
-      # Force python/binaryninjaui/binaryninjaui.abi3.so to use Qt 6.10
-      ls -d \
-        $out/**/*.abi3.so |
-      xargs patchelf \
-        --replace-needed libshiboken6.abi3.so.6.8 libshiboken6.abi3.so.6.10 \
-        --replace-needed libpyside6.abi3.so.6.8 libpyside6.abi3.so.6.10
-    ''}
-  '';
-
 
   # Helper function to create a derivation for a specific version and edition
   mkBinaryNinjaDerivation = {
@@ -188,11 +165,6 @@ let
         install -Dm644 ${desktopIcon} $out/share/pixmaps/binaryninja.png
 
         runHook postInstall
-      '';
-
-      preFixup = ''
-        ${patchSharedLibs}
-
       '';
 
       dontWrapQtApps = true; # Handled by makeWrapper and qtWrapperArgs
