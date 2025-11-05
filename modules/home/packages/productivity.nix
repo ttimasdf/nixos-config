@@ -18,6 +18,7 @@ in {
       vscode
       microsoft-edge
       vlc
+      mpv
       keepassxc
       git-credential-keepassxc
       wpsoffice-cn-fixup
