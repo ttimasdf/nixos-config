@@ -29,6 +29,7 @@ in {
       flameshot
       asciinema_3
       tail-tray
+      rustdesk-flutter
 
       daed
       v2rayn

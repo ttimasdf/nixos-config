@@ -1,1 +1,1 @@
-nvidia-sync
+pkgs-rustdesk
