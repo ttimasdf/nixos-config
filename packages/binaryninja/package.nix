@@ -18,15 +18,21 @@
   libxml2,
   wayland,
   xorg,
-  qt68Packages,
-  qt68python312,
+  qt6Packages,
+  python3,
   coreutils,
   gcc,
+  qt68Packages ? null,
+  qt68python312 ? null,
+  useQtFromNixpkgs ? false,
 }:
 
 let
-  qt6Packages = qt68Packages;
-  python3 = qt68python312;
+  _ = lib.asserts.assertMsg (!useQtFromNixpkgs || (qt68Packages != null && qt68python312 != null))
+    "qt68Packages and qt68python312 must be provided when useQtFromNixpkgs is true";
+  qt6Packages' = if useQtFromNixpkgs then qt68Packages else qt6Packages;
+  python3' = if useQtFromNixpkgs then qt68python312 else python3;
+
   releases = builtins.fromJSON (builtins.readFile ./releases.json);
 
   patchSharedLibs = lib.optionalString stdenv.hostPlatform.isLinux ''
@@ -76,8 +82,8 @@ let
         autoPatchelfHook
         makeWrapper
         copyDesktopItems
-        python3.pkgs.wrapPython # For Python plugins
-        qt6Packages.wrapQtAppsHook # For Qt applications
+        python3'.pkgs.wrapPython # For Python plugins
+        qt6Packages'.wrapQtAppsHook # For Qt applications
       ];
 
       buildInputs = [
@@ -97,22 +103,22 @@ let
         xorg.xcbutilkeysyms
         xorg.xcbutilrenderutil
         xorg.xcbutilwm
-        qt6Packages.qtbase
-        qt6Packages.qtdeclarative
-        qt6Packages.qtwayland
-        python3.pkgs.pip
-        python3.pkgs.pyside6
-        python3.pkgs.shiboken6
+        qt6Packages'.qtbase
+        qt6Packages'.qtdeclarative
+        qt6Packages'.qtwayland
+        python3'.pkgs.pip
+        python3'.pkgs.pyside6
+        python3'.pkgs.shiboken6
         coreutils
         gcc
       ];
 
-      pythonPath = with python3.pkgs; [
+      pythonPath = with python3'.pkgs; [
         pip
         pyside6
         shiboken6
       ];
-      appendRunpaths = [ "${lib.getLib python3}/lib" ];
+      appendRunpaths = [ "${lib.getLib python3'}/lib" ];
 
       unpackPhase = ''
         runHook preUnpack
@@ -158,11 +164,23 @@ let
           -not -name 'libbinaryninjacore.so.*' \
           -not -name 'libbinaryninjaui.so.*' \
           -not -name 'liblldb.so.*' \
+          -not -name 'libicu*.so.*' \
+          -not -name 'libQt6*.so.*' \
+          -not -name 'libshiboken6.abi*.so.*' \
+          -not -name 'libpyside6.abi*.so.*' \
           -delete
-        # Clean up Qt plugins
-        find $out/opt/${pname}/qt -type f -name '*.so' -delete
-        # Use PyQt6 binding from nixpkgs
-        rm -r $out/opt/${pname}/python3/{PySide6,shiboken6}
+        # Use Qt6 & PySide6 from nixpkgs
+        if [ "${toString useQtFromNixpkgs}" == "1" ]; then
+          # Remove Qt6 Libraries
+          find $out/opt/${pname} -name 'libicu*.so.*' -delete
+          find $out/opt/${pname} -name 'libQt6*.so.*' -delete
+          # Clean up Qt plugins
+          find $out/opt/${pname}/qt -type f -name '*.so' -delete
+          # Clean up Qt Python bindings
+          rm -r $out/opt/${pname}/python3/{PySide6,shiboken6}
+          find $out/opt/${pname} -name 'libshiboken6.abi*.so.*' -delete
+          find $out/opt/${pname} -name 'libpyside6.abi*.so.*' -delete
+        fi
 
         # Create bin directory and wrapper
         mkdir -p $out/bin
