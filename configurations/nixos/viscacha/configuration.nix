@@ -126,6 +126,7 @@ in
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   modules.hosts.corpo.enable = true;
+  modules.hosts.pentest.enable = true;
   # endregion network
 
   # region UI/UX
