@@ -150,9 +150,10 @@ in
   hardware.nvidia.primeBatterySaverSpecialisation = false;
   hardware.nvidia.prime = {
     # Use NVIDIA GPU for rendering
-    sync.enable = false;
+    sync.enable = true;
+    offload.enable = false;
     # Use Intel GPU for rendering
-    reverseSync.enable = true;
+    reverseSync.enable = false;
     # Enable if using an external GPU via Thunderbolt/USB4 enclosure
     # allowExternalGpu = true;
   };
