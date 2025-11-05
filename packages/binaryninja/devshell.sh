@@ -7,9 +7,8 @@ if [ $? != 0 ]; then
   tmux new-session -s binaryninja-dev -d -n "build"
 
   # Send commands to the first pane (build shell)
-  tmux send-keys -t binaryninja-dev:build 'nix-shell -E "let nixpkgs = import (builtins.getFlake \"$(realpath ../../..)\").inputs.nixpkgs {}; in (with nixpkgs; (callPackage ./package.nix {}).binaryninja-commercial-dev)"' C-m
-  tmux send-keys -t binaryninja-dev:build "mkdir -p result/{output,unpack} && pushd result/unpack" C-m
-  tmux send-keys -t binaryninja-dev:build "export out=\$(realpath ../output)" C-m
+  tmux send-keys -t binaryninja-dev:build 'nix develop .#binaryninja-commercial-dev' C-m
+  tmux send-keys -t binaryninja-dev:build '[ $? -eq 0 ] && mkdir -p result/{output,unpack} && pushd result/unpack && export out=$(realpath ../output)' C-m
 
   # Create a new pane for the run shell, split vertically
   tmux split-window -v -t binaryninja-dev:build
