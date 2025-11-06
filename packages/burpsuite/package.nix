@@ -4,6 +4,7 @@
   fetchurl,
   jdk,
   makeDesktopItem,
+  makeWrapper,
   proEdition ? true,
   unzip,
 }:
@@ -54,7 +55,7 @@ in
 buildFHSEnv {
   inherit pname version;
 
-  runScript = ".burplauncher";
+  runScript = ".burploader";
 
   targetPkgs =
     pkgs: with pkgs; [
@@ -85,6 +86,8 @@ buildFHSEnv {
       xorg.libXrandr
     ];
 
+  nativeBuildInputs = [ makeWrapper ];
+
   extraInstallCommands = ''
     mkdir -p "$out/share/pixmaps" "$out/opt/burpsuite"
     ${lib.getBin unzip}/bin/unzip -p ${src} resources/Media/icon64${product.productName}.png > "$out/share/pixmaps/burpsuite.png"
@@ -93,18 +96,18 @@ buildFHSEnv {
     ln -s ${src} $out/opt/burpsuite/burpsuite_pro_v${version}.jar
     cp ${./burploader.jar} $out/opt/burpsuite/burploader.jar
 
-    cat <<'EOF' >"$out/bin/.burplauncher"
-    #!/usr/bin/env bash
-    scriptpath="$(dirname "$(readlink -f "$0" || realpath "$0")")"
-    export GDK_SCALE=2
-    exec java -jar "$scriptpath/../opt/burpsuite/burploader.jar"
-    EOF
+    makeWrapper ${jdk}/bin/java $out/bin/.burploader \
+      --add-flags "-jar $out/opt/burpsuite/burploader.jar"
 
     cat <<EOF >"$out/opt/burpsuite/.config.ini"
     auto_run=1
     early=0
     ignore=1
     EOF
+  '';
+
+  profile = ''
+    export GDK_SCALE=2
   '';
 
   passthru.updateScript = ./update.sh;
