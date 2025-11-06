@@ -36,9 +36,21 @@ This repository uses `just` for task automation. Ensure you have `just` installe
     ```bash
     just update
     ```
-*   **Rebuild NixOS Configuration**:
+*   **Build and Activate NixOS Configuration**:
     ```bash
-    just rebuild
+    just build
+    ```
+*   **List Generations**:
+    ```bash
+    just list-generations
+    ```
+*   **Remove Generation**:
+    ```bash
+    just remove-generation
+    ```
+*   **Clean Nix Store**:
+    ```bash
+    just clean
     ```
 
 ### Development Commands
@@ -69,11 +81,23 @@ This repository uses `just` for task automation. Ensure you have `just` installe
 
 ### Obsolete commands
 
+*   **Rebuild NixOS Configuration (Obsolete)**:
+    ```bash
+    just rebuild-with-nixos-rebuild
+    ```
+    > **Note**: This command is obsolete, please use `just build` instead.
+
+*   **Trim Generations (Obsolete)**:
+    ```bash
+    just trim-generations
+    ```
+    > **Note**: This command is obsolete, please use `just clean` instead.
+
 *   **Activate Configuration (Obsolete)**:
     ```bash
     just run
     ```
-    > **Note**: This command is obsolete and will prompt for confirmation. Use `just rebuild` instead.
+    > **Note**: This command is obsolete and will prompt for confirmation. Use `just build` instead.
 
 *   **Enter Development Shell**:
     ```bash
