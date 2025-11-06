@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+# File pattern for Binary Ninja archives
+FILE_PATTERN="binaryninja_linux*.7z"
+
 usage() {
     cat <<EOF
 Usage: $0 [OPTIONS] [FILE...]
@@ -10,13 +13,13 @@ Add Binary Ninja files to Nix store and generate Nix hash.
 
 Arguments:
   FILE...     Optional paths to Binary Ninja files (e.g., binaryninja_linux_stable_commercial.5.1.8005.7z)
-              If no files are specified, automatically finds all binaryninja_linux*.7z files in current and subdirectories.
+              If no files are specified, automatically finds all $FILE_PATTERN files in current and subdirectories.
 
 Options:
   -h, --help  Show this help message and exit
 
 Examples:
-  $0                                    # Process all binaryninja_linux*.7z files found
+  $0                                    # Process all $FILE_PATTERN files found
   $0 binaryninja_linux_stable_commercial.5.1.8005.7z
   $0 file1.7z file2.7z file3.7z
 EOF
@@ -44,13 +47,13 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# If no file arguments provided, find all binaryninja_linux*.7z files
+# If no file arguments provided, find all $FILE_PATTERN files
 if [[ ${#files[@]} -eq 0 ]]; then
-    echo "No files specified, searching for binaryninja_linux*.7z files..."
-    mapfile -t files < <(find . -name "binaryninja_linux*.7z" -type f 2>/dev/null | sort)
+    echo "No files specified, searching for $FILE_PATTERN files..."
+    mapfile -t files < <(find . -name "$FILE_PATTERN" -type f 2>/dev/null | sort)
 
     if [[ ${#files[@]} -eq 0 ]]; then
-        echo "Error: No binaryninja_linux*.7z files found in current or subdirectories" >&2
+        echo "Error: No $FILE_PATTERN files found in current or subdirectories" >&2
         exit 1
     fi
 
@@ -77,4 +80,3 @@ done
 
 grep /nix/store "$outfile" > nix-paths.txt
 rm "$outfile"
-
