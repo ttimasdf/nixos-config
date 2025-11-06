@@ -1,17 +1,16 @@
 {
   lib,
-  buildFHSEnv,
+  stdenv,
   fetchurl,
-  jdk,
+  jre,
+  runtimeShell,
   makeDesktopItem,
+  unzip,
+  copyDesktopItems,
   makeWrapper,
   proEdition ? true,
-  unzip,
 }:
-
 let
-  version = "2025.10.1";
-
   product =
     if proEdition then
       {
@@ -25,6 +24,15 @@ let
         productDesktop = "Burp Suite Community Edition";
         hash = "sha256-HiYdJrnTg0HkCt+lXKkhfGawp/NZQmhH4sGytlpiLU8=";
       };
+  description = "Integrated platform for performing security testing of web applications";
+  loader = builtins.path {
+    name = "burploader";
+    path = ./loader;
+  };
+in
+stdenv.mkDerivation rec {
+  pname = "burpsuite";
+  version = "2025.10.1";
 
   src = fetchurl {
     name = "burpsuite.jar";
@@ -36,78 +44,40 @@ let
     hash = product.hash;
   };
 
-  pname = "burpsuite";
-  description = "Integrated platform for performing security testing of web applications";
-  desktopItem = makeDesktopItem {
-    name = "burpsuite";
-    exec = pname;
-    icon = pname;
-    desktopName = product.productDesktop;
-    comment = description;
-    categories = [
-      "Development"
-      "Security"
-      "System"
-    ];
-  };
+  desktopItems = [
+    (makeDesktopItem {
+      name = "burpsuite";
+      exec = pname;
+      icon = pname;
+      desktopName = product.productDesktop;
+      comment = description;
+      categories = [
+        "Development"
+        "Security"
+        "System"
+      ];
+    })
+  ];
 
-in
-buildFHSEnv {
-  inherit pname version;
+  nativeBuildInputs = [ unzip copyDesktopItems makeWrapper ];
 
-  runScript = ".burploader";
+  dontUnpack = true;
 
-  targetPkgs =
-    pkgs: with pkgs; [
-      alsa-lib
-      at-spi2-core
-      cairo
-      cups
-      dbus
-      expat
-      glib
-      gtk3
-      gtk3-x11
-      jython
-      libcanberra-gtk3
-      libdrm
-      udev
-      libxkbcommon
-      libgbm
-      nspr
-      nss
-      pango
-      xorg.libX11
-      xorg.libxcb
-      xorg.libXcomposite
-      xorg.libXdamage
-      xorg.libXext
-      xorg.libXfixes
-      xorg.libXrandr
-    ];
+  installPhase = ''
+    runHook preInstall
 
-  nativeBuildInputs = [ makeWrapper ];
+    mkdir -p $out/share/burpsuite $out/share/pixmaps
+    cp ${src} $out/share/burpsuite/burpsuite_${product.productName}_v${version}.jar
+    cp ${loader}/{burploader.jar,.config.ini} $out/share/burpsuite/
 
-  extraInstallCommands = ''
-    mkdir -p "$out/share/pixmaps" "$out/opt/burpsuite"
-    ${lib.getBin unzip}/bin/unzip -p ${src} resources/Media/icon64${product.productName}.png > "$out/share/pixmaps/burpsuite.png"
-    cp -r ${desktopItem}/share/applications $out/share
-    # Symlink both JAR files to the output directory so they're in the same location
-    ln -s ${src} $out/opt/burpsuite/burpsuite_pro_v${version}.jar
-    cp ${./burploader.jar} $out/opt/burpsuite/burploader.jar
+    ${unzip}/bin/unzip -p ${src} resources/Media/icon64${product.productName}.png > "$out/share/pixmaps/burpsuite.png"
 
-    makeWrapper ${jdk}/bin/java $out/bin/.burploader \
-      --add-flags "-jar $out/opt/burpsuite/burploader.jar"
+    makeWrapper ${jre}/bin/java $out/bin/${pname} \
+      --chdir "$out/share/burpsuite" \
+      --set GDK_SCALE 2 \
+      --add-flags "-jar $out/share/burpsuite/burploader.jar"
 
-    cat <<EOF >"$out/opt/burpsuite/.config.ini"
-    auto_run=1
-    early=0
-    ignore=1
-    EOF
-  '';
-
-  profile = ''
-    export GDK_SCALE=2
+    runHook postInstall
   '';
 
   passthru.updateScript = ./update.sh;
@@ -126,7 +96,7 @@ buildFHSEnv {
       + replaceStrings [ "." ] [ "-" ] version;
     sourceProvenance = with sourceTypes; [ binaryBytecode ];
     license = licenses.unfree;
-    platforms = jdk.meta.platforms;
+    platforms = jre.meta.platforms;
     hydraPlatforms = [ ];
     maintainers = with maintainers; [
       bennofs
