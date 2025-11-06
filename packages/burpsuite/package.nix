@@ -2,7 +2,7 @@
   lib,
   stdenv,
   fetchurl,
-  jre,
+  jdk,
   runtimeShell,
   makeDesktopItem,
   unzip,
@@ -72,7 +72,7 @@ stdenv.mkDerivation rec {
 
     ${unzip}/bin/unzip -p ${src} resources/Media/icon64${product.productName}.png > "$out/share/pixmaps/burpsuite.png"
 
-    makeWrapper ${jre}/bin/java $out/bin/${pname} \
+    makeWrapper ${jdk}/bin/java $out/bin/${pname} \
       --chdir "$out/share/burpsuite" \
       --set GDK_SCALE 2 \
       --add-flags "-jar $out/share/burpsuite/burploader.jar"
@@ -96,7 +96,7 @@ stdenv.mkDerivation rec {
       + replaceStrings [ "." ] [ "-" ] version;
     sourceProvenance = with sourceTypes; [ binaryBytecode ];
     license = licenses.unfree;
-    platforms = jre.meta.platforms;
+    platforms = jdk.meta.platforms;
     hydraPlatforms = [ ];
     maintainers = with maintainers; [
       bennofs
