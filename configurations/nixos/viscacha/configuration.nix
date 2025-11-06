@@ -205,6 +205,9 @@ in
   programs.vim.enable = true;
   programs.vim.defaultEditor = true;
 
+  programs.java.enable = true;
+  programs.java.package = pkgs.jdk;
+
   services.mihomo.enable = true;
   services.mihomo.tunMode = true;
   services.mihomo.webui = pkgs.metacubexd;

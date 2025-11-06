@@ -1,1 +1,1 @@
-pkgs-jadx
+with-jdk
