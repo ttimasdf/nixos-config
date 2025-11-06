@@ -16,13 +16,13 @@ let
       {
         productName = "pro";
         productDesktop = "Burp Suite Professional Edition";
-        hash = "sha256-aLP8jVHuKmp4yzcd1KsgidAhWUxoJo0beGwq/6I4n4A=";
+        hash = "sha256-XsDyJwoEManf8gwPBYERF0GfEGaps37lWOhejWjLaQE=";
       }
     else
       {
         productName = "community";
         productDesktop = "Burp Suite Community Edition";
-        hash = "sha256-HiYdJrnTg0HkCt+lXKkhfGawp/NZQmhH4sGytlpiLU8=";
+        hash = "sha256-vxx+HWNqkzaleeK+qyaTL7CQ3u+V66ZLbk61voNSRp4=";
       };
   description = "Integrated platform for performing security testing of web applications";
   loader = builtins.path {
@@ -32,10 +32,10 @@ let
 in
 stdenv.mkDerivation rec {
   pname = "burpsuite";
-  version = "2025.10.1";
+  version = "2025.10.2";
 
   src = fetchurl {
-    name = "burpsuite.jar";
+    name = "burpsuite-${product.productName}-${version}.jar";
     urls = [
       "https://portswigger-cdn.net/burp/releases/download?product=${product.productName}&version=${version}&type=Jar"
       "https://portswigger.net/burp/releases/download?product=${product.productName}&version=${version}&type=Jar"
