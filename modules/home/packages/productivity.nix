@@ -9,30 +9,43 @@ in {
     #
     # Search for packages here: https://search.nixos.org/packages
     home.packages = with pkgs; [
-      # Productivity apps
+      # File Management
       fsearch
       syncthing
       syncthingtray
+      localsend
+
+      # Note Taking
       siyuan
       obsidian
-      vscode
-      microsoft-edge
-      vlc
-      mpv
-      keepassxc
-      git-credential-keepassxc
-      wpsoffice-cn-fixup
-      localsend
-      aria2
       typora
       pandoc
+
+      # Productivity
+      vscode
+      microsoft-edge
+      wpsoffice-cn-fixup
+      keepassxc
+      git-credential-keepassxc
+      aria2
+
+      # Screen Recording
       flameshot
       asciinema_3
-      tail-tray
-      rustdesk-flutter
+      obs-studio
 
+      # Media Playback
+      vlc
+      qmplay2
+
+      # Networks
       daed
       v2rayn
+      tail-tray
+
+      # Remote Management
+      rustdesk-flutter
+      virt-viewer
     ];
 
     # Add symlink for edge for Apps to work
