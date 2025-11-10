@@ -61,6 +61,11 @@ branch := "$(git rev-parse --abbrev-ref HEAD)"
 
 # Build and activate the new configuration, and make it the boot default
 [group('NixOS')]
+test:
+  nh os build
+
+# Build and activate the new configuration, and make it the boot default
+[group('NixOS')]
 build:
   nh os switch
 
@@ -77,7 +82,7 @@ rebuild-with-nixos-rebuild:
 
 # list generations
 [group('NixOS')]
-list-generations profile="system":
+list profile="system":
   [ "{{profile}}" == "system" ] && nixos-rebuild list-generations || nix-env --list-generations
 
 

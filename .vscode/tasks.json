@@ -4,7 +4,13 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build nixos system",
+            "label": "Update version hint",
+            "type": "shell",
+            "command": ["just", "version-hint", "${input:versionHint}"],
+            "problemMatcher": []
+        },
+        {
+            "label": "Build NixOS system",
             "type": "shell",
             "command": ["just", "build"],
             "group": {
@@ -13,10 +19,13 @@
             }
         },
         {
-            "label": "update version hint",
+            "label": "Test NixOS system build",
             "type": "shell",
-            "command": ["just", "version-hint", "${input:versionHint}"],
-            "problemMatcher": []
+            "command": ["just", "test"],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
         }
     ],
     "inputs": [
