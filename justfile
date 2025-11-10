@@ -61,13 +61,13 @@ branch := "$(git rev-parse --abbrev-ref HEAD)"
 
 # Build and activate the new configuration, and make it the boot default
 [group('NixOS')]
-test:
-  nh os build
+test nh-args='':
+  nh os build {{nh-args}}
 
 # Build and activate the new configuration, and make it the boot default
 [group('NixOS')]
-build:
-  nh os switch
+build nh-args='':
+  nh os switch {{nh-args}}
 
 # Rebuild NixOS configuration with nixos-rebuild *(deprecated)*
 [group('NixOS')]
