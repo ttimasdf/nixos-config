@@ -36,6 +36,10 @@ in
   };
   # endregion boot & kernel
 
+  # region user settings
+  rabit.nixos.myusers = ["u"];
+  # endregion user settings
+
   # region partitions
   # https://nixos.wiki/wiki/Full_Disk_Encryption
   # https://www.man7.org/linux/man-pages/man8/cryptsetup.8.html
