@@ -10,8 +10,8 @@
     git = {
       enable = true;
       settings = {
-        user.name = config.me.fullname;
-        user.email = config.me.email;
+        user.name = config.rabit.me.fullname;
+        user.email = config.rabit.me.email;
 
         alias = {
           ci = "commit";

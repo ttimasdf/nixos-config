@@ -10,7 +10,7 @@ in
 
   # Defined by /modules/home/me.nix
   # And used all around in /modules/home/*
-  me = {
+  rabit.me = {
     username = "u";
     fullname = "ttimasdf";
     email = "opensource@rabit.pw";
