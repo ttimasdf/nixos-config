@@ -1,9 +1,9 @@
 { config, lib, pkgs, ... }:
 
 let
-  cfg = config.rabit.modules.gui.kde;
+  cfg = config.rabit.nixos.gui.kde;
 in {
-  options.rabit.modules.gui.kde.enable = lib.mkEnableOption "Desktop Environment: KDE";
+  options.rabit.nixos.gui.kde.enable = lib.mkEnableOption "Desktop Environment: KDE";
   config = lib.mkIf cfg.enable {
     services.xserver.enable = true;
     services.displayManager.sddm.enable = true;

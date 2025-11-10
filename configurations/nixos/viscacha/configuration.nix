@@ -125,14 +125,14 @@ in
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
-  modules.hosts.corpo.enable = true;
-  modules.hosts.pentest.enable = true;
+  rabit.nixos.hosts.corpo.enable = true;
+  rabit.nixos.hosts.pentest.enable = true;
   # endregion network
 
   # region UI/UX
-  rabit.modules.gui.kde.enable = true;
-  rabit.modules.gui.l10n-chinese.enable = true;
-  rabit.modules.gui.espanso-wayland-fix.enable = true;
+  rabit.nixos.gui.kde.enable = true;
+  rabit.nixos.gui.l10n-chinese.enable = true;
+  rabit.nixos.gui.espanso-wayland-fix.enable = true;
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
   console = {

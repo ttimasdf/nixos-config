@@ -1,9 +1,9 @@
 { config, lib, pkgs, ... }:
 
 let
-  cfg = config.rabit.modules.gui.l10n-chinese;
+  cfg = config.rabit.nixos.gui.l10n-chinese;
 in {
-  options.rabit.modules.gui.l10n-chinese.enable = lib.mkEnableOption "Localization: Chinese";
+  options.rabit.nixos.gui.l10n-chinese.enable = lib.mkEnableOption "Localization: Chinese";
   config = lib.mkIf cfg.enable {
     # https://nixos.wiki/wiki/Fonts
     fonts = {

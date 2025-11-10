@@ -1,9 +1,9 @@
 { config, lib, pkgs, ... }:
 
 let
-  cfg = config.rabit.modules.gui.gnome;
+  cfg = config.rabit.nixos.gui.gnome;
 in {
-  options.rabit.modules.gui.gnome.enable = lib.mkEnableOption "Desktop Environment: Gnome";
+  options.rabit.nixos.gui.gnome.enable = lib.mkEnableOption "Desktop Environment: Gnome";
   config = lib.mkIf cfg.enable {
     services.xserver.enable = true;
     services.displayManager.gdm.enable = true;
