@@ -25,19 +25,25 @@ in
     # https://github.com/nix-community/home-manager/issues/4026#issuecomment-1565487545
     users.users = rabit-lib.mapListToAttrs config.rabit.nixos.myusers (name:
       let
-        cfg = userImports.${name};
+        hasUserImport = lib.hasAttr name userImports;
+        cfg = lib.warnIf (!hasUserImport) "User '${name}' has no user configuration under ./configurations/users"
+          (if hasUserImport then userImports.${name} else {});
       in
-      cfg // lib.optionalAttrs pkgs.stdenv.isDarwin
-      {
+      cfg // lib.optionalAttrs pkgs.stdenv.isDarwin {
         home = "/Users/${name}";
       } // lib.optionalAttrs pkgs.stdenv.isLinux {
         isNormalUser = true;
       });
 
     # Enable home-manager for our user
-    home-manager.users = rabit-lib.mapListToAttrs config.rabit.nixos.myusers (name: {
-      imports = [ homePaths.${name} ];
-    });
+    home-manager.users = rabit-lib.mapListToAttrs config.rabit.nixos.myusers (name:
+      let
+        hasHomePath = lib.hasAttr name homePaths;
+      in
+      {
+        imports = lib.throwIf (!hasHomePath) "User '${name}' has no home configuration under ./configurations/home"
+          (if hasHomePath then [ homePaths.${name} ] else []);
+      });
 
     # All users can add Nix caches.
     nix.settings.trusted-users = [
