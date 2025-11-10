@@ -17,12 +17,12 @@ in {
 
       # Note Taking & Documentation
       siyuan
-      obsidian
+      # obsidian
       typora
-      pandoc
+      # pandoc
 
       # Development & Code Editors
-      vscode
+      # vscode
 
       # Web Browsers & Download Tools
       # firefox
@@ -38,7 +38,7 @@ in {
 
       # Screenshot & Recording
       flameshot
-      asciinema_3
+      # asciinema_3
       obs-studio
 
       # Media Players
@@ -62,5 +62,13 @@ in {
     };
 
     programs.firefox.enable = true;
+    programs.obsidian.enable = true;
+    programs.pandoc.enable = true;
+    programs.vscode.enable = true;
+
+    programs.asciinema = {
+      enable = true;
+      package = pkgs.asciinema_3;
+    };
   };
 }
