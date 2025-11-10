@@ -7,14 +7,14 @@ let
     mapAttrsMaybe: Apply a function to all attributes and filter out null results
 
     Parameters:
-      f: Function to apply to each attribute (name -> value -> lib.nameValuePair name value | null)
+      callback: Function to apply to each attribute (name -> value -> lib.nameValuePair name value | null)
       attrs: Attribute set to process
 
     Returns: Attribute set containing only non-null results from the mapping function
   */
-  mapAttrsMaybe = f: attrs:
+  mapAttrsMaybe = callback: attrs:
     lib.pipe attrs [
-      (lib.mapAttrsToList f)        # Convert attrs to list of name-value pairs
+      (lib.mapAttrsToList callback)        # Convert attrs to list of name-value pairs
       (builtins.filter (x: x != null))  # Filter out null values
       builtins.listToAttrs          # Convert back to attribute set
     ];
@@ -23,12 +23,12 @@ let
 
     Parameters:
       dir: Directory path to scan for .nix files
-      f: Function to apply to each found .nix file (path -> value)
+      callback: Function to apply to each found .nix file (path -> value)
 
     Returns: Attribute set where keys are file names (without .nix extension)
-            and values are the result of applying f to each file
+            and values are the result of applying callback to each file
    */
-  forAllNixFiles = dir: f:
+  forAllNixFiles = dir: callback:
     if builtins.pathExists dir then
       lib.pipe dir [
         builtins.readDir  # Read directory contents
@@ -38,13 +38,13 @@ let
             let name = lib.removeSuffix ".nix" fn; in
             if name != fn then
               # File has .nix extension, process it
-              lib.nameValuePair name (f "${dir}/${fn}")
+              lib.nameValuePair name (callback "${dir}/${fn}")
             else
               # File doesn't have .nix extension, skip
               null
           else if type == "directory" && builtins.pathExists "${dir}/${fn}/default.nix" then
             # Handle directories with default.nix files
-            lib.nameValuePair fn (f "${dir}/${fn}")
+            lib.nameValuePair fn (callback "${dir}/${fn}")
           else
             # Skip other file types and directories without default.nix
             null
@@ -72,11 +72,23 @@ let
         { }
     ) attrs
   );
+
+  /**
+    mapListToAttrs: Convert a list of strings to an attribute set by applying a function to each element.
+
+    Parameters:
+      list: A list of strings, where each string will become an attribute name.
+      callback: A function to apply to each string in the list to determine the corresponding attribute value (name -> value).
+
+    Returns: An attribute set where each name is an element from the input list and each value is the result of applying the function to that name.
+  */
+  mapListToAttrs = list: callback:
+    lib.listToAttrs (map (name: { inherit name; value = callback name; }) list);
 in
 {
   config.flake = {
     rabit-lib = {
-      inherit mapAttrsMaybe forAllNixFiles flattenPkgs;
+      inherit mapAttrsMaybe forAllNixFiles flattenPkgs mapListToAttrs;
     };
   };
 }
