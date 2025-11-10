@@ -1,11 +1,8 @@
 { config, lib, pkgs, ... }:
 # https://github.com/pbek/nixcfg/blob/bf9196dd7e3d219de5c02f1ffede64f2bf007090/modules/hokage/programs/espanso.nix
 # https://github.com/pbek/nixcfg/blob/fd37b9e548c6f6cdc93b3db4bf348b89e449705b/modules/mixins/espanso.nix
-let
-  cfg = config.rabit.nixos.gui.espanso-wayland-fix;
-in {
-  options.rabit.nixos.gui.espanso-wayland-fix.enable = lib.mkEnableOption "Espanso Wayland fixes";
-  config = lib.mkIf cfg.enable {
+{
+  config = lib.mkIf config.services.espanso.enable {
     # Workaround: [ERROR] Error: could not open uinput device
     boot.kernelModules = [ "uinput" ];
 

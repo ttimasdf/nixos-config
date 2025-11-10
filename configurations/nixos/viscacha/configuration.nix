@@ -132,7 +132,6 @@ in
   # region UI/UX
   rabit.nixos.gui.kde.enable = true;
   rabit.nixos.gui.l10n-chinese.enable = true;
-  rabit.nixos.gui.espanso-wayland-fix.enable = true;
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
   console = {
