@@ -46,6 +46,7 @@ in {
       # Remote Management
       rustdesk-flutter
       virt-viewer
+      remmina
     ];
 
     # Add symlink for edge for Apps to work
