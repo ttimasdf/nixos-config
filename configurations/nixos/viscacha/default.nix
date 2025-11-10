@@ -3,11 +3,11 @@
 { flake, ... }:
 
 let
-  inherit (flake) inputs;
-  inherit (inputs) self nixos-hardware;
+  inherit (flake.inputs) self nixos-hardware nur;
 in
 {
   imports = [
+    nur.modules.nixos.default
     nixos-hardware.nixosModules.lenovo-legion-16irx9h
     self.nixosModules.common
     self.nixosModules.hosts
