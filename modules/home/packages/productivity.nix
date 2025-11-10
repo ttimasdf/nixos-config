@@ -9,41 +9,48 @@ in {
     #
     # Search for packages here: https://search.nixos.org/packages
     home.packages = with pkgs; [
-      # File Management
+      # File Management & Search
       fsearch
       syncthing
       syncthingtray
       localsend
 
-      # Note Taking
+      # Note Taking & Documentation
       siyuan
       obsidian
       typora
       pandoc
 
-      # Productivity
+      # Development & Code Editors
       vscode
+
+      # Web Browsers & Download Tools
+      # firefox
       microsoft-edge
-      wpsoffice-cn-fixup
-      keepassxc
-      git-credential-keepassxc
       aria2
 
-      # Screen Recording
+      # Office Suite
+      wpsoffice-cn-fixup
+
+      # Password Management
+      keepassxc
+      git-credential-keepassxc
+
+      # Screenshot & Recording
       flameshot
       asciinema_3
       obs-studio
 
-      # Media Playback
+      # Media Players
       vlc
       qmplay2
 
-      # Networks
+      # Networking
       daed
       v2rayn
       tail-tray
 
-      # Remote Management
+      # Remote Access
       rustdesk-flutter
       virt-viewer
       remmina

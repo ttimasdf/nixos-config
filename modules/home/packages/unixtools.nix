@@ -9,58 +9,42 @@ in {
     #
     # Search for packages here: https://search.nixos.org/packages
     home.packages = with pkgs; [
-      # Unix tools
-      ripgrep # Better `grep`
-      fd
-      sd
-      tree
-      gnumake
-      pv
-      killall
-      ascii
+      # File and text utilities
+      sd       # Intuitive find and replace tool
+      tree     # Directory listing in tree format
+      file     # File type identifier
 
-      # SysAdmin
-      kdiff3
-      freerdp
-      hardinfo2
-      openssl
-      proxychains-ng
-      sshpass
-      ncdu
+      # System monitoring and process management
+      pv       # Pipe viewer for monitoring data progress
+      killall  # Kill processes by name
+      ncdu     # Disk usage analyzer with ncurses interface
+      hardinfo2 # System information and benchmarking tool
 
-      # dev tools
-      android-tools
-      file
+      # Development and build tools
+      gnumake  # GNU Make build automation tool
+      just     # Modern command runner with justfile syntax
+      nix-tree # Interactive Nix package browser
+      android-tools # Android development and debugging tools
 
-      # Nix dev
-      omnix
-      just
-      cachix
-      nil # Nix language server
-      nix-info
-      nixpkgs-fmt
-      nix-tree
+      # Network and remote access
+      freerdp  # Remote Desktop Protocol client
+      openssl  # Cryptography toolkit and SSL/TLS implementation
+      proxychains-ng # Proxy tool for forcing TCP connections through proxies
+      sshpass  # Non-interactive SSH password authentication
 
-      # On ubuntu, we need this less for `man home-configuration.nix`'s pager to
-      # work.
-      less
+      # Miscellaneous utilities
+      ascii    # ASCII table and character reference
+      kdiff3   # Diff and merge tool for files and directories
     ];
 
     # Programs natively supported by home-manager.
     # They can be configured in `programs.*` instead of using home.packages.
-    programs = {
-      # Better `cat`
-      bat.enable = true;
-      # Type `<ctrl> + r` to fuzzy search your shell history
-      fzf.enable = true;
-      jq.enable = true;
-      # Install btop https://github.com/aristocratos/btop
-      btop.enable = true;
-      # Tmate terminal sharing.
-      tmate = {
-        enable = true;
-        #host = ""; #In case you wish to use a server other than tmate.io
-      };
-    };
+    programs.bat.enable = true;   # Better `cat` with syntax highlighting
+    programs.fzf.enable = true;   # Fuzzy finder for files and history
+    programs.jq.enable = true;    # JSON processor for command-line
+    programs.btop.enable = true;  # System monitor with resource graphs
+    programs.tmate.enable = true; # Terminal sharing for collaboration
+    programs.ripgrep.enable = true; # Fast text search tool
+    programs.fd.enable = true;    # Simple and fast file finder
   };
 }
