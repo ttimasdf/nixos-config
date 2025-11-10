@@ -18,8 +18,9 @@ The repository is organized into the following main directories:
 
 *   `flake.nix`: The main Nix flake file, defining inputs and outputs for the entire configuration.
 *   `configurations/`: Contains machine-specific NixOS and Home Manager configurations.
-    *   `configurations/home/`: Home Manager configurations for users.
-    *   `configurations/nixos/`: NixOS configurations for different machines (e.g., `viscacha`).
+    *   `configurations/home/`: Home Manager configurations for users (e.g., `configurations/home/<user>.nix`).
+    *   `configurations/nixos/`: NixOS configurations for different machines (e.g., `configurations/nixos/<hostname>/`).
+    *   `configurations/users/`: System-level user configurations (e.g., `configurations/users/<user>.nix` for user groups, system permissions).
 *   `modules/`: Reusable Nix modules for various system and user settings.
     *   `modules/home/`: Home Manager modules.
     *   `modules/nixos/`: NixOS modules, including common settings, GUI environments, and specific features like `label-suffix`.
