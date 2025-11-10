@@ -17,7 +17,7 @@
           ci = "commit";
         };
 
-        # init.defaultBranch = "master";
+        init.defaultBranch = "main";
         # pull.rebase = "false";
       };
 
