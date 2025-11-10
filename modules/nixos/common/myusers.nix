@@ -2,44 +2,41 @@
 { flake, pkgs, lib, config, ... }:
 let
   inherit (flake.inputs) self;
-  mapListToAttrs = m: f:
-    lib.listToAttrs (map (name: { inherit name; value = f name; }) m);
+  inherit (self) rabit-lib;
+  # Home modules will be imported by the Home Manager; we simply pass the directory path here.
+  homePaths = rabit-lib.forAllNixFiles (self + /configurations/home) (path: path);
+  # User modules should be imported directly by us.
+  # Currently, user modules are simply plain attrSets.
+  # If we need to support functions later, use (path: import path { inherit flake pkgs lib config; }).
+  userImports = rabit-lib.forAllNixFiles (self + /configurations/users) (path: import path);
 in
 {
   options = {
     rabit.nixos.myusers = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       description = "List of usernames";
-      defaultText = "All users under ./configuration/users are included by default";
-      default =
-        let
-          dirContents = builtins.readDir (self + /configurations/home);
-          fileNames = builtins.attrNames dirContents; # Extracts keys: [ "u.nix" ]
-          regularFiles = builtins.filter (name: dirContents.${name} == "regular") fileNames; # Filters for regular files
-          baseNames = map (name: builtins.replaceStrings [ ".nix" ] [ "" ] name) regularFiles; # Removes .nix extension
-        in
-        baseNames;
+      defaultText = "All users under ./configuration/home are included by default";
+      default = lib.attrNames homePaths;
     };
   };
 
   config = {
     # For home-manager to work.
     # https://github.com/nix-community/home-manager/issues/4026#issuecomment-1565487545
-    users.users = mapListToAttrs config.rabit.nixos.myusers (name:
+    users.users = rabit-lib.mapListToAttrs config.rabit.nixos.myusers (name:
       let
-        cfg = builtins.import (self + /configurations/users/${name}.nix);
+        cfg = userImports.${name};
       in
       cfg // lib.optionalAttrs pkgs.stdenv.isDarwin
       {
         home = "/Users/${name}";
       } // lib.optionalAttrs pkgs.stdenv.isLinux {
         isNormalUser = true;
-      }
-    );
+      });
 
     # Enable home-manager for our user
-    home-manager.users = mapListToAttrs config.rabit.nixos.myusers (name: {
-      imports = [ (self + /configurations/home/${name}.nix) ];
+    home-manager.users = rabit-lib.mapListToAttrs config.rabit.nixos.myusers (name: {
+      imports = [ homePaths.${name} ];
     });
 
     # All users can add Nix caches.
