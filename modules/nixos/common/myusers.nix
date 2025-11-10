@@ -7,7 +7,7 @@ let
 in
 {
   options = {
-    myusers = lib.mkOption {
+    rabit.nixos.myusers = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       description = "List of usernames";
       defaultText = "All users under ./configuration/users are included by default";
@@ -25,7 +25,7 @@ in
   config = {
     # For home-manager to work.
     # https://github.com/nix-community/home-manager/issues/4026#issuecomment-1565487545
-    users.users = mapListToAttrs config.myusers (name:
+    users.users = mapListToAttrs config.rabit.nixos.myusers (name:
       let
         cfg = builtins.import (self + /configurations/users/${name}.nix);
       in
@@ -38,13 +38,13 @@ in
     );
 
     # Enable home-manager for our user
-    home-manager.users = mapListToAttrs config.myusers (name: {
+    home-manager.users = mapListToAttrs config.rabit.nixos.myusers (name: {
       imports = [ (self + /configurations/home/${name}.nix) ];
     });
 
     # All users can add Nix caches.
     nix.settings.trusted-users = [
       "root"
-    ] ++ config.myusers;
+    ] ++ config.rabit.nixos.myusers;
   };
 }
