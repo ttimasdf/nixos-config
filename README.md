@@ -18,9 +18,9 @@ The repository is organized into the following main directories:
 
 *   `flake.nix`: The main Nix flake file, defining inputs and outputs for the entire configuration.
 *   `configurations/`: Contains machine-specific NixOS and Home Manager configurations.
-    *   `configurations/home/<user>.nix`: Home Manager configurations for users.
+    *   `configurations/home/<user>.nix`: Defines Home Manager configurations for a specific user. The presence of such a file automatically registers `<user>` for both Home Manager and system-level user configurations. A directory like `configurations/home/<user>/default.nix` is also supported.
     *   `configurations/nixos/<hostname>/`: NixOS configurations for different machines.
-    *   `configurations/users/<user>.nix`: System-level user configurations (for user groups, system permissions).
+    *   `configurations/users/<user>.nix`: Provides system-level user configurations (for user groups, system permissions) for users defined in `configurations/home/`. A directory like `configurations/users/<user>/default.nix` is also supported.
 *   `modules/`: Reusable Nix modules for various system and user settings.
     *   `modules/home/`: Home Manager modules.
     *   `modules/nixos/`: NixOS modules, including common settings, GUI environments, and specific features like `label-suffix`.
@@ -31,7 +31,7 @@ The repository is organized into the following main directories:
 
 ### Home Manager configurations: `configurations/home/`
 
-In NixOS/nix-darwin, Home Manager configuration is loaded by [modules/nixos/common/myusers.nix](modules/nixos/common/myusers.nix) into `config.home-manager.users.<user>`
+The `modules/nixos/common/myusers.nix` module automatically discovers users by listing all `.nix` files (e.g., `configurations/home/<user>.nix` or `configurations/home/<user>/default.nix`) in `configurations/home/`. For each discovered user, their respective Home Manager configuration is loaded into `config.home-manager.users.<user>`.
 
 
 In all cases, home manager configuration is loaded by [nixos-unified autowire](https://github.com/srid/nixos-unified/blob/1f8ab18330354d2305a0d793da58a6ef83e2857c/nix/modules/flake-parts/autowire.nix#L60-L63) and exposed into flake `flake.perSystem.legacyPackages.homeConfigurations`,
@@ -47,7 +47,7 @@ In all cases, home manager configuration is loaded by [nixos-unified autowire](h
 
 ### System-level user configurations: `configurations/users/`
 
-In NixOS/nix-darwin, `configurations/users/<user>.nix` is loaded by [modules/nixos/common/myusers.nix](modules/nixos/common/myusers.nix) into `config.users.users.<user>`.
+For each user automatically discovered from `configurations/home/`, their corresponding system-level user configuration (`configurations/users/<user>.nix` or `configurations/users/<user>/default.nix`) is loaded by [modules/nixos/common/myusers.nix](modules/nixos/common/myusers.nix) into `config.users.users.<user>`.
 
 See [NixOS Options Search: `users.user`](https://search.nixos.org/options?channel=unstable&query=users.user) for available options.
 
