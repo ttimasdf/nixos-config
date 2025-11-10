@@ -206,7 +206,7 @@ let
 
       desktopItems = [
         (makeDesktopItem {
-          name = "Binary Ninja ${lib.toSentenceCase edition}" + (if isDevVersion then " (Dev Channel)" else "");
+          name = pname;
           exec = pname;
           icon = "binaryninja";
           desktopName = "Binary Ninja ${lib.toSentenceCase edition}" + (if isDevVersion then " (Dev Channel)" else "");
