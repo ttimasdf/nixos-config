@@ -18,14 +18,39 @@ The repository is organized into the following main directories:
 
 *   `flake.nix`: The main Nix flake file, defining inputs and outputs for the entire configuration.
 *   `configurations/`: Contains machine-specific NixOS and Home Manager configurations.
-    *   `configurations/home/`: Home Manager configurations for users (e.g., `configurations/home/<user>.nix`).
-    *   `configurations/nixos/`: NixOS configurations for different machines (e.g., `configurations/nixos/<hostname>/`).
-    *   `configurations/users/`: System-level user configurations (e.g., `configurations/users/<user>.nix` for user groups, system permissions).
+    *   `configurations/home/<user>.nix`: Home Manager configurations for users.
+    *   `configurations/nixos/<hostname>/`: NixOS configurations for different machines.
+    *   `configurations/users/<user>.nix`: System-level user configurations (for user groups, system permissions).
 *   `modules/`: Reusable Nix modules for various system and user settings.
     *   `modules/home/`: Home Manager modules.
     *   `modules/nixos/`: NixOS modules, including common settings, GUI environments, and specific features like `label-suffix`.
+    *   `modules/flake/`: Flake modules for Nix config debugging and package development.
 *   `justfile`: Defines convenient `just` commands for common development tasks like updating the flake, linting, checking, and entering a development shell.
 *   `nixos-version-hint.txt`: (Optional) A file to specify a custom suffix for the NixOS system label.
+
+
+### Home Manager configurations: `configurations/home/`
+
+In NixOS/nix-darwin, Home Manager configuration is loaded by [modules/nixos/common/myusers.nix](modules/nixos/common/myusers.nix) into `config.home-manager.users.<user>`
+
+
+In all cases, home manager configuration is loaded by [nixos-unified autowire](https://github.com/srid/nixos-unified/blob/1f8ab18330354d2305a0d793da58a6ef83e2857c/nix/modules/flake-parts/autowire.nix#L60-L63) and exposed into flake `flake.perSystem.legacyPackages.homeConfigurations`,
+
+### NixOS configurations: `configurations/nixos/`
+
+`configurations/nixos` is loaded by [nixos-unified autowire](https://github.com/srid/nixos-unified/blob/1f8ab18330354d2305a0d793da58a6ef83e2857c/nix/modules/flake-parts/autowire.nix#L38-L41) into `flake.nixosConfigurations` via `forAllNixFiles`.
+
+#### common module: `configurations/nixos/common/`
+
+`configurations/nixos/common` includes some common modules shared by nixos and nix-darwin. Do not add NixOS-specific config into this module.
+
+
+### System-level user configurations: `configurations/users/`
+
+In NixOS/nix-darwin, `configurations/users/<user>.nix` is loaded by [modules/nixos/common/myusers.nix](modules/nixos/common/myusers.nix) into `config.users.users.<user>`.
+
+See [NixOS Options Search: `users.user`](https://search.nixos.org/options?channel=unstable&query=users.user) for available options.
+
 
 ## Development Workflow
 
