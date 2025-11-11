@@ -302,7 +302,7 @@ in
     podman-compose # start group of containers for dev
 
     # Productivity
-    p7zip
+    _7zz
     rar
 
     # Development
