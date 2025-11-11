@@ -2,19 +2,18 @@
 # Enable NLS (Native Language Support) by adding libnatspec patch from gentoo
 final: prev:
 let
-  inherit (flake.inputs.self) rabit-lib;
-  zip = prev.zip.override { enableNLS = true; };
-  unzip = prev.unzip.override { enableNLS = true; };
   nlsWrap = pkg:
     pkg.overrideAttrs (finalAttrs: previousAttrs: {
       pname = previousAttrs.pname + "-nls";
       nativeBuildInputs = (previousAttrs.nativeBuildInputs or []) ++ [ prev.makeWrapper ];
       postInstall = ''
-        wrapProgram $out/bin/${previousAttrs.pname} --add-flags "-O gbk"
+        for bin in $out/bin/*; do
+          wrapProgram "$bin" --add-flags "-O gbk"
+        done
       '';
     });
-  zip-nls = nlsWrap zip;
-  unzip-nls = nlsWrap unzip;
+  zip-nls = nlsWrap (prev.zip.override { enableNLS = true; });
+  unzip-nls = nlsWrap (prev.unzip.override { enableNLS = true; });
 in
 {
   zip-nls = zip-nls;
