@@ -301,9 +301,11 @@ in
     #docker-compose # start group of containers for dev
     podman-compose # start group of containers for dev
 
-    # Productivity
+    # Archive
     _7zz
     rar
+    unzip-nls
+    zip-nls
 
     # Development
     uv
