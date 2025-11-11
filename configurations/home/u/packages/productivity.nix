@@ -9,7 +9,7 @@
 
     # Note Taking & Documentation
     siyuan
-    # obsidian
+    obsidian
     typora
     # pandoc
 
@@ -54,7 +54,7 @@
   };
 
   programs.firefox.enable = true;
-  programs.obsidian.enable = true;
+  # programs.obsidian.enable = true;
   programs.pandoc.enable = true;
   programs.vscode.enable = true;
 
