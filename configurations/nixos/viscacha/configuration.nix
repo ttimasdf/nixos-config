@@ -302,10 +302,10 @@ in
     podman-compose # start group of containers for dev
 
     # Archive
-    _7zz
     rar
     unzip-nls
     zip-nls
+    _7zz-natspec
 
     # Development
     uv

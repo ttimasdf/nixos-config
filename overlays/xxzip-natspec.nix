@@ -14,15 +14,34 @@ let
     });
   zip-nls = nlsWrap (prev.zip.override { enableNLS = true; });
   unzip-nls = nlsWrap (prev.unzip.override { enableNLS = true; });
+  _7zz-natspec = prev._7zz-rar.overrideAttrs (oldAttrs: {
+    pname = oldAttrs.pname + "-natspec";
+
+    # Add libnatspec as a build input
+    buildInputs = (oldAttrs.buildInputs or []) ++ [
+      prev.libnatspec
+    ];
+
+    # Fetch the natspec patch from GitHub
+    patches = (oldAttrs.patches or []) ++ [
+      (prev.fetchpatch {
+        url = "https://raw.githubusercontent.com/archlinux/aur/7zip-natspec/natspec.patch";
+        hash = "sha256-n3bELiCTRT33loiJsgns3N1x5fLlRkhjzknsN1r2PFE=";
+      })
+    ];
+  });
 in
 {
   zip-nls = zip-nls;
   unzip-nls = unzip-nls;
+  _7zz-natspec = _7zz-natspec;
+
   kdePackages = prev.kdePackages.overrideScope (kfinal: kprev: {
     ark = kprev.ark.overrideAttrs (oldAttrs: {
       buildInputs = oldAttrs.buildInputs ++ [
         zip-nls
         unzip-nls
+        _7zz-natspec
       ];
     });
   });

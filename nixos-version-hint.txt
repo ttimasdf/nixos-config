@@ -1,1 +1,1 @@
-pkgs-zip-nls
+pkg-7zz-natspec
