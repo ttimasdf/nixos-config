@@ -12,6 +12,8 @@ let
         done
       '';
     });
+in
+{
   zip-nls = nlsWrap (prev.zip.override { enableNLS = true; });
   unzip-nls = nlsWrap (prev.unzip.override { enableNLS = true; });
   _7zz-natspec = prev._7zz-rar.overrideAttrs (oldAttrs: {
@@ -29,20 +31,5 @@ let
         hash = "sha256-n3bELiCTRT33loiJsgns3N1x5fLlRkhjzknsN1r2PFE=";
       })
     ];
-  });
-in
-{
-  zip-nls = zip-nls;
-  unzip-nls = unzip-nls;
-  _7zz-natspec = _7zz-natspec;
-
-  kdePackages = prev.kdePackages.overrideScope (kfinal: kprev: {
-    ark = kprev.ark.overrideAttrs (oldAttrs: {
-      buildInputs = oldAttrs.buildInputs ++ [
-        zip-nls
-        unzip-nls
-        _7zz-natspec
-      ];
-    });
   });
 }
