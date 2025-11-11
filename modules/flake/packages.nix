@@ -42,7 +42,9 @@ in
     # Export flattened packages for this flake
     packages = rabit-lib.flattenPkgs custom_packages;
 
-    # Alternative package export (commented out):
+    # use `.#activate` as default package
+    # `activate` package is provided by nixos-unified:
+    # https://github.com/srid/nixos-unified/blob/1f8ab18330354d2305a0d793da58a6ef83e2857c/nix/modules/flake-parts/packages.nix#L38-L39
     # packages = custom_packages // {
     #   # Enables 'nix run' to activate.
     #   default = self'.packages.activate;
