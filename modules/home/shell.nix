@@ -19,7 +19,7 @@
         # This ensures UV (Python package manager) uses appropriate cache location
         # when working on mounted filesystems or external drives
         fs_root=$(df --output=target "$PWD" | tail -n 1)
-        if [[ "$fs_root" != "/" ]]; then
+        if [[ "$fs_root" != "/" && "$fs_root" != "/home" ]]; then
           export UV_CACHE_DIR="$fs_root/.cache/uv"
         fi
       '';
