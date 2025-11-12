@@ -300,3 +300,29 @@ To add a new package:
       my-namespace.my-app # For a package within a namespace
     ];
     ```
+
+## Debugging Packages and Overlays
+
+When developing or debugging custom packages and overlays, it's often useful to have a dedicated shell environment. Here are instructions to set up a build shell and a run shell.
+
+### Build Shell
+
+To enter a development shell for a specific package (e.g., `binaryninja-commercial-dev`) and prepare output directories for building, first navigate to the package's directory:
+
+```bash
+cd packages/binaryninja # Or your specific package directory
+nix develop .#binaryninja-commercial-dev
+mkdir -p result/{output,unpack} && pushd result/unpack && export out=$(realpath ../output)
+```
+
+### Run Shell
+
+To enter a `nix-shell` environment and prepare output directories for running/testing, first navigate to the package's directory with a `shell.nix`:
+
+```bash
+cd packages/binaryninja # Or your specific package directory
+nix-shell .
+mkdir -p result/{output,unpack} && pushd result/output
+```
+
+These commands provide a way to isolate your development and testing environments, making it easier to debug issues with your Nix packages and overlays.
