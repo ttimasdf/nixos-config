@@ -1,1 +1,1 @@
-pkg-7zz-natspec
+pkgs-wps-stable
