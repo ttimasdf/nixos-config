@@ -2,10 +2,8 @@
 
 final: prev:
 {
-  # Override clash-verge-rev source
   clash-verge-rev = prev.clash-verge-rev.overrideAttrs (oldAttrs: {
-    # Replace this with your desired source override
-    # Example: using a specific git revision
+    # https://github.com/clash-verge-rev/clash-verge-rev/commits/dev/
     version = "2.4.3-git-cc2dc66";
     src = prev.fetchFromGitHub {
       owner = "clash-verge-rev";
