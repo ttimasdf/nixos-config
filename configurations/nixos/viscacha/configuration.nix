@@ -332,6 +332,8 @@ in
   programs.wireshark.dumpcap.enable = true;
   programs.wireshark.usbmon.enable = true;
 
+  programs.ghidra.enable = true;
+
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
