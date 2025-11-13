@@ -182,11 +182,29 @@ let
           find $out/opt/${pname} -name 'libpyside6.abi*.so.*' -delete
         fi
 
+        # Create xdg-open wrapper
+        mkdir -p $out/libexec
+        cat <<'HEREDOC' > $out/libexec/.launcher
+        #!${stdenv.shell}
+        cmd="$(basename "$0")"
+        # Remove libexec from path
+        export PATH=$(perl -e 'print join ":", grep { !/libexec/ } split /:/, $ENV{PATH}')
+        # Remove env variables
+        unset LD_LIBRARY_PATH PYTHONPATH
+        if [ "$cmd" = ".launcher" ]; then
+            echo "This is a generic launcher for external applications"
+            exit -1
+        fi
+        exec "$cmd" "$@"
+        HEREDOC
+        chmod +x $out/libexec/.launcher
+        ln -s .launcher $out/libexec/xdg-open
+
         # Create bin directory and wrapper
         mkdir -p $out/bin
         buildPythonPath "$pythonPath"
         makeWrapper $out/opt/${pname}/binaryninja $out/bin/${pname} \
-          --prefix PATH : "${lib.makeBinPath [ coreutils gcc ]}" \
+          --prefix PATH : "$out/libexec:${lib.makeBinPath [ coreutils gcc ]}" \
           --prefix PYTHONPATH : "$program_PYTHONPATH" \
           --prefix LD_LIBRARY_PATH : "$out/opt/${pname}" \
           "''${qtWrapperArgs[@]}" # Pass Qt specific arguments if any
