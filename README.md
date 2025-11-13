@@ -311,8 +311,27 @@ To enter a development shell for a specific package (e.g., `binaryninja-commerci
 
 ```bash
 cd packages/binaryninja # Or your specific package directory
+# dev shell for packages
 nix develop .#binaryninja-commercial-dev
+# dev shell for overlays
+nix develop .#nixosConfigurations.viscacha.pkgs._010editor
+
+# in dev shell
 mkdir -p result/{output,unpack} && pushd result/unpack && export out=$(realpath ../output)
+```
+
+Run package phases manually inside dev shell.
+
+```bash
+runPhase unpackPhase && export out=$(realpath ../output)
+# runPhase patchPhase
+# runPhase configurePhase
+# runPhase buildPhase
+# runPhase checkPhase
+runPhase installPhase
+runPhase fixupPhase
+runPhase installCheckPhase
+runPhase distPhase
 ```
 
 ### Run Shell
