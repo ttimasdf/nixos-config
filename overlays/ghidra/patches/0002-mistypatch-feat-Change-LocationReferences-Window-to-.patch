@@ -1,0 +1,320 @@
+From 25ee4da9ac4bd9a7a734852e7bd1b69f36887589 Mon Sep 17 00:00:00 2001
+From: Misty <gyc990326@gmail.com>
+Date: Mon, 6 Mar 2023 05:30:36 +0800
+Subject: [PATCH 02/10] [mistypatch] feat: Change LocationReferences Window to
+ modal dialog
+
+---
+ .../LocationReferencesPanel.java              |  54 +++++++++
+ .../LocationReferencesProvider.java           |   8 +-
+ .../ghidra/app/services/GoToServiceWrap.java  | 105 ++++++++++++++++++
+ .../main/java/docking/DetachedWindowNode.java |  27 ++++-
+ .../java/docking/DockingWindowManager.java    |  11 +-
+ 5 files changed, 198 insertions(+), 7 deletions(-)
+ create mode 100644 Ghidra/Features/Base/src/main/java/ghidra/app/services/GoToServiceWrap.java
+
+diff --git a/Ghidra/Features/Base/src/main/java/ghidra/app/plugin/core/navigation/locationreferences/LocationReferencesPanel.java b/Ghidra/Features/Base/src/main/java/ghidra/app/plugin/core/navigation/locationreferences/LocationReferencesPanel.java
+index 68e71024bb..213cb8a662 100644
+--- a/Ghidra/Features/Base/src/main/java/ghidra/app/plugin/core/navigation/locationreferences/LocationReferencesPanel.java
++++ b/Ghidra/Features/Base/src/main/java/ghidra/app/plugin/core/navigation/locationreferences/LocationReferencesPanel.java
+@@ -17,6 +17,8 @@ package ghidra.app.plugin.core.navigation.locationreferences;
+ 
+ import java.awt.BorderLayout;
+ import java.awt.Dimension;
++import java.awt.event.KeyAdapter;
++import java.awt.event.KeyEvent;
+ import java.awt.event.MouseEvent;
+ import java.util.Collection;
+ 
+@@ -28,6 +30,11 @@ import ghidra.framework.plugintool.PluginTool;
+ import ghidra.program.model.address.Address;
+ import ghidra.util.table.*;
+ 
++import ghidra.app.nav.Navigatable;
++import ghidra.app.services.GoToServiceWrap;
++import ghidra.program.model.listing.Program;
++import ghidra.program.util.ProgramLocation;
++
+ /**
+  * A panel that contains a table for displaying results of performing a search for references 
+  * to a given location.
+@@ -45,6 +52,32 @@ public class LocationReferencesPanel extends JPanel {
+ 		buildPanel();
+ 	}
+ 
++	// Ghidra Mod - Supports Modal LocationReferences - Helper
++	class WrapGoToService extends GoToServiceWrap {
++		private Runnable onGoToRunnable;
++		public WrapGoToService(GoToService gotoService, Runnable onGoTo) {
++			super(gotoService);
++			onGoToRunnable = onGoTo;
++		}
++		private void onGoTo() {
++			if (onGoToRunnable != null) {
++				onGoToRunnable.run();
++			}
++		}
++
++		public boolean goTo(Address goToAddress, Program program) {
++			boolean ret = super.goTo(goToAddress, program);
++			onGoTo();
++			return ret;
++		}
++
++		public boolean goTo(Navigatable navigatable, ProgramLocation loc, Program program) {
++			boolean ret = super.goTo(navigatable, loc, program);
++			onGoTo();
++			return ret;
++		}
++	}
++
+ 	private void buildPanel() {
+ 		tableModel = new LocationReferencesTableModel(locationReferencesProvider);
+ 		tablePanel = new GhidraThreadedTablePanel<>(tableModel, 250);
+@@ -62,6 +95,27 @@ public class LocationReferencesPanel extends JPanel {
+ 			new GhidraTableFilterPanel<>(table, tableModel);
+ 		add(tablePanel, BorderLayout.CENTER);
+ 		add(tableFilterPanel, BorderLayout.SOUTH);
++
++		// Ghidra Mod - Supports Modal LocationReferences
++		putClientProperty("ghidramod.modalcomponent", "1");
++		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
++		table.setNavigateOnSelectionEnabled(false);
++		Runnable closePanelRunnable = () -> {
++			locationReferencesProvider.getTool().showComponentProvider(locationReferencesProvider, false);
++			// must do this, or next time the xref panel would be empty
++			locationReferencesProvider.closeComponent();
++		};
++		goToService = new WrapGoToService(goToService, closePanelRunnable);
++		table.installNavigation(goToService, goToService.getDefaultNavigatable());
++		table.addKeyListener(new KeyAdapter() {
++			@Override
++			public void keyPressed(KeyEvent e) {
++				if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
++					closePanelRunnable.run();
++					e.consume();
++				}
++			}
++		});
+ 	}
+ 
+ 	Collection<Address> getReferenceAddresses() {
+diff --git a/Ghidra/Features/Base/src/main/java/ghidra/app/plugin/core/navigation/locationreferences/LocationReferencesProvider.java b/Ghidra/Features/Base/src/main/java/ghidra/app/plugin/core/navigation/locationreferences/LocationReferencesProvider.java
+index 51eaf76171..e4b22cbe4c 100644
+--- a/Ghidra/Features/Base/src/main/java/ghidra/app/plugin/core/navigation/locationreferences/LocationReferencesProvider.java
++++ b/Ghidra/Features/Base/src/main/java/ghidra/app/plugin/core/navigation/locationreferences/LocationReferencesProvider.java
+@@ -271,8 +271,10 @@ public class LocationReferencesProvider extends ComponentProviderAdapter
+ 			"<html>Push at any time to refresh the current table of references.<br>" +
+ 				"This button is highlighted when the data <i>may</i> be stale.<br>");
+ 
+-		SelectionNavigationAction selectionNavigationAction =
+-			new SelectionNavigationAction(locationReferencesPlugin, referencesPanel.getTable());
++		// Ghidra Mod - ModalXref - avoid navigateOnSelection
++		//SelectionNavigationAction selectionNavigationAction =
++		//	new SelectionNavigationAction(locationReferencesPlugin, referencesPanel.getTable());
++		//selectionNavigationAction.setSelected(false);
+ 
+ 		GhidraTable table = referencesPanel.getTable();
+ 		DockingAction removeItemsAction = new DeleteAction(tool, table);
+@@ -282,7 +284,7 @@ public class LocationReferencesProvider extends ComponentProviderAdapter
+ 		tool.addLocalAction(this, selectionAction);
+ 		tool.addLocalAction(this, highlightAction);
+ 		tool.addLocalAction(this, removeItemsAction);
+-		tool.addLocalAction(this, selectionNavigationAction);
++		//tool.addLocalAction(this, selectionNavigationAction);
+ 
+ 		setHelpLocation();
+ 	}
+diff --git a/Ghidra/Features/Base/src/main/java/ghidra/app/services/GoToServiceWrap.java b/Ghidra/Features/Base/src/main/java/ghidra/app/services/GoToServiceWrap.java
+new file mode 100644
+index 0000000000..8bd9475cd0
+--- /dev/null
++++ b/Ghidra/Features/Base/src/main/java/ghidra/app/services/GoToServiceWrap.java
+@@ -0,0 +1,105 @@
++/* ###
++ * IP: GHIDRA
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package ghidra.app.services;
++
++import ghidra.app.nav.Navigatable;
++import ghidra.program.model.address.Address;
++import ghidra.program.model.listing.Program;
++import ghidra.program.model.symbol.ExternalLocation;
++import ghidra.program.util.ProgramLocation;
++import ghidra.util.task.TaskMonitor;
++
++public class GoToServiceWrap implements GoToService {
++    public GoToService gotoService;
++    public GoToServiceWrap(GoToService gotoService) {
++        this.gotoService = gotoService;
++    }
++
++    @Override
++    public boolean goTo(ProgramLocation loc) {
++        return gotoService.goTo(loc);
++    }
++
++    @Override
++    public boolean goTo(ProgramLocation loc, Program program) {
++        return gotoService.goTo(loc, program);
++    }
++
++    @Override
++    public boolean goTo(Navigatable navigatable, ProgramLocation loc, Program program) {
++        return gotoService.goTo(navigatable, loc, program);
++    }
++
++    @Override
++    public boolean goTo(Navigatable navigatable, Program program, Address address, Address refAddress) {
++        return gotoService.goTo(navigatable, program, address, refAddress);
++    }
++
++    @Override
++    public boolean goTo(Address fromAddress, Address address) {
++        return gotoService.goTo(fromAddress, address);
++    }
++
++    @Override
++    public boolean goTo(Navigatable navigatable, Address goToAddress) {
++        return gotoService.goTo(navigatable, goToAddress);
++    }
++
++    @Override
++    public boolean goTo(Address goToAddress) {
++        return gotoService.goTo(goToAddress);
++    }
++
++    @Override
++    public boolean goTo(Address goToAddress, Program program) {
++        return gotoService.goTo(goToAddress, program);
++    }
++
++    @Override
++    public boolean goToExternalLocation(ExternalLocation externalLoc, boolean checkNavigationOption) {
++        return gotoService.goToExternalLocation(externalLoc, checkNavigationOption);
++    }
++
++    @Override
++    public boolean goToExternalLocation(Navigatable navigatable, ExternalLocation externalLoc, boolean checkNavigationOption) {
++        return gotoService.goToExternalLocation(navigatable, externalLoc, checkNavigationOption);
++    }
++
++    @Override
++    public boolean goToQuery(Address fromAddr, QueryData queryData, GoToServiceListener listener, TaskMonitor monitor) {
++        return gotoService.goToQuery(fromAddr, queryData, listener, monitor);
++    }
++
++    @Override
++    public boolean goToQuery(Navigatable navigatable, Address fromAddr, QueryData queryData, GoToServiceListener listener, TaskMonitor monitor) {
++        return gotoService.goToQuery(navigatable, fromAddr, queryData, listener, monitor);
++    }
++
++    @Override
++    public Navigatable getDefaultNavigatable() {
++        return gotoService.getDefaultNavigatable();
++    }
++
++    @Override
++    public GoToOverrideService getOverrideService() {
++        return gotoService.getOverrideService();
++    }
++
++    @Override
++    public void setOverrideService(GoToOverrideService override) {
++        gotoService.setOverrideService(override);
++    }
++}
+diff --git a/Ghidra/Framework/Docking/src/main/java/docking/DetachedWindowNode.java b/Ghidra/Framework/Docking/src/main/java/docking/DetachedWindowNode.java
+index 4d130f1dd1..635276c753 100644
+--- a/Ghidra/Framework/Docking/src/main/java/docking/DetachedWindowNode.java
++++ b/Ghidra/Framework/Docking/src/main/java/docking/DetachedWindowNode.java
+@@ -324,13 +324,26 @@ class DetachedWindowNode extends WindowNode {
+ 		return finalTitles;
+ 	}
+ 
++	private boolean isForceModal(JComponent comp) {
++		if (comp instanceof DockableComponent) {
++			comp = ((DockableComponent)comp).getProviderComponent();
++			return null != comp.getClientProperty("ghidramod.modalcomponent");
++		}
++		return false;
++	}
++
+ 	/**
+ 	 * Creates a new window to host the components tree.
+ 	 */
+ 	private void createWindow(JComponent comp) {
+ 		RootNode root = (RootNode) parent;
+-		if (winMgr.isWindowsOnTop() || root.isModal()) {
+-			window = createDialog(root);
++		// Ghidra Mod - Supports Modal LocationReferences
++		if (winMgr.isWindowsOnTop() || root.isModal() || isForceModal(comp)) {
++			JDialog dialog = createDialog(root);
++			if (isForceModal(comp)) {
++				dialog.setModal(true);
++			}
++			window = dialog;
+ 		}
+ 		else {
+ 			window = createFrame();
+@@ -369,7 +382,9 @@ class DetachedWindowNode extends WindowNode {
+ 		adjustBounds();
+ 
+ 		window.setBounds(bounds);
+-		window.setVisible(true);
++		// Ghidra Mod - Modal Component
++		//     Must do this or modal JDialog will block here
++		SwingUtilities.invokeLater(() -> window.setVisible(true));
+ 	}
+ 
+ 	/**
+@@ -523,6 +538,12 @@ class DetachedWindowNode extends WindowNode {
+ 	@Override
+ 	void close() {
+ 		child.close();
++		if (window instanceof JDialog) {
++			JDialog dialog = (JDialog) window;
++			if (dialog.isModal()) {
++				dialog.setVisible(false);
++			}
++		}
+ 	}
+ 
+ 	@Override
+diff --git a/Ghidra/Framework/Docking/src/main/java/docking/DockingWindowManager.java b/Ghidra/Framework/Docking/src/main/java/docking/DockingWindowManager.java
+index a40ca33520..8277587198 100644
+--- a/Ghidra/Framework/Docking/src/main/java/docking/DockingWindowManager.java
++++ b/Ghidra/Framework/Docking/src/main/java/docking/DockingWindowManager.java
+@@ -994,7 +994,16 @@ public class DockingWindowManager implements PropertyChangeListener, Placeholder
+ 
+ 	private void movePlaceholderToFront(ComponentPlaceholder placeholder, boolean emphasisze) {
+ 		placeholder.toFront();
+-		toFront(root.getWindow(placeholder));
++
++		// Ghidra Mod - Modal Component
++		//     Must do this or modal JDialog will block here
++		var window = root.getWindow(placeholder);
++		if (window instanceof JDialog) {
++			SwingUtilities.invokeLater(() -> toFront(window));
++		} else {
++			toFront(window);
++		}
++
+ 		if (emphasisze) {
+ 			placeholder.emphasize();
+ 		}
+-- 
+2.51.0
+

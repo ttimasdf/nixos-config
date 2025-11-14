@@ -1,0 +1,31 @@
+From 1ac81a35ac44a4b7bbed2c1e21f31d211a7389a6 Mon Sep 17 00:00:00 2001
+From: Misty <gyc990326@gmail.com>
+Date: Fri, 10 Mar 2023 03:53:42 +0800
+Subject: [PATCH 05/10] [mistypatch] feat: Do not enable ConvertAction when the
+ number format is exactly the same
+
+---
+ .../app/plugin/core/equate/AbstractConvertAction.java      | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/Ghidra/Features/Base/src/main/java/ghidra/app/plugin/core/equate/AbstractConvertAction.java b/Ghidra/Features/Base/src/main/java/ghidra/app/plugin/core/equate/AbstractConvertAction.java
+index 7d55cbf35a..7a4aae8da2 100644
+--- a/Ghidra/Features/Base/src/main/java/ghidra/app/plugin/core/equate/AbstractConvertAction.java
++++ b/Ghidra/Features/Base/src/main/java/ghidra/app/plugin/core/equate/AbstractConvertAction.java
+@@ -71,6 +71,13 @@ public abstract class AbstractConvertAction extends ListingContextAction {
+ 			if (!(dataType instanceof AbstractIntegerDataType)) {
+ 				return false;
+ 			}
++
++			// GhidraMod - MultiKeyFix - Do not enable when format is already the same
++			AbstractIntegerDataType intType = (AbstractIntegerDataType) dataType;
++			int curChoice = FormatSettingsDefinition.DEF.getChoice(data);
++			if (curChoice == getFormatChoice() && intType.isSigned() == isSigned ) {
++				return false;
++			}
+ 		}
+ 		String menuName = getMenuName(context.getProgram(), scalar, cu instanceof Data);
+ 		if (menuName == null) {
+-- 
+2.51.0
+
