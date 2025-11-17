@@ -209,7 +209,7 @@ in
   programs.vim.defaultEditor = true;
 
   programs.java.enable = true;
-  programs.java.package = pkgs.jdk;
+  programs.java.package = pkgs.jdk.override { enableJavaFX = true; };
 
   services.mihomo.enable = true;
   services.mihomo.tunMode = true;
