@@ -14,6 +14,9 @@
 
     # Development and build tools
     gnumake  # GNU Make build automation tool
+    cmake
+    gcc
+    ninja
     just     # Modern command runner with justfile syntax
     nix-tree # Interactive Nix package browser
     android-tools # Android development and debugging tools
