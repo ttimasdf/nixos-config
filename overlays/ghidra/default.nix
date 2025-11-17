@@ -21,6 +21,7 @@ let
     (lib.filter (name: lib.hasSuffix ".patch" name))
     (lib.map (name: "${patchesDir}/${name}"))
   ];
+  ida-icon = ./ida.png;
 in
 {
   ghidra = prev.ghidra.overrideAttrs (oldAttrs: {
@@ -32,11 +33,19 @@ in
 
     addGhidraIDAPhase = ''
       defaultToolsDir="./Ghidra/Configurations/Public_Release/src/main/resources/defaultTools"
+
+      # Replace CodeBrowser with mistyGhIDA, rename original tool to CodeBrowserClassic
       mv $defaultToolsDir/CodeBrowser.tool $defaultToolsDir/CodeBrowserClassic.tool
       sed -i -e 's@TOOL_NAME="CodeBrowser"@TOOL_NAME="CodeBrowserClassic"@' $defaultToolsDir/CodeBrowserClassic.tool
       cp ${ghidra-ida}/mistyGhIDA.tool $defaultToolsDir/CodeBrowser.tool
-      # Add new file to certification.manifest
+
+      # change mistyGhIDA icon to IDA Pro icon
+      cp ${ida-icon} ./Ghidra/Features/Base/src/main/resources/defaultTools/images/ida.png
+      sed -i -e 's@LOCATION="greenDragon24.png"@LOCATION="ida.png"@' $defaultToolsDir/CodeBrowser.tool
+
+      # Add new files to certification.manifest
       echo 'src/main/resources/defaultTools/CodeBrowserClassic.tool||GHIDRA||||END|' >> ./Ghidra/Configurations/Public_Release/certification.manifest
+      echo 'src/main/resources/defaultTools/images/ida.png||GHIDRA||||END|' >> ./Ghidra/Features/Base/certification.manifest
     '';
     addIdaTilPhase = ''
       cp -R ${ghidra-ida-til}/release $out/lib/ghidra/Ghidra/Features/Base/data/typeinfo/ida
