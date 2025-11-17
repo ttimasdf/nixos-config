@@ -297,7 +297,7 @@ let
       # Return a list of the created packages, filtering out nulls
       lib.filter (p: p != null) [ stablePkg devPkg ]
   ) releases);
-
+  # Convert the list of packages into the final attribute set
+  packageSet = lib.listToAttrs packages;
 in
-# Convert the list of packages into the final attribute set
-lib.listToAttrs packages
+lib.recurseIntoAttrs packageSet
