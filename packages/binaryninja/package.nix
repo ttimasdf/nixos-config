@@ -19,9 +19,7 @@
   wayland,
   xorg,
   qt6Packages,
-  python3,
-  coreutils,
-  gcc,
+  python312,
   qt68Packages ? null,
   qt68python312 ? null,
   useQtFromNixpkgs ? false,
@@ -31,7 +29,7 @@ let
   _ = lib.asserts.assertMsg (!useQtFromNixpkgs || (qt68Packages != null && qt68python312 != null))
     "qt68Packages and qt68python312 must be provided when useQtFromNixpkgs is true";
   qt6Packages' = if useQtFromNixpkgs then qt68Packages else qt6Packages;
-  python3' = if useQtFromNixpkgs then qt68python312 else python3;
+  python3' = if useQtFromNixpkgs then qt68python312 else python312;
 
   releases = builtins.fromJSON (builtins.readFile ./releases.json);
 
@@ -106,15 +104,16 @@ let
         qt6Packages'.qtbase
         qt6Packages'.qtdeclarative
         qt6Packages'.qtwayland
+        python3'
         python3'.pkgs.pip
+      ] ++ lib.optionals useQtFromNixpkgs [
         python3'.pkgs.pyside6
         python3'.pkgs.shiboken6
-        coreutils
-        gcc
       ];
 
       pythonPath = with python3'.pkgs; [
         pip
+      ] ++ lib.optionals useQtFromNixpkgs [
         pyside6
         shiboken6
       ];
@@ -204,7 +203,7 @@ let
         mkdir -p $out/bin
         buildPythonPath "$pythonPath"
         makeWrapper $out/opt/${pname}/binaryninja $out/bin/${pname} \
-          --prefix PATH : "$out/libexec:${lib.makeBinPath [ coreutils gcc ]}" \
+          --prefix PATH : "$out/libexec:${lib.makeBinPath [ python3' ]}" \
           --prefix PYTHONPATH : "$program_PYTHONPATH" \
           --prefix LD_LIBRARY_PATH : "$out/opt/${pname}" \
           "''${qtWrapperArgs[@]}" # Pass Qt specific arguments if any

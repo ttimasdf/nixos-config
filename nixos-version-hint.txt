@@ -1,1 +1,1 @@
-pkg-javafx
+pkgs-binja-py12
