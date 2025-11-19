@@ -334,20 +334,24 @@ in
 
   programs.ghidra.enable = true;
   # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/tools/security/ghidra/extensions.nix
-  programs.ghidra.package = pkgs.ghidra.withExtensions (exts: with exts; [
-    findcrypt
-    # ghidra-delinker-extension
-    # ghidra-firmware-utils
-    # ghidra-golanganalyzerextension
-    # ghidraninja-ghidra-scripts
-    # gnudisassembler
-    # kaiju
-    # lightkeeper
-    # machinelearning
-    # ret-sync
-    sleighdevtools
-    # wasm
-  ]);
+  programs.ghidra.package = pkgs.ghidra.withExtensions (exts:
+    (with exts; [
+      findcrypt
+      # ghidra-delinker-extension
+      # ghidra-firmware-utils
+      # ghidra-golanganalyzerextension
+      # ghidraninja-ghidra-scripts
+      # gnudisassembler
+      # kaiju
+      # lightkeeper
+      # machinelearning
+      ret-sync
+      sleighdevtools
+      # wasm
+    ]) ++ (with pkgs.ghidra-custom-extensions; [
+      ghidraninja-ghidra-scripts
+    ])
+  );
 
   # List services that you want to enable:
 
