@@ -349,6 +349,7 @@ in
       sleighdevtools
       # wasm
     ]) ++ (with pkgs.ghidra-custom-extensions; [
+      ghydra-mcp
       ghidraninja-ghidra-scripts
     ])
   );
