@@ -22,6 +22,12 @@ let
     (lib.map (name: "${patchesDir}/${name}"))
   ];
   ida-icon = ./ida.png;
+  custom-extensions = lib.packagesFromDirectoryRecursive {
+      callPackage = lib.callPackageWith (prev // {
+        inherit (prev.ghidra-extensions) buildGhidraExtension buildGhidraScripts;
+      });
+      directory = ./extensions;
+    };
 in
 {
   ghidra = prev.ghidra.overrideAttrs (oldAttrs: {
@@ -57,4 +63,5 @@ in
         $out/lib/ghidra/support/launch.properties
     '';
   });
+  ghidra-custom-extensions = custom-extensions;
 }

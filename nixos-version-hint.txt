@@ -1,1 +1,1 @@
-home-kitty
+ghidra-extensions
