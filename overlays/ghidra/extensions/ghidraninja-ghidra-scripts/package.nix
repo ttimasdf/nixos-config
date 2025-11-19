@@ -1,6 +1,9 @@
 /**
   based on:
   https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/tools/security/ghidra/extensions/ghidraninja-ghidra-scripts/default.nix
+
+  remove swift package since it's only used in one single script, but adding unneccesary 1.5GiB size in package closure.
+  use `swift` executable from PATH inside nix-shell if needed.
  */
 
 {
@@ -8,7 +11,6 @@
   fetchFromGitHub,
   buildGhidraScripts,
   binwalk,
-  # swift,
   yara,
 }:
 
@@ -26,7 +28,7 @@ buildGhidraScripts {
   postPatch = ''
     # Replace subprocesses with store versions
     substituteInPlace binwalk.py --replace-fail 'subprocess.call(["binwalk"' 'subprocess.call(["${binwalk}/bin/binwalk"'
-    # substituteInPlace swift_demangler.py --replace-fail '"swift"' '"${swift}/bin/swift"'
+    # substituteInPlace swift_demangler.py --replace-fail '"swift"' '"$ESCAPE{swift}/bin/swift"'
     substituteInPlace yara.py --replace-fail 'subprocess.check_output(["yara"' 'subprocess.check_output(["${yara}/bin/yara"'
     substituteInPlace YaraSearch.py --replace-fail '"yara "' '"${yara}/bin/yara "'
   '';
