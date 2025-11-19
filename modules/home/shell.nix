@@ -1,5 +1,14 @@
 { ... }:
 {
+  home.shellAliases = {
+    g = "git";
+    lg = "lazygit";
+  };
+
+  home.shell = {
+    enableShellIntegration = true;
+  };
+
   programs = {
     # on macOS, you probably don't need this
     bash = {
