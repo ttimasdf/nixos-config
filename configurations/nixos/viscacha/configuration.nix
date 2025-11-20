@@ -306,12 +306,6 @@ in
     unzip-nls
     zip-nls
     _7zz-natspec
-
-    # Development
-    uv
-
-    # GhydraMCP Client
-    ghidra-custom-extensions.ghydra-mcp.client
   ];
 
   # Fix uv python ssl.SSLCertVerificationError
