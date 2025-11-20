@@ -233,6 +233,9 @@ let
           ];
           comment = "Binary Ninja is an interactive decompiler, disassembler, debugger, and binary analysis platform built by reverse engineers, for reverse engineers";
           categories = [ "Utility" ];
+          terminal = false;
+          # get WMClass from `qdbus org.kde.KWin /KWin queryWindowInfo | grep -i class`
+          startupWMClass = "Binary Ninja";
         })
       ];
 
