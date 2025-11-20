@@ -6,13 +6,15 @@
 }:
 buildGhidraExtension (finalAttrs: {
   pname = "ghidrassist-mcp";
-  version = "0.7.0";
+  version = "0-unstable-2025-11-20";
 
   src = fetchFromGitHub {
-    owner = "jtang613";
+    # owner = "jtang613";
+    owner = "ttimasdf";
     repo = "GhidrAssistMCP";
-    rev = "${finalAttrs.version}";
-    hash = "sha256-ZjoRAWk3goKXERJonWKdAQUUFS8EK395hauxevFLCR4=";
+    # https://github.com/ttimasdf/GhidrAssistMCP/tree/feat-tool-structure-field
+    rev = "d694c051e3f9d30ee6fc9cd19515d4abf4200dd5";
+    hash = "sha256-IeJvGoJRKlJMF5EAdyhd5ORCRHb2ZDsOs10CkjrSLAE=";
   };
 
   mitmCache = gradle.fetchDeps {
