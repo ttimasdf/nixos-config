@@ -1,5 +1,6 @@
 {
   lib,
+  rabit-lib,
   maven,
   fetchFromGitHub,
   unzip,
@@ -56,22 +57,15 @@ maven.buildMavenPackage rec {
     pyproject = true;
     build-system = [ python3.pkgs.hatchling ];
     dependencies = with python3.pkgs; [
-      # https://github.com/modelcontextprotocol/python-sdk/pull/1198#issuecomment-3141372008
-      (mcp.overrideAttrs (old: rec {
-        version = "1.12.2";
-        src = fetchFromGitHub {
-          owner = "modelcontextprotocol";
-          repo = "python-sdk";
-          tag = "v${version}";
-          hash = "sha256-K3S+2Z4yuo8eAOo8gDhrI8OOfV6ADH4dAb1h8PqYntc=";
-        };
-      }))
+      mcp
       requests
     ];
 
+    patches = rabit-lib.findPatches ./patches;
+
     postPatch = ''
-      substituteInPlace pyproject.toml \
-        --replace '==' '>='
+      # loosen dependency version requirements
+      substituteInPlace pyproject.toml --replace '==' '>='
     '';
   };
 }
