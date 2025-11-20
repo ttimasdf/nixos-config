@@ -309,6 +309,9 @@ in
 
     # Development
     uv
+
+    # GhydraMCP Client
+    ghidra-custom-extensions.ghydra-mcp.client
   ];
 
   # Fix uv python ssl.SSLCertVerificationError

@@ -3,6 +3,7 @@
   maven,
   fetchFromGitHub,
   unzip,
+  python3,
 }:
 maven.buildMavenPackage rec {
   pname = "ghydra-mcp";
@@ -46,5 +47,31 @@ maven.buildMavenPackage rec {
     downloadPage = "https://github.com/starsong-consulting/GhydraMCP/releases/";
     license = lib.licenses.apsl20;
     # maintainers = with lib.maintainers; [ timschumi ];
+  };
+
+  passthru.client = python3.pkgs.buildPythonApplication {
+    pname = "${pname}-client";
+    inherit src version;
+
+    pyproject = true;
+    build-system = [ python3.pkgs.hatchling ];
+    dependencies = with python3.pkgs; [
+      # https://github.com/modelcontextprotocol/python-sdk/pull/1198#issuecomment-3141372008
+      (mcp.overrideAttrs (old: rec {
+        version = "1.12.2";
+        src = fetchFromGitHub {
+          owner = "modelcontextprotocol";
+          repo = "python-sdk";
+          tag = "v${version}";
+          hash = "sha256-K3S+2Z4yuo8eAOo8gDhrI8OOfV6ADH4dAb1h8PqYntc=";
+        };
+      }))
+      requests
+    ];
+
+    postPatch = ''
+      substituteInPlace pyproject.toml \
+        --replace '==' '>='
+    '';
   };
 }
