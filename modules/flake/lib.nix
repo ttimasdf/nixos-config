@@ -84,11 +84,27 @@ let
   */
   mapListToAttrs = list: callback:
     lib.listToAttrs (map (name: { inherit name; value = callback name; }) list);
+
+  /**
+    findPatches: Find all .patch files in a directory and return their full paths.
+
+    Parameters:
+      patchesDir: Directory path to scan for .patch files
+
+    Returns: List of full paths to .patch files
+  */
+  findPatches = patchesDir:
+    lib.pipe patchesDir [
+      builtins.readDir
+      (lib.attrNames)
+      (lib.filter (name: lib.hasSuffix ".patch" name))
+      (lib.map (name: "${patchesDir}/${name}"))
+    ];
 in
 {
   config.flake = {
     rabit-lib = {
-      inherit mapAttrsMaybe forAllNixFiles flattenPkgs mapListToAttrs;
+      inherit mapAttrsMaybe forAllNixFiles flattenPkgs mapListToAttrs findPatches;
     };
   };
 }

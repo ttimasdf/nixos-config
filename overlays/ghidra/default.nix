@@ -2,6 +2,7 @@
 
 final: prev:
 let
+  inherit (flake.inputs.self) rabit-lib;
   ghidra-ida = prev.fetchFromGitHub {
     owner = "NyaMisty";
     repo = "GhidraIDA";
@@ -14,17 +15,11 @@ let
     rev = "85ac9c9bf1f03e5c82d7f38627eb332a43ee0d68";
     sha256 = "sha256-FmwEJquJZhb/EJvzxgwVpQd/Nfy/pmI+4wlP0zn6dL4=";
   };
-  patchesDir = ./patches;
-  ghidra-patches = lib.pipe patchesDir [
-    builtins.readDir
-    (lib.attrNames)
-    (lib.filter (name: lib.hasSuffix ".patch" name))
-    (lib.map (name: "${patchesDir}/${name}"))
-  ];
   ida-icon = ./ida.png;
   custom-extensions = lib.packagesFromDirectoryRecursive {
       callPackage = lib.callPackageWith (prev // {
         inherit (prev.ghidra-extensions) buildGhidraExtension buildGhidraScripts;
+        inherit rabit-lib;
       });
       directory = ./extensions;
     };
@@ -32,7 +27,7 @@ in
 {
   ghidra = prev.ghidra.overrideAttrs (oldAttrs: {
     pname = oldAttrs.pname + "-mod";
-    patches = (oldAttrs.patches or []) ++ ghidra-patches;
+    patches = (oldAttrs.patches or []) ++ rabit-lib.findPatches ./patches;
     nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [ ghidra-ida ghidra-ida-til ];
     preBuildPhases = (oldAttrs.preBuildPhases or []) ++ [ "addGhidraIDAPhase" ];
     preFixupPhases = (oldAttrs.preFixupPhases or []) ++ [ "addIdaTilPhase" "fixHiDPIPhase" ];
