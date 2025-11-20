@@ -351,7 +351,8 @@ in
       ret-sync
       sleighdevtools
       # wasm
-    ]) ++ (with pkgs.ghidra-custom-extensions; [
+
+      ## Custom Extensions
       ghidraninja-ghidra-scripts
       ghidrassist-mcp
       ghydra-mcp
