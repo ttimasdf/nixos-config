@@ -129,6 +129,29 @@ in
       copyDesktopItems
     ];
 
+    postBuild = ''
+      mkdir -p "$out/bin"
+      cat <<'HEREDOC' >"$out/bin/pyghidra-venv-init"
+      #!/usr/bin/env bash
+
+      export GHIDRA_INSTALL_DIR="${final.ghidra}/lib/ghidra"
+      set -ex
+      pushd "$HOME/.config/ghidra/ghidra_${final.ghidra.version}_NIX/"
+      uv venv --relocatable --clear venv
+
+      cat <<'ENVIRON' >>venv/bin/activate
+      export GHIDRA_INSTALL_DIR="${final.ghidra}/lib/ghidra"
+      ENVIRON
+
+      source venv/bin/activate
+      pushd "$GHIDRA_INSTALL_DIR"
+      uv pip install -f Ghidra/Features/PyGhidra/pypkg/dist/ pyghidra
+      uv pip install -f docs/ghidra_stubs ghidra-stubs
+      HEREDOC
+      
+      chmod +x "$out/bin/pyghidra-venv-init"
+    '';
+
     postFixup = ''
       for bin in pyghidra pyghidraw; do
         wrapProgram "$out/bin/$bin" \
