@@ -306,6 +306,9 @@ in
     unzip-nls
     zip-nls
     _7zz-natspec
+
+    # pentest
+    pyghidra
   ];
 
   # Fix uv python ssl.SSLCertVerificationError
@@ -329,6 +332,7 @@ in
   programs.wireshark.dumpcap.enable = true;
   programs.wireshark.usbmon.enable = true;
 
+  # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/programs/ghidra.nix
   programs.ghidra.enable = true;
   programs.ghidra.package = pkgs.ghidra-with-extensions;
 

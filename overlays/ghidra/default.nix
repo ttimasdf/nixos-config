@@ -3,7 +3,7 @@
 final: prev:
 let
   inherit (flake.inputs.self) rabit-lib;
-  inherit (prev) stdenv symlinkJoin fetchFromGitHub makeDesktopItem;
+  inherit (prev) stdenv symlinkJoin fetchFromGitHub makeDesktopItem copyDesktopItems;
   ghidra-ida = fetchFromGitHub {
     owner = "NyaMisty";
     repo = "GhidraIDA";
@@ -24,27 +24,27 @@ let
       });
       directory = ./extensions;
     };
+
+  pyghidra = prev.python3Packages.buildPythonPackage {
+    pname = "pyghidra";
+    # version should be in sync with `__version__` field
+    # in {ghidra.src}/Ghidra/Features/PyGhidra/src/main/py/src/pyghidra/__init__.py
+    version = "2.2.1";
+    src = "${prev.ghidra.src}/Ghidra/Features/PyGhidra/src/main/py";
+    dependencies = with prev.python3Packages; [ jpype1 tkinter ];
+
+    pyproject = true;
+    build-system = [ prev.python3Packages.setuptools ];
+  };
 in
 {
   # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/tools/security/ghidra/build.nix
   ghidra = prev.ghidra.overrideAttrs (oldAttrs: {
     pname = oldAttrs.pname + "-mod";
-    desktopItems = oldAttrs.desktopItems ++ [
-      (makeDesktopItem {
-        name = "pyghidra";
-        exec = "pyghidra";
-        icon = "ghidra";
-        desktopName = "Ghidra (PyGhidra)";
-        genericName = "Ghidra Software Reverse Engineering Suite (PyGhidra Mode)";
-        categories = [ "Development" ];
-        terminal = false;
-        startupWMClass = "ghidra-Ghidra";
-      })
-    ];
     patches = (oldAttrs.patches or []) ++ rabit-lib.findPatches ./patches;
     nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [ ghidra-ida ghidra-ida-til ];
     preBuildPhases = (oldAttrs.preBuildPhases or []) ++ [ "addGhidraIDAPhase" ];
-    preFixupPhases = (oldAttrs.preFixupPhases or []) ++ [ "addIdaTilPhase" "fixHiDPIPhase" "wrapPyGhidraPhase" ];
+    preFixupPhases = (oldAttrs.preFixupPhases or []) ++ [ "addIdaTilPhase" "fixHiDPIPhase" ];
 
     addGhidraIDAPhase = ''
       defaultToolsDir="./Ghidra/Configurations/Public_Release/src/main/resources/defaultTools"
@@ -73,11 +73,6 @@ in
         "$out/lib/ghidra/support/launch.properties"
     '';
 
-    wrapPyGhidraPhase = ''
-      mkdir -p "$out/bin"
-      ln -s "$out/lib/ghidra/support/pyghidraRun" "$out/bin/pyghidra"
-    '';
-
     passthru = oldAttrs.passthru // {
       withExtensions =
         f:
@@ -91,7 +86,7 @@ in
             # Prevent attempted creation of plugin lock files in the Nix store.
             touch $out/lib/ghidra/Ghidra/.dbDirLock
 
-            for bin in ghidra ghidra-analyzeHeadless pyghidra; do
+            for bin in ghidra ghidra-analyzeHeadless; do
               makeWrapper "${final.ghidra}/bin/$bin" "$out/bin/$bin" \
                 --set NIX_GHIDRAHOME "$out/lib/ghidra/Ghidra"
             done
@@ -126,6 +121,41 @@ in
       ghydra-mcp
     ])
   );
+
+  pyghidra = prev.python3Packages.buildPythonApplication {
+    inherit (pyghidra) pname version src dependencies pyproject build-system;
+
+    nativeBuildInputs = [
+      copyDesktopItems
+    ];
+
+    postFixup = ''
+      for bin in pyghidra pyghidraw; do
+        wrapProgram "$out/bin/$bin" \
+          --set GHIDRA_INSTALL_DIR "${final.ghidra}/lib/ghidra" \
+          --set NIX_GHIDRAHOME "${final.ghidra-with-extensions}/lib/ghidra/Ghidra"
+      done
+    '';
+
+    desktopItems = [
+      (makeDesktopItem {
+        name = "pyghidraw";
+        exec = "pyghidraw";
+        icon = "ghidra";
+        desktopName = "Ghidra (PyGhidra)";
+        genericName = "Ghidra Software Reverse Engineering Suite (PyGhidra Mode)";
+        categories = [ "Development" ];
+        terminal = false;
+        startupWMClass = "ghidra-Ghidra";
+      })
+    ];
+  };
+
+  python3 = prev.python3.override {
+    packageOverrides = pyfinal: pyprev: {
+      inherit pyghidra;
+    };
+  };
 
   ghidra-custom-extensions = custom-extensions;
 }
