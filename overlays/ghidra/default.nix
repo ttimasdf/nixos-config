@@ -103,5 +103,29 @@ in
         });
     };
   });
+
+  # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/tools/security/ghidra/extensions.nix
+  ghidra-with-extensions = final.ghidra.withExtensions (exts:
+    (with exts; [
+      findcrypt
+      # ghidra-delinker-extension
+      # ghidra-firmware-utils
+      # ghidra-golanganalyzerextension
+      # ghidraninja-ghidra-scripts
+      # gnudisassembler
+      # kaiju
+      # lightkeeper
+      # machinelearning
+      ret-sync
+      sleighdevtools
+      # wasm
+
+      ## Custom Extensions
+      ghidraninja-ghidra-scripts
+      ghidrassist-mcp
+      ghydra-mcp
+    ])
+  );
+
   ghidra-custom-extensions = custom-extensions;
 }
