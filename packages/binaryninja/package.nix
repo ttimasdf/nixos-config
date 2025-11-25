@@ -7,6 +7,7 @@
   makeWrapper,
   copyDesktopItems,
   makeDesktopItem,
+  makeSanitizedLauncherHook,
   _7zz,
   dbus,
   fontconfig,
@@ -86,6 +87,7 @@ let
         autoPatchelfHook
         makeWrapper
         copyDesktopItems
+        makeSanitizedLauncherHook
         python3'.pkgs.wrapPython # For Python plugins
         qt6Packages'.wrapQtAppsHook # For Qt applications
       ];
@@ -186,32 +188,15 @@ let
           find $out/opt/${pname} -name 'libpyside6.abi*.so.*' -delete
         fi
 
-        # Create xdg-open wrapper
-        mkdir -p $out/libexec
-        cat <<'HEREDOC' > $out/libexec/.launcher
-        #!${stdenv.shell}
-        cmd="$(basename "$0")"
-        # Remove libexec from path
-        export PATH=$(perl -e 'print join ":", grep { !/libexec/ } split /:/, $ENV{PATH}')
-        # Remove env variables
-        unset LD_LIBRARY_PATH PYTHONPATH
-        if [ "$cmd" = ".launcher" ]; then
-            echo "This is a generic launcher for external applications"
-            exit -1
-        fi
-        exec "$cmd" "$@"
-        HEREDOC
-        chmod +x $out/libexec/.launcher
-        ln -s .launcher $out/libexec/xdg-open
-
         # Create bin directory and wrapper
         mkdir -p $out/bin
         buildPythonPath "$pythonPath"
         makeWrapper $out/opt/${pname}/binaryninja $out/bin/${pname} \
-          --prefix PATH : "$out/libexec:${lib.makeBinPath [ python3' ]}" \
+          --prefix PATH : "${lib.makeBinPath [ python3' ]}" \
           --prefix PYTHONPATH : "$program_PYTHONPATH" \
           --prefix LD_LIBRARY_PATH : "$out/opt/${pname}" \
-          "''${qtWrapperArgs[@]}" # Pass Qt specific arguments if any
+          "''${sanitizedLauncherArgs[@]}" \
+          "''${qtWrapperArgs[@]}"
 
         # Install icon
         mkdir -p $out/share/pixmaps
@@ -230,6 +215,8 @@ let
       '';
 
       dontWrapQtApps = true; # Handled by makeWrapper and qtWrapperArgs
+      dontWrapWithSanitizedLauncher = true;  # Handled by makeWrapper and sanitizedLauncherArgs
+      sanitizedLaunchers = [ "xdg-open" ];
 
       desktopItems = [
         (makeDesktopItem {
