@@ -215,6 +215,11 @@ let
         runHook postInstall
       '';
 
+      postInstall = ''
+        # Remove build-time src reference from env-vars
+        sed -i '/^declare -x src=/d' "$out/opt/${pname}/env-vars"
+      '';
+
       preFixup = ''
         ${patchSharedLibs}
       '';
