@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# This script is for internal use only!
+# The script repack and rename the zips into 7z archives to save disk space.
+# from: bn-dev-5.2.8482-dev commercial-linux.zip
+# to:   binaryninja_linux_commercial.5.2.8089-dev.7z
+# from: bn-release-5.1.8104 commercial-linux.zip
+# to:   binaryninja_linux_commercial.5.1.8005-stable.7z
+
 set -euo pipefail
 
 # Ensure 7zz is installed
@@ -72,8 +79,8 @@ for zip_file in "${files_to_process[@]}"; do
         continue
     fi
 
-    # The new filename should be like binaryninja_linux_commercial.5.1.8005-stable.
-    # or binaryninja_linux_commercial.5.2.8089-dev.
+    # The new filename should be like binaryninja_linux_commercial.5.1.8005-stable.7z
+    # or binaryninja_linux_commercial.5.2.8089-dev.7z
     output_filename="binaryninja_${os_type}_${version_and_edition}.7z"
     output_path="$(realpath $(dirname "$zip_file"))/$output_filename"
 

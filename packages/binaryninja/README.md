@@ -20,11 +20,11 @@ To use Binary Ninja in your NixOS configuration:
 
 Once configured, you can select a specific edition and version:
   - `pkgs.binaryninja.binaryninja-commercial` for the latest stable commercial version.
-  - `pkgs.binaryninja.binaryninja-personal-dev` for the latest development personal version.
+  - `pkgs.binaryninja.binaryninja-personal-beta` for the latest development personal version.
 
 You can also access all available versions for a given edition via the `allVersions`
 passthru attribute. For example:
-  - `pkgs.binaryninja.binaryninja-commercial-dev.allVersions."5.2.8089-dev"`
+  - `pkgs.binaryninja.binaryninja-commercial-beta.allVersions."5.2.8089-dev"`
   - `pkgs.binaryninja.binaryninja-commercial.allVersions."5.1.8005"`
 
 ## Adding Binary Ninja Files
@@ -32,10 +32,12 @@ passthru attribute. For example:
 To use this package, you need to add Binary Ninja files to the Nix store and populate the `releases.json` file with their SHA256 hashes.
 
 ### Manual Method
-1. Download Binary Ninja files (e.g., `binaryninja_linux_stable_commercial.5.1.8005.7z`)
+1. Download Binary Ninja files. e.g.
+   - `binaryninja_linux_commercial.5.1.8005-stable.7z`
+   - `binaryninja_linux_commercial.5.2.8089-dev.7z`
 2. Add each file to the Nix store and get its hash:
    ```bash
-   nix-prefetch-url file:///path/to/binaryninja_linux_stable_commercial.5.1.8005.7z
+   nix-prefetch-url file:///path/to/binaryninja_linux_commercial.5.1.8005-stable.7z
    ```
 3. Add the hash to `releases.json` under the appropriate edition and version
 
@@ -46,7 +48,7 @@ Use the provided `nix-store-add.sh` script to automatically process Binary Ninja
 ./nix-store-add.sh
 
 # Process specific files
-./nix-store-add.sh binaryninja_linux_stable_commercial.5.1.8005.7z binaryninja_linux_dev_personal.5.2.8089-dev.7z
+./nix-store-add.sh binaryninja_linux_commercial.5.1.8005-stable.7z binaryninja_linux_commercial.5.2.8089-dev.7z
 ```
 
 The script will:
@@ -65,12 +67,12 @@ Example `releases.json` entry:
 ```json
 {
   "commercial": {
-    "3.5.4377-dev": "sha256-...",
-    "3.4.4200": "sha256-..."
+    "3.5.4377-dev": "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+    "3.4.4200": "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
   },
   "personal": {
-    "3.5.4377-dev": "sha256-...",
-    "3.4.4200": "sha256-..."
+    "3.5.4377-dev": "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+    "3.4.4200": "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
   }
 }
 ```
