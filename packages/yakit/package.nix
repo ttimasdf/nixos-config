@@ -40,14 +40,14 @@ appimageTools.wrapType2 rec {
     done
   '';
 
-  meta = {
+  meta = with lib; {
     description = "A local cross-platform reverse-engineering framework";
     homepage = "https://github.com/yaklang/yakit";
     downloadPage = "https://github.com/yaklang/yakit/releases";
-    license = lib.licenses.agpl3Only;
-    sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
-    maintainers = with lib.maintainers; [ ];
-    platforms = lib.attrNames srcs;
+    license = licenses.agpl3Only;
+    sourceProvenance = with sourceTypes; [ binaryNativeCode ];
+    maintainers = with maintainers; [ ];
+    platforms = attrNames srcs;
     mainProgram = "yakit";
   };
 }

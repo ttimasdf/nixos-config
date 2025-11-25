@@ -249,17 +249,17 @@ let
         })
       ];
 
-      meta = {
+      meta = with lib; {
         changelog = "https://binary.ninja/changelog/#${
-          lib.replaceStrings [ "." ] [ "-" ] finalAttrs.version
+          replaceStrings [ "." ] [ "-" ] finalAttrs.version
         }";
         description = "Interactive decompiler, disassembler, debugger";
         homepage = "https://binary.ninja/";
-        license = lib.licenses.unfree;
+        license = licenses.unfree;
         mainProgram = pname;
-        maintainers = with lib.maintainers; [ ];
+        maintainers = with maintainers; [ ];
         platforms = [ "x86_64-linux" ];
-        sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
+        sourceProvenance = with sourceTypes; [ binaryNativeCode ];
       };
     });
 
