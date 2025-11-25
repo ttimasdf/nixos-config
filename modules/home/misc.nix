@@ -2,10 +2,6 @@
 {
   xdg.configFile."fontconfig/conf.d/10-hm-fonts.conf".force = true;
 
-  home.sessionPath = [
-    "$HOME/.local/bin"
-  ];
-
   # https://wiki.nixos.org/wiki/Fonts#Flatpak_applications_can't_find_system_fonts
   # Solution 2, Option 1:
   # - Symlink to system fonts at $HOME/.local/share/fonts
