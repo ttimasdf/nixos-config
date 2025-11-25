@@ -33,6 +33,9 @@ let
 
   releases = builtins.fromJSON (builtins.readFile ./releases.json);
 
+  # Helper function to format the package name based on edition and version type
+  formatPname = { edition, isDev }: "binaryninja-${edition}" + (if isDev then "-beta" else "");
+
   patchSharedLibs = lib.optionalString stdenv.hostPlatform.isLinux ''
     # libxml2 soname changes now follow ABI breaks.
     # https://gitlab.gnome.org/GNOME/libxml2/-/issues/751
@@ -45,6 +48,8 @@ let
       --replace-needed libxml2.so.2 libxml2.so
   '';
 
+  # Helper function to check dev version suffix
+  isDevVersion = version: lib.hasSuffix "-dev" version;
 
   # Helper function to create a derivation for a specific version and edition
   mkBinaryNinjaDerivation = {
@@ -54,10 +59,10 @@ let
     binaryNinjaSource ? null,
   }:
     let
-      isDevVersion = lib.hasSuffix "-dev" version;
-      fileNamePrefix = if isDevVersion then "" else "_stable";
-      fileName = "binaryninja_linux${fileNamePrefix}_${edition}.${version}.7z";
-      pname = "binaryninja-${edition}" + (if isDevVersion then "-dev" else "");
+      isDev = isDevVersion version;
+      fileNameSuffix = if isDev then "" else "-stable";
+      fileName = "binaryninja_linux_${edition}.${version}${fileNameSuffix}.7z";
+      pname = formatPname { inherit edition isDev; };
 
       defaultSource = requireFile {
         name = fileName;
@@ -231,7 +236,7 @@ let
           name = pname;
           exec = pname;
           icon = "binaryninja";
-          desktopName = "Binary Ninja ${lib.toSentenceCase edition}" + (if isDevVersion then " (Dev Channel)" else "");
+          desktopName = "Binary Ninja ${lib.toSentenceCase edition}" + (if isDev then " (Dev Channel)" else "");
           mimeTypes = [
             "application/x-binaryninja"
             "x-scheme-handler/binaryninja"
@@ -262,9 +267,8 @@ let
   # [ { name = "binaryninja-commercial"; value = <derivation>; } ]
   packages = lib.flatten (lib.mapAttrsToList (edition: versions:
     let
-      isDev = v: lib.hasSuffix "-dev" v;
-      stableVersions = lib.filterAttrs (v: _: !isDev v) versions;
-      devVersions = lib.filterAttrs (v: _: isDev v) versions;
+      stableVersions = lib.filterAttrs (v: _: !isDevVersion v) versions;
+      devVersions = lib.filterAttrs (v: _: isDevVersion v) versions;
 
       safeLast = list: if list == [] then null else lib.last list;
 
@@ -274,7 +278,7 @@ let
 
       # Create a package for the latest stable version if it exists
       stablePkg = if latestStableVersion != null then {
-        name = "binaryninja-${edition}";
+        name = formatPname { inherit edition; isDev = false; };
         value = (mkBinaryNinjaDerivation {
           version = latestStableVersion;
           hash = stableVersions.${latestStableVersion};
@@ -288,7 +292,7 @@ let
 
       # Create a package for the latest dev version if it exists
       devPkg = if latestDevVersion != null then {
-        name = "binaryninja-${edition}-dev";
+        name = formatPname { inherit edition; isDev = true; };
         value = (mkBinaryNinjaDerivation {
           version = latestDevVersion;
           hash = devVersions.${latestDevVersion};

@@ -62,8 +62,8 @@ for zip_file in "${files_to_process[@]}"; do
     # Determine if it's a stable version and construct the output filename part
     version_and_edition=""
     if [[ "$extracted_part" == release-* ]]; then
-        # For "release-5.1.8104", the output should be "stable_commercial.5.1.8104"
-        version_and_edition="stable_${edition}.${extracted_part#release-}"
+        # For "release-5.1.8104", the output should be "commercial.5.1.8104-stable"
+        version_and_edition="${edition}.${extracted_part#release-}-stable"
     elif [[ "$extracted_part" == dev-* ]]; then
         # For "dev-5.2.8482-dev", the output should be "commercial.${version}"
         version_and_edition="${edition}.${extracted_part#dev-}"
@@ -72,9 +72,9 @@ for zip_file in "${files_to_process[@]}"; do
         continue
     fi
 
-    # The new filename should be like binaryninja_linux_stable_commercial.5.1.8005.
+    # The new filename should be like binaryninja_linux_commercial.5.1.8005-stable.
     # or binaryninja_linux_commercial.5.2.8089-dev.
-    output_filename="binaryninja_${os_type}_${version_and_edition}."
+    output_filename="binaryninja_${os_type}_${version_and_edition}.7z"
     output_path="$(realpath $(dirname "$zip_file"))/$output_filename"
 
     # Check if output file already exists and prompt for confirmation
