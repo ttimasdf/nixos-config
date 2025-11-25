@@ -16,7 +16,7 @@ let
     rev = "85ac9c9bf1f03e5c82d7f38627eb332a43ee0d68";
     sha256 = "sha256-FmwEJquJZhb/EJvzxgwVpQd/Nfy/pmI+4wlP0zn6dL4=";
   };
-  ida-icon = ./ida.png;
+  ida-icon = ../../common/ida-pro/ida.png;
   custom-extensions = lib.packagesFromDirectoryRecursive {
       callPackage = lib.callPackageWith (prev // {
         inherit (prev.ghidra-extensions) buildGhidraExtension buildGhidraScripts;
