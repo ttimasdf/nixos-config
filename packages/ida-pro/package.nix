@@ -117,16 +117,16 @@ stdenv.mkDerivation rec {
         echo "No debug information available."
       fi
     }
-
     trap print_debug_info EXIT
 
-    mkdir -p $out/bin $out/lib $out/opt/idapro/.local/share/applications
 
     # IDA depends on quite some things extracted by the runfile, so first extract everything
     # into $out/opt, then remove the unnecessary files and directories.
     IDADIR="$out/opt/idapro"
     # IDA doesn't always honor `--prefix`, so we need to hack and set $HOME here.
     HOME="$out/opt/idapro"
+
+    mkdir -p $out/bin $out/lib $out/opt/idapro/.local/share/applications
 
     # Invoke the installer with the dynamic linker (ld-linux-x86-64.so.2) directly, 
     # avoiding the need to copy it to fix permissions and patch the executable.
@@ -138,6 +138,10 @@ stdenv.mkDerivation rec {
       ln -s $lib $out/lib/$(basename $lib)
     done
 
+    runHook postInstall
+  '';
+
+  preFixup = ''
     # Manually patch libraries that dlopen stuff.
     patchelf \
       --add-needed libpython${lib.versions.majorMinor python3.version}.so \
@@ -158,8 +162,6 @@ stdenv.mkDerivation rec {
         --prefix PATH : ${pythonEnv}/bin:$IDADIR \
         --prefix LD_LIBRARY_PATH : $out/lib
     done
-
-    runHook postInstall
   '';
 
   meta = with lib; {
