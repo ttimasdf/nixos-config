@@ -3,6 +3,7 @@
   stdenv,
   requireFile,
   autoPatchelfHook,
+  makeSanitizedLauncherHook,
   copyDesktopItems,
   makeDesktopItem,
   makeWrapper,
@@ -66,6 +67,7 @@ stdenv.mkDerivation rec {
     copyDesktopItems
     autoPatchelfHook
     qt6.wrapQtAppsHook
+    makeSanitizedLauncherHook
   ];
 
   # We just get a runfile in $src, so no need to unpack it.
@@ -108,7 +110,9 @@ stdenv.mkDerivation rec {
   ];
   buildInputs = runtimeDependencies;
 
-  dontWrapQtApps = true;
+  dontWrapQtApps = true; # Handled by makeWrapper and qtWrapperArgs
+  dontWrapWithSanitizedLauncher = true;  # Handled by makeWrapper and sanitizedLauncherArgs
+  sanitizedLaunchers = [ "xdg-open" ];
 
   installPhase = ''
     runHook preInstall
@@ -165,7 +169,8 @@ stdenv.mkDerivation rec {
         --prefix QT_PLUGIN_PATH : $IDADIR/plugins/platforms \
         --prefix PYTHONPATH : $out/bin/idalib/python \
         --prefix PATH : ${pythonEnv}/bin:$IDADIR \
-        --prefix LD_LIBRARY_PATH : $out/lib
+        --prefix LD_LIBRARY_PATH : $out/lib \
+        "''${sanitizedLauncherArgs[@]}"
     done
   '';
 
