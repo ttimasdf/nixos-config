@@ -2,9 +2,9 @@
 
 set -euo pipefail
 
-# Ensure 7z is installed
-if ! command -v 7z &> /dev/null; then
-    echo "7z command not found. Please install p7zip."
+# Ensure 7zz is installed
+if ! command -v 7zz &> /dev/null; then
+    echo "7zz command not found. Please install _7zz or _7zz-natspec from nixpkgs."
     exit 1
 fi
 
@@ -25,7 +25,7 @@ if [[ "$#" -gt 0 ]]; then
     fi
 else
     # If no arguments, iterate over all zip files in the current directory
-    mapfile -t files_to_process < <(find . -maxdepth 1 -type f -name 'bn-*.zip' -print0 | xargs -0)
+    mapfile -t -d '' files_to_process < <(find . -maxdepth 1 -type f -name 'bn-*.zip' -print0)
     if [[ ${#files_to_process[@]} -eq 0 ]]; then
         echo "No zip files found matching 'bn-*.zip' in the current directory."
         exit 0
@@ -72,9 +72,9 @@ for zip_file in "${files_to_process[@]}"; do
         continue
     fi
 
-    # The new filename should be like binaryninja_linux_stable_commercial.5.1.8005.7z
-    # or binaryninja_linux_commercial.5.2.8089-dev.7z
-    output_filename="binaryninja_${os_type}_${version_and_edition}.7z"
+    # The new filename should be like binaryninja_linux_stable_commercial.5.1.8005.
+    # or binaryninja_linux_commercial.5.2.8089-dev.
+    output_filename="binaryninja_${os_type}_${version_and_edition}."
     output_path="$(realpath $(dirname "$zip_file"))/$output_filename"
 
     # Check if output file already exists and prompt for confirmation
@@ -113,12 +113,12 @@ for zip_file in "${files_to_process[@]}"; do
         continue
     fi
 
-    # 4. Repack to 7z: 7z a -snl -snh -mx9
+    # 4. Repack to 7z: 7zz a -snl -snh -mx9
 
     pwd
     echo "Repacking '$unpacked_folder' to '$output_path'"
     # cd into the parent directory of the unpacked folder to archive its contents directly
-    (cd "$(dirname "$unpacked_folder")" && 7z a -snl -snh -mx9 "$output_path" "$(basename "$unpacked_folder")")
+    (cd "$(dirname "$unpacked_folder")" && 7zz a -snl -snh -mx9 "$output_path" "$(basename "$unpacked_folder")")
 
     echo "Cleaning up temporary directory: $temp_dir"
     rm -rf "$temp_dir"
