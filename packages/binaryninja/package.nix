@@ -82,6 +82,7 @@ let
       src = if binaryNinjaSource != null then binaryNinjaSource else defaultSource;
 
       nativeBuildInputs = [
+        _7zz
         autoPatchelfHook
         makeWrapper
         copyDesktopItems
@@ -90,7 +91,6 @@ let
       ];
 
       buildInputs = [
-        _7zz
         dbus
         fontconfig
         freetype
@@ -221,8 +221,8 @@ let
       '';
 
       postInstall = ''
-        # Remove build-time src reference from env-vars
-        sed -i '/^declare -x src=/d' "$out/opt/${pname}/env-vars"
+        # Remove unknown build-time package references
+        rm "$out/opt/${pname}/env-vars"
       '';
 
       preFixup = ''
