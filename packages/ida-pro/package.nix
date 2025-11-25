@@ -24,6 +24,8 @@
   openssl,
   xorg,
   zlib,
+  licenseName ? "NixOS User",
+  licenseStartDate ? "2025-11-25",
 }:
 let
   pname = "ida-pro";
@@ -39,6 +41,7 @@ let
   };
 
   pythonEnv = python3.withPackages (p: with p; [ rpyc ]);
+  keygen = ./keygen-v2.py;
 
 in
 stdenv.mkDerivation rec {
@@ -141,7 +144,9 @@ stdenv.mkDerivation rec {
     runHook postInstall
   '';
 
-  preFixup = ''
+  preFixupPhases = [ "dlopenLibraryFixPhase" "keygenPhase" ];
+
+  dlopenLibraryFixPhase = ''
     # Manually patch libraries that dlopen stuff.
     patchelf \
       --add-needed libpython${lib.versions.majorMinor python3.version}.so \
@@ -162,6 +167,12 @@ stdenv.mkDerivation rec {
         --prefix PATH : ${pythonEnv}/bin:$IDADIR \
         --prefix LD_LIBRARY_PATH : $out/lib
     done
+  '';
+
+  keygenPhase = ''
+    cd $out/opt/idapro
+    python3 ${keygen} --oneshot --name "${licenseName}" --start-date "${licenseStartDate}"
+    rm libida.so.bak libida32.so.bak
   '';
 
   meta = with lib; {
