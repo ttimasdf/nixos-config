@@ -120,13 +120,13 @@ stdenv.mkDerivation rec {
 
     trap print_debug_info EXIT
 
-    mkdir -p $out/bin $out/lib $out/opt/.local/share/applications
+    mkdir -p $out/bin $out/lib $out/opt/idapro/.local/share/applications
 
     # IDA depends on quite some things extracted by the runfile, so first extract everything
     # into $out/opt, then remove the unnecessary files and directories.
-    IDADIR="$out/opt"
+    IDADIR="$out/opt/idapro"
     # IDA doesn't always honor `--prefix`, so we need to hack and set $HOME here.
-    HOME="$out/opt"
+    HOME="$out/opt/idapro"
 
     # Invoke the installer with the dynamic linker (ld-linux-x86-64.so.2) directly, 
     # avoiding the need to copy it to fix permissions and patch the executable.
