@@ -7,7 +7,7 @@
   makeWrapper,
   copyDesktopItems,
   makeDesktopItem,
-  p7zip,
+  _7zz,
   dbus,
   fontconfig,
   freetype,
@@ -85,7 +85,7 @@ let
       ];
 
       buildInputs = [
-        p7zip
+        _7zz
         dbus
         fontconfig
         freetype
@@ -127,7 +127,7 @@ let
         tmp_dir=$(mktemp -d)
 
         # Unpack the 7z file into the temporary directory
-        7z x $src -o"$tmp_dir"
+        7zz x -snld $src -o"$tmp_dir"
 
         # The 7z file should contain a single directory with the application contents.
         # We verify this and move the contents to the top level of the build directory.
