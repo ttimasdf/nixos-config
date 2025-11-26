@@ -8,7 +8,7 @@ in
 {
   imports = [
     nur.modules.nixos.default
-    nixos-hardware.nixosModules.lenovo-legion-16irx9h
+    nixos-hardware.nixosModules.lenovo-thinkpad-x1-12th-gen
     self.nixosModules.common
     self.nixosModules.hosts
     self.nixosModules.secure-boot
