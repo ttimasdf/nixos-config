@@ -15,6 +15,18 @@
         type = lib.types.str;
         description = "Your email for use in Git config";
       };
+      git = {
+        sshSigningKey = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          description = "SSH public key for signing Git commits";
+        };
+        allowedSigners = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [ config.rabit.me.email ];
+          description = "Allowed signers for Git commit verification";
+        };
+      };
     };
   };
   config = {
