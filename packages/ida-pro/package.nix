@@ -1,3 +1,4 @@
+# Based on https://github.com/msanft/ida-pro-overlay/blob/main/packages/ida-pro.nix
 {
   lib,
   stdenv,
@@ -41,7 +42,9 @@ let
     '';
   };
 
-  pythonEnv = python3.withPackages (p: with p; [ rpyc ]);
+  pythonEnv = python3.withPackages (p: with p; [
+    rpyc
+  ]);
   keygen = ./keygen-v2.py;
 
 in
@@ -58,7 +61,7 @@ stdenv.mkDerivation rec {
     desktopName = "IDA Pro ${lib.versions.majorMinor version}";
     genericName = "Interactive Disassembler";
     categories = [ "Development" ];
-    startupWMClass = "IDA";
+    startupWMClass = "ida";
   };
   desktopItems = [ desktopItem ];
 
@@ -163,7 +166,7 @@ stdenv.mkDerivation rec {
 
     # Link the binaries to the output.
     # Also, hack the PATH so that pythonEnv is used over the system python.
-    for bin in ida; do
+    for bin in ida idat; do
       makeWrapper "$IDADIR/$bin" "$out/bin/$bin" \
         --prefix IDADIR : $IDADIR \
         --prefix QT_PLUGIN_PATH : $IDADIR/plugins/platforms \
