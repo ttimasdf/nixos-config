@@ -11,6 +11,7 @@
     killall  # Kill processes by name
     ncdu     # Disk usage analyzer with ncurses interface
     hardinfo2 # System information and benchmarking tool
+    sysstat
 
     # VM
     qemu
