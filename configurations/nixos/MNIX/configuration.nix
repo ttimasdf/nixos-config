@@ -363,6 +363,8 @@ in
     allowedTCPPorts = [
       #22000   # syncthing
       53317   # localsend
+      8888    # MITM
+      4444    # reverse listener
     ];
     allowedUDPPorts = [
       #22000   # syncthing
