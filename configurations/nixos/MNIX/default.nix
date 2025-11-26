@@ -1,0 +1,19 @@
+# See /modules/nixos/* for actual settings
+# This file is just *top-level* configuration.
+{ flake, ... }:
+
+let
+  inherit (flake.inputs) self nixos-hardware nur;
+in
+{
+  imports = [
+    nur.modules.nixos.default
+    nixos-hardware.nixosModules.lenovo-legion-16irx9h
+    self.nixosModules.common
+    self.nixosModules.hosts
+    self.nixosModules.secure-boot
+    self.nixosModules.gui
+    self.nixosModules.winapps
+    ./configuration.nix
+  ];
+}

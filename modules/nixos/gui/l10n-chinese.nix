@@ -10,6 +10,8 @@ in {
       enableDefaultPackages = true;
       packages = with pkgs; [
         sarasa-gothic         # Chinese font
+        lxgw-wenkai
+        maple-mono.NF-CN
         #noto-fonts
         nerd-fonts.noto
         noto-fonts-cjk-sans   # CJK font

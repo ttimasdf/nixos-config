@@ -19,6 +19,9 @@ in {
       kdePackages.kcalc
       kdePackages.kclock
 
+      kdePackages.filelight
+      kdePackages.spacebar
+
       wayland-utils
       wl-clipboard
       xclip
