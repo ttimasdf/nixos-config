@@ -20,8 +20,6 @@
     lanzaboote = {
       url = "github:nix-community/lanzaboote";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-parts.follows = "flake-parts";
-      inputs.flake-compat.follows = "flake-compat";
       inputs.rust-overlay.follows = "rust-overlay";
     };
     winapps = { url = "github:winapps-org/winapps"; inputs.nixpkgs.follows = "nixpkgs"; inputs.flake-compat.follows = "flake-compat"; };
