@@ -6,7 +6,7 @@
 }:
 
 let
-  version = "1.4.4-1031";
+  version = "1.4.5-1124";
   pname = "yakit";
 
   srcs = {
