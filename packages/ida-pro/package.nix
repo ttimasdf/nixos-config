@@ -31,7 +31,7 @@
 }:
 let
   pname = "ida-pro";
-  version = "9.2.0.250908";
+  version = "9.2.250908";
 
   src = requireFile {
     name = with lib.versions; "ida-pro_${major version}${minor version}_x64linux.run";
@@ -138,7 +138,7 @@ stdenv.mkDerivation rec {
 
     mkdir -p $out/bin $out/lib $out/opt/idapro/.local/share/applications
 
-    # Invoke the installer with the dynamic linker (ld-linux-x86-64.so.2) directly, 
+    # Invoke the installer with the dynamic linker (ld-linux-x86-64.so.2) directly,
     # avoiding the need to copy it to fix permissions and patch the executable.
     $(cat $NIX_CC/nix-support/dynamic-linker) "$src" \
       --mode unattended --debuglevel 4 --prefix $IDADIR
