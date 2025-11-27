@@ -163,49 +163,16 @@ This feature is implemented via the `modules/nixos/common/version-hint.nix` modu
 
 ## Writing Package Overlay
 
-This configuration uses a streamlined approach to manage overlays:
+This repository provides a streamlined way to manage Nixpkgs overlays. All `.nix` files in the `overlays/` directory are automatically discovered and applied, making it easy to extend and customize your package set. For detailed examples and templates, please refer to the [`overlays/overlay-template.md`](./overlays/overlay-template.md) file.
 
-1.  **Automatic Discovery**: All `.nix` files placed in the `overlays/` directory are automatically discovered and applied as Nixpkgs overlays. This is handled by the `modules/nixos/common/overlays.nix` module.
-2.  **Flexible Overlay Definition**: Overlays can be defined in two ways:
-    *   **Function with Flake Inputs**: If an overlay file is a function, it will receive `flake`, `lib`, and `config` as arguments, allowing for dynamic overlay creation based on the overall system configuration and flake inputs.
-        ```nix
-        # overlays/my-complex-overlay.nix
-        { flake, lib, config, ... }:
+Key features of the overlay system in this configuration include:
 
-        final: prev: {
-          # ... your overlay logic using flake, lib, config ...
-        }
-        ```
-    *   **Raw Overlay Function**: Simple overlays that only depend on `final` and `prev` (the standard Nixpkgs arguments) are also supported.
-        ```nix
-        # overlays/my-simple-overlay.nix
-        final: prev: {
-          # ... your overlay logic using final and prev ...
-        }
-        ```
-3.  **Example: `overlays/example.nix`**: This overlay demonstrates how to modify the `haskell.compiler` attribute set to apply patches to Haskell compilers, excluding binary distributions. It shows how to use `lib.mapAttrs` and `lib.optionalAttrs` for conditional attribute modification.
+1.  **Automatic Discovery**: Any `.nix` file placed in `overlays/` is automatically loaded as a Nixpkgs overlay. This is managed by the `modules/nixos/common/nixpkg-overlays.nix` module.
+2.  **Flexible Overlay Definitions**: You can define overlays in two primary ways:
+    *   **Standard Overlay**: A simple function that takes `final` and `prev` as arguments.
+    *   **Function with Flake Inputs**: For more complex scenarios, your overlay can be a function that receives `flake`, `lib`, and `config`, allowing it to adapt based on the system's configuration and flake inputs.
 
-    This example is taken from [Overriding GHC - Overlays - NixOS Wiki](https://nixos.wiki/wiki/Overlays#Overriding_GHC)
-
-    ```nix
-    # overlays/example.nix
-    { ... }:
-    final: prev: {
-      haskell = prev.haskell // {
-        compiler = final.lib.mapAttrs (
-          name: ghc:
-          ghc.overrideAttrs (
-            prevAttrs:
-            final.lib.optionalAttrs (!final.lib.hasSuffix "Binary" name) {
-              patches = (prevAttrs.patches or [ ]);
-            }
-          )
-        ) prev.haskell.compiler;
-      };
-    }
-    ```
-
-This automatic discovery and flexible definition make it easy to add and manage custom package overlays in a modular and organized way.
+This setup simplifies the management of custom packages and modifications, promoting a clean and organized repository structure.
 
 ## Writing a New Package
 

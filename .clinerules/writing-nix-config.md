@@ -1,36 +1,59 @@
-# Commonly used project files
-
-- `flake.nix`: The main Nix flake file, defining inputs and outputs for the entire configuration.
-- `modules/flake/toplevel.nix`: Defines the top-level structure or entry points for the flake, imported by nixos-unified autowire.
-- `modules/nixos/`: Contains reusable NixOS modules for various system settings, GUI environments, and specific features.
-- `pkgs/`: Directory for custom packages and overlays.
-- `overlays/`: Directory within `pkgs/` where `.nix` files are automatically discovered and applied as Nixpkgs overlays.
-- `configurations/`: Contains machine-specific NixOS and Home Manager configurations.
-- `justfile`: Defines convenient `just` commands for common development tasks like updating the flake, linting, checking, and entering a development shell.
-
 # Writing Nix Config
 
 ## Write an overlay
-All `.nix` files placed in the `overlays/` directory are automatically discovered and applied as Nixpkgs overlays. This is handled by the `modules/nixos/common/overlays.nix` module.
+All `.nix` files placed in the `overlays/` directory are automatically discovered and applied as Nixpkgs overlays. This is handled by the `modules/nixos/common/nixpkg-overlays.nix` module.
 
-Overlays can be defined in two ways:
-1.  **Function with Flake Inputs**: If an overlay file is a function, it will receive `flake`, `lib`, and `config` as arguments.
-    ```nix
-    # overlays/my-complex-overlay.nix
-    { flake, lib, config, ... }:
+Here are some common patterns for writing overlays:
 
-    final: prev: {
-      # ... your overlay logic using flake, lib, config ...
-    }
-    ```
-2.  **Raw Overlay Function**: Simple overlays that only depend on `final` and `prev` (the standard Nixpkgs arguments) are also supported.
-    ```nix
-    # overlays/my-simple-overlay.nix
-    final: prev: {
-      # ... your overlay logic using final and prev ...
-    }
-    ```
-Example: `overlays/example.nix` demonstrates modifying `haskell.compiler` attributes.
+### General Package Override Example
+This example shows how to modify attributes of an existing package, such as changing its version, source, or adding a post-installation hook.
+
+```nix
+{ flake, lib, ... }:
+final: prev:
+{
+  my-package-override = prev.my-package.overrideAttrs (oldAttrs: {
+    version = "NEW_VERSION"; # Replace with the desired version
+    src = prev.fetchFromGitHub {
+      owner = "GITHUB_OWNER"; # Replace with the GitHub owner
+      repo = "GITHUB_REPO"; # Replace with the GitHub repository name
+      rev = "COMMIT_OR_TAG"; # Replace with the desired commit hash or tag
+      hash = lib.fakeHash; # Replace with the actual SHA256 hash of the source
+    };
+
+    nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [ prev.makeWrapper ];
+    # Example post-installation hook: Wrap executables with environment variables
+    postFixup = ''
+      for prog in $out/bin/executable1 $out/bin/executable2; do
+        if [ -f "$prog" ]; then
+          wrapProgram "$prog" \
+            --set ENV_VAR1 "VALUE1" \
+            --set ENV_VAR2 "VALUE2"
+        fi
+      done
+    '';
+  });
+}
+```
+
+### Applying Multiple Patches with `rabit-lib.findPatches`
+This example demonstrates how to apply a directory of patches using `rabit-lib.findPatches`. This is particularly useful when you have multiple patches that need to be applied to a package, and `rabit-lib` is available as part of your current flake's inputs.
+
+```nix
+{ flake, lib, ... }:
+final: prev:
+let
+  inherit (flake.inputs.self) rabit-lib; # Assuming 'rabit-lib' is inherited from the current flake's (self) inputs
+in
+{
+  my-patched-package = prev.some-package.overrideAttrs (oldAttrs: {
+    # Apply all .patch files from a directory relative to your overlay file
+    patches = (oldAttrs.patches or []) ++ (rabit-lib.findPatches ./patches);
+  });
+}
+```
+
+For more advanced examples, including how to override packages in specific sets (like `kdePackages` or `python3.pkgs`), or how to use pinned Nixpkgs versions, please refer to [`overlays/overlay-template.md`](../../overlays/overlay-template.md).
 
 ## Write a new package
 All `.nix` files and directories placed in the `packages/` directory are automatically discovered and transformed into a nested attribute set of derivations using `lib.packagesFromDirectoryRecursive`.
@@ -78,12 +101,3 @@ To add a new package:
       my-new-package # For a single package defined in packages/my-new-package/package.nix
       my-namespace.my-app # For a package within a namespace
     ];
-    ```
-
-# Troubleshooting Nix config
-
-## Run a nix check
-Use `just check` to check the flake for errors.
-
-## Run a nix build
-Use `just rebuild` to rebuild the NixOS configuration.

@@ -35,7 +35,7 @@ let
   pkgs-pinned-commit = import (prev.fetchTarball {
     name = "nixpkgs-pinned-commit";
     url = "https://github.com/NixOS/nixpkgs/archive/COMMIT_HASH.tar.gz"; # Replace COMMIT_HASH with the desired commit
-    sha256 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Replace with the actual SHA256 hash
+    hash = lib.fakeHash; # Replace with the actual SHA256 hash
   }) {
     system = prev.system;
     config.allowUnfree = true; # Set to true to allow unfree packages
@@ -84,7 +84,7 @@ in
       owner = "GITHUB_OWNER"; # Replace with the GitHub owner
       repo = "GITHUB_REPO"; # Replace with the GitHub repository name
       rev = "COMMIT_OR_TAG"; # Replace with the desired commit hash or tag
-      hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Replace with the actual SHA256 hash of the source
+      hash = lib.fakeHash; # Replace with the actual SHA256 hash of the source
     };
 
     nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [ prev.makeWrapper ];
@@ -124,9 +124,27 @@ final: prev:
     patches = (oldAttrs.patches or []) ++ [
       (prev.fetchpatch {
         url = "URL_TO_PATCH_FILE"; # Replace with the URL of your patch file
-        hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Replace with the actual SHA256 hash of the patch
+        hash = lib.fakeHash; # Replace with the actual SHA256 hash of the patch
       })
     ];
+  });
+}
+```
+
+### Applying Multiple Patches with `rabit-lib.findPatches`
+
+This example demonstrates how to apply a directory of patches using `rabit-lib.findPatches`. This is particularly useful when you have multiple patches that need to be applied to a package, and `rabit-lib` is available as part of your current flake's inputs.
+
+```nix
+{ flake, lib, ... }:
+final: prev:
+let
+  inherit (flake.inputs.self) rabit-lib; # Assuming 'rabit-lib' is inherited from the current flake's (self) inputs
+in
+{
+  my-patched-package = prev.some-package.overrideAttrs (oldAttrs: {
+    # Apply all .patch files from a directory relative to your overlay file
+    patches = (oldAttrs.patches or []) ++ (rabit-lib.findPatches ./patches);
   });
 }
 ```
@@ -203,7 +221,7 @@ final: prev:
 }
 ```
 
-## Complete Examples of Package Overlays 
+## Complete Examples of Package Overlays
 
 ### WPS Office CN Fcitx Input Method Fixup
 
