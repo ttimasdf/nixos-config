@@ -84,7 +84,19 @@ in {
     i18n.inputMethod = {
       type = "fcitx5";
       enable = true;
-      fcitx5.waylandFrontend = true;
+      /**
+        Set GTK_IM_MODULE and QT_IM_MODULE environment variables by configuring waylandFrontend to false,
+        which resolves issues with WPS Office and potentially other X11 applications.
+        Reference: https://github.com/NixOS/nixpkgs/blob/5ae3b07d8d6527c42f17c876e404993199144b6a/nixos/modules/i18n/input-method/fcitx5.nix#L144-L148
+
+        HOWEVER,
+        Fcitx5 Wayland Diagnose will display the following error message:
+
+        Detect GTK_IM_MODULE and QT_IM_MODULE being set and Wayland Input method frontend is working.
+        It is recommended to use Wayland input method frontend.
+        For more details see https://fcitx-im.org/wiki/Using_Fcitx_5_on_Wayland#KDE_Plasma
+      */
+      fcitx5.waylandFrontend = false;
       fcitx5.addons = with pkgs; [
         # Addons
         fcitx5-gtk
