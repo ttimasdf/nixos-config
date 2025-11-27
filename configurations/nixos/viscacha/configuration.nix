@@ -245,30 +245,6 @@ in
     enable = true;
   };
 
-  ## Container config
-
-  # hardware.nvidia-container-toolkit.enable = true;
-
-  # Enable common container config files in /etc/containers
-  virtualisation.containers.enable = true;
-  virtualisation = {
-    oci-containers.backend = "podman";
-    podman = {
-      enable = true;
-
-      # Create a `docker` alias for podman, to use it as a drop-in replacement
-      dockerCompat = true;
-
-      # Required for containers under podman-compose to be able to talk to each other.
-      defaultNetwork.settings.dns_enabled = true;
-    };
-    containers.containersConf.settings = {
-      engine = {
-        compose_providers = ["/run/current-system/sw/bin/podman-compose"];
-        compose_warning_logs = false;
-      };
-    };
-  };
   # Add 'newuidmap' and 'sh' to the PATH for users' Systemd units.
   # Required for Rootless podman.
   systemd.user.extraConfig = ''
@@ -311,14 +287,6 @@ in
     pyghidra
   ];
 
-  # Fix uv python ssl.SSLCertVerificationError
-  environment.etc.certfile = {
-    source = "/etc/ssl/certs/ca-bundle.crt";
-    target = "ssl/cert.pem";
-  };
-  # ~/.local/bin in PATH for `uv tool install`
-  environment.localBinInPath = true;
-
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
 
@@ -337,6 +305,45 @@ in
   # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/programs/ghidra.nix
   programs.ghidra.enable = true;
   programs.ghidra.package = pkgs.ghidra-with-extensions;
+
+
+  #endregion software
+
+  #region containers
+
+  # hardware.nvidia-container-toolkit.enable = true;
+
+  # Enable common container config files in /etc/containers
+  virtualisation.containers.enable = true;
+  virtualisation = {
+    oci-containers.backend = "podman";
+    podman = {
+      enable = true;
+
+      # Create a `docker` alias for podman, to use it as a drop-in replacement
+      dockerCompat = true;
+
+      # Required for containers under podman-compose to be able to talk to each other.
+      defaultNetwork.settings.dns_enabled = true;
+    };
+    containers.containersConf.settings = {
+      engine = {
+        compose_providers = ["/run/current-system/sw/bin/podman-compose"];
+        compose_warning_logs = false;
+      };
+    };
+  };
+
+  #endregion containers
+
+  #region configurations
+  # Fix uv python ssl.SSLCertVerificationError
+  environment.etc.certfile = {
+    source = "/etc/ssl/certs/ca-bundle.crt";
+    target = "ssl/cert.pem";
+  };
+  # ~/.local/bin in PATH for `uv tool install`
+  environment.localBinInPath = true;
 
   # List services that you want to enable:
 
@@ -360,7 +367,7 @@ in
   security.pki.certificateFiles = [
     (toString self + "/files/cacerts/mitmca.pem")
   ];
-  # endregion software
+  # endregion configurations
 
   # region nix config
   systemd.services."nix-daemon".serviceConfig = {
