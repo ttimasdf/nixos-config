@@ -20,8 +20,8 @@ in
       timeout = config.boot.loader.timeout;
       console-mode = config.boot.loader.systemd-boot.consoleMode;
       editor = false;
-      # default = "nixos-*";
-      default = "@saved";
+      default = "nixos-*";
+      # default = "@saved";
       # If this is disabled, the firmware interface may still be reached by using the f key.
       auto-firmware = false;
       reboot-for-bitlocker = true;
