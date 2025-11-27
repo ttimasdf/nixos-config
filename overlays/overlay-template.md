@@ -1,4 +1,10 @@
-## Package Overlay Example
+# Nixpkgs Overlay Examples
+
+This document provides examples of how to create and use Nixpkgs overlays. Overlays allow you to extend or modify the `nixpkgs` package set, enabling custom packages, overrides, and specific version pinning.
+
+## Basic Overlay Structure
+
+The fundamental structure of a Nixpkgs overlay.
 
 ```nix
 { flake, lib, ... }:
@@ -6,9 +12,27 @@
 # It allows you to introduce new packages, modify existing ones, or pin specific versions of packages.
 final: prev:
 let
-  # Example: Pin a specific Nixpkgs version from a commit hash
-  # This is useful for ensuring reproducibility or accessing newer/older packages not yet in your main Nixpkgs.
-  pkgs-pinned-commit = import (fetchTarball {
+  # Define any local variables, functions, or package imports here.
+in
+{
+  # Define your package overrides and new packages here.
+  # Each attribute in this set will be merged into the final Nixpkgs set.
+}
+```
+
+## Using Pinned Nixpkgs Versions
+
+Examples of how to incorporate specific Nixpkgs versions into your overlay, either from a commit hash or a flake input.
+
+### Pinning Nixpkgs from a Commit Hash
+
+This is useful for ensuring reproducibility or accessing newer/older packages not yet in your main Nixpkgs.
+
+```nix
+{ flake, lib, ... }:
+final: prev:
+let
+  pkgs-pinned-commit = import (prev.fetchTarball {
     name = "nixpkgs-pinned-commit";
     url = "https://github.com/NixOS/nixpkgs/archive/COMMIT_HASH.tar.gz"; # Replace COMMIT_HASH with the desired commit
     sha256 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Replace with the actual SHA256 hash
@@ -16,20 +40,45 @@ let
     system = prev.system;
     config.allowUnfree = true; # Set to true to allow unfree packages
   };
-  # Example: Use a pinned Nixpkgs version from a Flake input
-  # This assumes you have a 'nixpkgs-stable' input defined in your flake.nix.
+in
+{
+  # You can now use 'pkgs-pinned-commit' to access packages from this pinned version.
+}
+```
+
+### Using a Pinned Nixpkgs Version from a Flake Input
+
+This assumes you have a `nixpkgs-stable` input defined in your `flake.nix`.
+
+```nix
+{ flake, lib, ... }:
+final: prev:
+let
   nixpkgs-from-flake-input = import flake.inputs.nixpkgs-stable {
     system = prev.system;
     config.allowUnfree = true; # Set to true to allow unfree packages
   };
 in
 {
-  # Define your package overrides and new packages here.
-  # Each attribute in this set will be merged into the final Nixpkgs set.
+  # You can now use 'nixpkgs-from-flake-input' to access packages from this flake input.
+}
+```
 
-  # Example: Override attributes of an existing package
-  # This can be used to change versions, sources, build inputs, or add post-installation hooks.
-  my-package-override = pkgs-pinned-commit.my-package.overrideAttrs (oldAttrs: {
+## Overriding Existing Packages
+
+Examples of modifying attributes of an existing package. This can be used to change versions, sources, build inputs, or add post-installation hooks.
+
+### General Package Override Example
+
+```nix
+{ flake, lib, ... }:
+final: prev:
+let
+  # Assuming pkgs-pinned-commit or nixpkgs-from-flake-input is defined as above
+  # For simplicity, using 'prev' for demonstration.
+in
+{
+  my-package-override = prev.my-package.overrideAttrs (oldAttrs: {
     version = "NEW_VERSION"; # Replace with the desired version
     src = prev.fetchFromGitHub {
       owner = "GITHUB_OWNER"; # Replace with the GitHub owner
@@ -49,11 +98,20 @@ in
         fi
       done
     '';
-
   });
+}
+```
 
-  # Example: Create a new package based on an existing one with modifications
-  # This example adds a patch and a new build input.
+## Creating New Packages
+
+### Creating a New Package Based on an Existing One
+
+This example demonstrates adding a patch and a new build input to an existing package.
+
+```nix
+{ flake, lib, ... }:
+final: prev:
+{
   my-custom-7zip = prev._7zz-rar.overrideAttrs (oldAttrs: {
     pname = oldAttrs.pname + "-custom-suffix"; # Append a suffix to the package name
 
@@ -70,8 +128,17 @@ in
       })
     ];
   });
+}
+```
 
-  # Example: Override packages within a specific package set (e.g., kdePackages)
+## Overriding Packages in Specific Sets
+
+### Overriding Packages within a Specific Package Set (e.g., `kdePackages`)
+
+```nix
+{ flake, lib, ... }:
+final: prev:
+{
   kdePackages = prev.kdePackages.overrideScope (kfinal: kprev: {
     my-kde-app = kprev.my-kde-app.overrideAttrs (oldAttrs: {
       buildInputs = oldAttrs.buildInputs ++ [
@@ -80,11 +147,18 @@ in
       ];
     });
   });
+}
+```
 
+### Overriding a Python Package within a Specific Python Interpreter
 
-  # Example: Override a Python package within a specific Python interpreter
-  # This is useful for customizing Python packages or their dependencies.
-  # To test: nix-shell -p python3.pkgs.my-python-package
+This is useful for customizing Python packages or their dependencies.
+To test: `nix-shell -p python3.pkgs.my-python-package`
+
+```nix
+{ flake, lib, ... }:
+final: prev:
+{
   python3 = prev.python3.override {
     # Note: 'pyfinal' and 'pyprev' here refer to the Python package set's final and previous states.
     packageOverrides = pyfinal: pyprev:
