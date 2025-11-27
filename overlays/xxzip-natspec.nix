@@ -31,5 +31,10 @@ in
         hash = "sha256-n3bELiCTRT33loiJsgns3N1x5fLlRkhjzknsN1r2PFE=";
       })
     ];
+
+    # KDE Ark only search for "7z" instead of "7zz"
+    postInstall = ''
+      ln -s 7zz $out/bin/7z
+    '';
   });
 }
