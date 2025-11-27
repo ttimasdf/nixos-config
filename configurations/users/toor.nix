@@ -8,6 +8,7 @@
     "wheel"       # Enable ‘sudo’ for the user.
     "wireshark"   # for programs.wireshark
     "input"       # for services.espanso
-    "kvm"         # to make /dev/kvm work with podman.
+    "kvm"         # to make /dev/kvm work with podman. 
+    "libvirtd"    # for virtualisation.libvirtd
   ];
 }

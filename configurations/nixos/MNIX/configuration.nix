@@ -281,6 +281,16 @@ in
       };
     };
   };
+
+  #region VMs
+  # https://wiki.nixos.org/wiki/Virt-manager
+  virtualisation.libvirtd = {
+    enable = true;
+    qemu.vhostUserPackages = with pkgs; [ virtiofsd ];
+  };
+  programs.virt-manager.enable = true;
+  #endregion VMs
+
   # Add 'newuidmap' and 'sh' to the PATH for users' Systemd units.
   # Required for Rootless podman.
   systemd.user.extraConfig = ''
