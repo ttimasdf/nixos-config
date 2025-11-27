@@ -11,13 +11,10 @@
     siyuan
     obsidian
     typora
-    # pandoc
-
-    # Development & Code Editors
-    # vscode
+    # pandoc    # enabled by programs.pandoc.enable
 
     # Web Browsers & Download Tools
-    # firefox
+    # firefox   # enabled by programs.firefox.enable
     microsoft-edge
     aria2
 
@@ -30,7 +27,7 @@
 
     # Screenshot & Recording
     flameshot
-    # asciinema_3
+    # asciinema_3   # enabled by programs.asciinema.enable
     obs-studio
 
     # Media Players
@@ -56,7 +53,6 @@
   programs.firefox.enable = true;
   # programs.obsidian.enable = true;
   programs.pandoc.enable = true;
-  programs.vscode.enable = true;
 
   programs.asciinema = {
     enable = true;
