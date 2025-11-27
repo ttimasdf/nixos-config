@@ -21,7 +21,7 @@
     aria2
 
     # Office Suite
-    wpsoffice-cn-fixup
+    wpsoffice-cn
     cherry-studio
     # lmstudio
     gimp
