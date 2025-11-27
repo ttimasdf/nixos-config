@@ -34,6 +34,16 @@
         if [[ "$fs_root" != "/" && "$fs_root" != "/home" ]]; then
           export UV_CACHE_DIR="$fs_root/.cache/uv"
         fi
+
+        function px(){
+          if [ -z "$http_proxy" ]; then
+            export http_proxy=http://127.0.0.1:28888 https_proxy=http://127.0.0.1:28888 all_proxy=socks5://127.0.0.1:28888
+            echo "Proxy Go"
+          else
+            unset http_proxy https_proxy all_proxy
+            echo "Proxy Unset"
+          fi
+        }
       '';
     };
 
