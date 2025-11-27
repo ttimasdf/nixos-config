@@ -32,7 +32,8 @@
     bitwarden-desktop
 
     # Screenshot & Recording
-    flameshot
+    # flameshot
+    snipaste
     # asciinema_3
     obs-studio
 
