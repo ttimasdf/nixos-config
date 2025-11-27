@@ -336,6 +336,15 @@ in
 
   #endregion containers
 
+  #region VMs
+  # https://wiki.nixos.org/wiki/Virt-manager
+  virtualisation.libvirtd = {
+    enable = true;
+    qemu.vhostUserPackages = with pkgs; [ virtiofsd ];
+  };
+  programs.virt-manager.enable = true;
+  #endregion VMs
+
   #region configurations
   # Fix uv python ssl.SSLCertVerificationError
   environment.etc.certfile = {
