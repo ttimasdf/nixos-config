@@ -6,6 +6,7 @@
 
     # Development & Code Editors
     # vscode  # enabled by programs.vscode.enable
+    antigravity
 
   ];
   programs.vscode.enable = true;
