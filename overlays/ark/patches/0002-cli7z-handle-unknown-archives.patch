@@ -1,0 +1,38 @@
+From 5e48cf3dd29dc1dca87a2b0d54a0b5d49c285f66 Mon Sep 17 00:00:00 2001
+From: ttimasdf <opensource@rabit.pw>
+Date: Thu, 27 Nov 2025 21:40:27 +0800
+Subject: [PATCH 2/4] cli7z: handle unknown archives
+
+---
+ plugins/cli7zplugin/cliplugin.cpp | 2 +-
+ plugins/cli7zplugin/cliplugin.h   | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/plugins/cli7zplugin/cliplugin.cpp b/plugins/cli7zplugin/cliplugin.cpp
+index 44643b6a..41d2a1ad 100644
+--- a/plugins/cli7zplugin/cliplugin.cpp
++++ b/plugins/cli7zplugin/cliplugin.cpp
+@@ -192,7 +192,7 @@ bool CliPlugin::readListLine(const QString &line)
+             } else {
+                 // Should not happen
+                 qCWarning(ARK_LOG) << "Unsupported archive type";
+-                return false;
++                m_archiveType = ArchiveTypeGeneric;
+             }
+ 
+         } else if (line.startsWith(QLatin1String("Volumes = "))) {
+diff --git a/plugins/cli7zplugin/cliplugin.h b/plugins/cli7zplugin/cliplugin.h
+index cfed3d20..d0643e9d 100644
+--- a/plugins/cli7zplugin/cliplugin.h
++++ b/plugins/cli7zplugin/cliplugin.h
+@@ -39,6 +39,7 @@ private:
+         ArchiveTypeTar,
+         ArchiveTypeZip,
+         ArchiveTypeRar,
++        ArchiveTypeGeneric,
+     } m_archiveType;
+ 
+     enum ParseState {
+-- 
+2.51.2
+
