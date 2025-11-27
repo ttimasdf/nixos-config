@@ -6,5 +6,6 @@
     "wheel"       # Enable ‘sudo’ for the user.
     "wireshark"   # for programs.wireshark
     "input"       # for services.espanso
+    "libvirtd"    # for virtualisation.libvirtd
   ];
 }
