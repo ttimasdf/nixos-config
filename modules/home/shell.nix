@@ -3,6 +3,7 @@
   home.shellAliases = {
     g = "git";
     lg = "lazygit";
+    clip = "wl-copy";
   };
 
   home.shell = {
