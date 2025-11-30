@@ -18,13 +18,18 @@ in {
         options = [ "ro" "resolve-symlinks" "x-gvfs-hide" ];
       };
       aggregated = pkgs.buildEnv {
-          name = "system-fonts-and-icons";
-          paths = config.fonts.packages ++ (with pkgs; [
-            ## Add your cursor themes and icon packages here
-            # bibata-cursors
-            # gnome.gnome-themes-extra
-          ]);
-          pathsToLink = [ "/share/fonts" "/share/icons" ];
+        name = "system-fonts-and-icons";
+        nativeBuildInputs = [ pkgs.xorg.mkfontdir ];
+        paths = config.fonts.packages ++ (with pkgs; [
+          ## Add your cursor themes and icon packages here
+          # bibata-cursors
+          # gnome.gnome-themes-extra
+        ]);
+        pathsToLink = [ "/share/fonts" "/share/icons" ];
+        ignoreCollisions = true;
+        postBuild = ''
+          find "$out/share/fonts" -type d -exec ${pkgs.xorg.mkfontdir}/bin/mkfontdir {} \;
+        '';
       };
     in {
       "/usr/share/fonts" = mkRoSymBind "${aggregated}/share/fonts";
