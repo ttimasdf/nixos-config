@@ -30,7 +30,12 @@ in {
         nur.repos.chillcicada.ttf-ms-win10-sc-sup
       ];
 
-      # enable /run/current-system/sw/share/X11/fonts
+      /**
+        https://wiki.nixos.org/wiki/Fonts#Flatpak_applications_can't_find_system_fonts
+        enable /run/current-system/sw/share/X11/fonts
+        service.flatpak.enable will automatically enable fontDir,
+        so not necessarily needed to set true here
+       */
       fontDir.enable = true;
 
       fontconfig = {

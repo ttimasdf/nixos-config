@@ -1,3 +1,7 @@
+/**
+  Solution 3: Configure bindfs for fonts/cursors/icons support - Fonts - Official NixOS Wiki
+  https://wiki.nixos.org/wiki/Fonts#Solution_3:_Configure_bindfs_for_fonts/cursors/icons_support
+ */
 { config, lib, pkgs, ... }:
 
 let
