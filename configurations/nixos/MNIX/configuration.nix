@@ -33,6 +33,7 @@ in
   boot.kernelPackages = pkgs.linuxPackages_zen;
   boot.kernel.sysctl = {
     "net.ipv4.ip_forward" = 1;
+    "net.ipv4.ip_unprivileged_port_start" = 25;
   };
   # endregion boot & kernel
 
@@ -377,6 +378,7 @@ in
       53317   # localsend
       8888    # MITM
       4444    # reverse listener
+      25      # SMTP for phish
     ];
     allowedUDPPorts = [
       #22000   # syncthing
