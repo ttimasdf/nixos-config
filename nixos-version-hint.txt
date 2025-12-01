@@ -1,1 +1,1 @@
-font-dir-bindfs
+chsh-zsh

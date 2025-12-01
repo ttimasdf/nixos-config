@@ -10,4 +10,6 @@
     "input"       # for services.espanso
     "libvirtd"    # for virtualisation.libvirtd
   ];
+} // lib.optionalAttrs config.programs.zsh.enable {
+  shell = pkgs.zsh;
 }
