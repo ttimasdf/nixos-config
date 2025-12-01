@@ -111,6 +111,7 @@ in
 
   rabit.nixos.hosts.corpo.enable = true;
   rabit.nixos.hosts.pentest.enable = true;
+  rabit.nixos.gui.font-dir.enable = true;
   # endregion network
 
   # region UI/UX
