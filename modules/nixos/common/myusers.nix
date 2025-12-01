@@ -8,7 +8,7 @@ let
   # User modules should be imported directly by us.
   # Currently, user modules are simply plain attrSets.
   # If we need to support functions later, use (path: import path { inherit flake pkgs lib config; }).
-  userImports = rabit-lib.forAllNixFiles (self + /configurations/users) (path: import path);
+  userImports = rabit-lib.forAllNixFiles (self + /configurations/users) (path: import path { inherit flake pkgs lib config; });
 in
 {
   options = {

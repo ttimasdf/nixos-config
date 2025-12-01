@@ -1,3 +1,5 @@
+{ flake, pkgs, lib, config, ... }:
+
 {
   # set users.users.<name> options here
   # https://search.nixos.org/options?channel=unstable&query=users.users
