@@ -13,7 +13,7 @@
 
     # Development & Code Editors
     # vscode
-    
+    antigravity
 
     # Web Browsers & Download Tools
     # firefox
