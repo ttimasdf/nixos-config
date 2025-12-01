@@ -289,6 +289,7 @@ in
     enable = true;
     qemu.vhostUserPackages = with pkgs; [ virtiofsd ];
   };
+  virtualisation.spiceUSBRedirection.enable = true;
   programs.virt-manager.enable = true;
   #endregion VMs
 
