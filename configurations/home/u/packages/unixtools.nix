@@ -19,6 +19,7 @@
     ninja
     just     # Modern command runner with justfile syntax
     nix-tree # Interactive Nix package browser
+    nixfmt   # Nix code formatter
     android-tools # Android development and debugging tools
 
     # Network and remote access
