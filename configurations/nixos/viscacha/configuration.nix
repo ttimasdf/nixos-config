@@ -365,6 +365,10 @@ in
   # Open ports in the firewall.
   networking.firewall = {
     enable = true;
+    # Allow mihomo TUN mode to work with system stack
+    trustedInterfaces = [ "mihomo0" ];
+    checkReversePath = "loose";
+
     allowedTCPPorts = [
       22000   # syncthing
       53317   # localsend
