@@ -57,13 +57,18 @@
     package = pkgs.ungoogled-chromium;
     # package = pkgs.google-chrome;
     nativeMessagingHosts = [ pkgs.kdePackages.plasma-browser-integration ];
-    # extensions = [
-    #   { id = "cjpalhdlnbpafiamejdnhcphjbkeiagm"; } # uBlock Origin
-    #   { id = "pfnededegaaopdmhkdmcofjmoldfiped"; } # Proxy SwitchyOmega 3 (ZeroOmega)
-    #   { id = "dhdgffkkebhmkfjojejmpbldmpobfkfo"; } # Tampermonkey
-    #   { id = "bhchdcejhohfmigjafbampogmaanbfkg"; } # User-Agent Switcher and Manager
-    #   { id = "hlkenndednhfkekhgcdicdfddnkalmdm"; } # Cookie-Editor
-    # ];
+    extensions = [
+      # NeverDecaf/chromium-web-store
+      {
+        id = "ocaahdebbfolfmndjeplogmgcagdmblk";
+        updateUrl = "https://raw.githubusercontent.com/NeverDecaf/chromium-web-store/master/updates.xml";
+      }
+      # { id = "cjpalhdlnbpafiamejdnhcphjbkeiagm"; } # uBlock Origin
+      # { id = "pfnededegaaopdmhkdmcofjmoldfiped"; } # Proxy SwitchyOmega 3 (ZeroOmega)
+      # { id = "dhdgffkkebhmkfjojejmpbldmpobfkfo"; } # Tampermonkey
+      # { id = "bhchdcejhohfmigjafbampogmaanbfkg"; } # User-Agent Switcher and Manager
+      # { id = "hlkenndednhfkekhgcdicdfddnkalmdm"; } # Cookie-Editor
+    ];
   };
   # programs.obsidian.enable = true;
   programs.pandoc.enable = true;
