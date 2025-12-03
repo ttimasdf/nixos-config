@@ -16,13 +16,16 @@
 
       historyFileSize = 100000;
       historySize = 50000;
-      historyControl = [ "ignoredups" "erasedups" ];
+      historyControl = [
+        "ignoredups"
+        "erasedups"
+      ];
       historyIgnore = [
         "ls"
         "cd"
         "exit"
       ];
-      # Custom bash profile goes here
+      # Custom ~/.bashrc goes here
       initExtra = ''
         # Set UV cache directory to filesystem-specific location when not on root filesystem
         # This ensures UV (Python package manager) uses appropriate cache location
@@ -40,17 +43,32 @@
       autosuggestion.enable = true;
       syntaxHighlighting.enable = true;
       enableCompletion = true;
+
+      # zsh - What should/shouldn't go in .zshenv, .zshrc, .zlogin, .zprofile, .zlogout? - Unix & Linux Stack Exchange
+      # https://unix.stackexchange.com/questions/71253/what-should-shouldnt-go-in-zshenv-zshrc-zlogin-zprofile-zlogout
+
+      # Custom ~/.zshenv goes here
       envExtra = ''
-        # Custom ~/.zshenv goes here
+        # Set UV cache directory to filesystem-specific location when not on root filesystem
+        # This ensures UV (Python package manager) uses appropriate cache location
+        # when working on mounted filesystems or external drives
+        fs_root=$(df --output=target "$PWD" | tail -n 1)
+        if [[ "$fs_root" != "/" && "$fs_root" != "/home" ]]; then
+          export UV_CACHE_DIR="$fs_root/.cache/uv"
+        fi
       '';
+      # Custom ~/.zshrc goes here
+      initContent = ''
+        bindkey -e
+      '';
+      # Custom ~/.zprofile goes here
       profileExtra = ''
-        # Custom ~/.zprofile goes here
       '';
+      # Custom ~/.zlogin goes here
       loginExtra = ''
-        # Custom ~/.zlogin goes here
       '';
+      # Custom ~/.zlogout goes here
       logoutExtra = ''
-        # Custom ~/.zlogout goes here
       '';
     };
 
