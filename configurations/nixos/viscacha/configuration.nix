@@ -234,6 +234,7 @@ in
   # https://wiki.nixos.org/wiki/SSH
   services.openssh = {
     enable = true;
+    ports = [ 54022 ];
     settings = {
       PasswordAuthentication = false;
       KbdInteractiveAuthentication = false;
