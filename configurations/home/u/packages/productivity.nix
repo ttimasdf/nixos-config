@@ -11,11 +11,12 @@
     siyuan
     obsidian
     typora
-    # pandoc    # enabled by programs.pandoc.enable
+    # pandoc        # enabled by programs.pandoc.enable
 
     # Web Browsers & Download Tools
-    # firefox   # enabled by programs.firefox.enable
+    # firefox       # enabled by programs.firefox.enable
     microsoft-edge
+    # chromium      # enabled by programs.chromium.enable
     aria2
 
     # Office Suite
@@ -51,6 +52,19 @@
   };
 
   programs.firefox.enable = true;
+  programs.chromium = {
+    enable = true;
+    package = pkgs.ungoogled-chromium;
+    # package = pkgs.google-chrome;
+    nativeMessagingHosts = [ pkgs.kdePackages.plasma-browser-integration ];
+    # extensions = [
+    #   { id = "cjpalhdlnbpafiamejdnhcphjbkeiagm"; } # uBlock Origin
+    #   { id = "pfnededegaaopdmhkdmcofjmoldfiped"; } # Proxy SwitchyOmega 3 (ZeroOmega)
+    #   { id = "dhdgffkkebhmkfjojejmpbldmpobfkfo"; } # Tampermonkey
+    #   { id = "bhchdcejhohfmigjafbampogmaanbfkg"; } # User-Agent Switcher and Manager
+    #   { id = "hlkenndednhfkekhgcdicdfddnkalmdm"; } # Cookie-Editor
+    # ];
+  };
   # programs.obsidian.enable = true;
   programs.pandoc.enable = true;
 

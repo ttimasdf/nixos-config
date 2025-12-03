@@ -1,1 +1,1 @@
-firewall-mihomo0
+pkgs-chromium
