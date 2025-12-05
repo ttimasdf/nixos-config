@@ -33,7 +33,7 @@ in
   boot.kernelPackages = pkgs.linuxPackages_zen;
   boot.kernel.sysctl = {
     "net.ipv4.ip_forward" = 1;
-    "net.ipv4.ip_unprivileged_port_start" = 25;
+    "net.ipv4.ip_unprivileged_port_start" = 80;
   };
   # endregion boot & kernel
 
