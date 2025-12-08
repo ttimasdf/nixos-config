@@ -9,6 +9,7 @@
   copyDesktopItems,
   makeWrapper,
   proEdition ? true,
+  gdkScale ? "2",
 }:
 let
   product =
@@ -74,7 +75,7 @@ stdenv.mkDerivation rec {
 
     makeWrapper ${jdk}/bin/java $out/bin/${pname} \
       --chdir "$out/share/burpsuite" \
-      --set GDK_SCALE 2 \
+      --set GDK_SCALE ${gdkScale} \
       --add-flags "-jar $out/share/burpsuite/burploader.jar"
 
     runHook postInstall
