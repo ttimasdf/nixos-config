@@ -51,6 +51,7 @@
     rustdesk-flutter
     virt-viewer
     remmina
+    winbox4
   ];
 
   # Add symlink for edge for Apps to work
