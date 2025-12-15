@@ -52,6 +52,7 @@
     virt-viewer
     remmina
     winbox4
+    putty
   ];
 
   # Add symlink for edge for Apps to work
