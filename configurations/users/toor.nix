@@ -10,5 +10,6 @@
     "input"       # for services.espanso
     "kvm"         # to make /dev/kvm work with podman. 
     "libvirtd"    # for virtualisation.libvirtd
+    "dialout"     # for serial ports
   ];
 }
