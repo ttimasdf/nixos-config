@@ -1,1 +1,1 @@
-pkg-lsfg-vk
+printer-hplip
