@@ -1,8 +1,9 @@
 { pkgs, ... }:
 {
   home.packages = with pkgs; [
-    pulseview
+    openocd       # On-Chip Debugging
+    pulseview     # Signal Analyzer
     # SDR
-    uhd # USRP Hardware Driver
+    uhd           # USRP Hardware Driver
   ];
 }
