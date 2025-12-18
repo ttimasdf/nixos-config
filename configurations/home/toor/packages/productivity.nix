@@ -14,6 +14,7 @@
     # Development & Code Editors
     # vscode
     antigravity
+    appimage-run
 
     # Web Browsers & Download Tools
     # firefox
@@ -40,6 +41,7 @@
     # Media Players
     vlc
     qmplay2
+    ffmpeg
 
     # Networking
     daed
