@@ -7,6 +7,7 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixos-unified.url = "github:srid/nixos-unified";
     flake-compat.url = "github:NixOS/flake-compat";
+    git-hooks-nix = { url = "github:cachix/git-hooks.nix"; inputs.nixpkgs.follows = "nixpkgs"; inputs.flake-compat.follows = "flake-compat"; };
 
     # NixOS system flakes
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -18,8 +19,11 @@
     # Software inputs
     rust-overlay = { url = "github:oxalica/rust-overlay"; inputs.nixpkgs.follows = "nixpkgs"; };
     lanzaboote = {
-      url = "github:nix-community/lanzaboote";
+      url = "github:nix-community/lanzaboote/v0.4.2";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-compat.follows = "flake-compat";
+      inputs.flake-parts.follows = "flake-parts";
+      inputs.pre-commit-hooks-nix.follows = "git-hooks-nix";
       inputs.rust-overlay.follows = "rust-overlay";
     };
     winapps = { url = "github:winapps-org/winapps"; inputs.nixpkgs.follows = "nixpkgs"; inputs.flake-compat.follows = "flake-compat"; };
