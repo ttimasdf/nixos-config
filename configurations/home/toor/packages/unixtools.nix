@@ -12,6 +12,7 @@
     ncdu     # Disk usage analyzer with ncurses interface
     hardinfo2 # System information and benchmarking tool
     sysstat
+    lsof
 
     # VM
     qemu
