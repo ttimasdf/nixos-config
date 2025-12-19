@@ -63,6 +63,11 @@ in
     fsType = "ntfs3";
     options = [ "defaults,rw,nofail,discard,nosuid,uid=1000,dmask=022,fmask=133" ];
   };
+  fileSystems."/mnt/windows" = {
+    device = "/dev/mapper/crypt-windows";
+    fsType = "ntfs3";
+    options = [ "defaults,noauto,rw,nofail,discard,nosuid,uid=1000,dmask=022,fmask=133" ];
+  };
 
   # endregion partitions
 
