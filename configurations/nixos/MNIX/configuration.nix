@@ -391,6 +391,7 @@ in
   };
 
   security.pki.certificateFiles = [
+    (toString self + "/files/cacerts/mitmca.pem")
     (toString self + "/files/cacerts/mitmca2.pem")
   ];
   # endregion software
