@@ -20,7 +20,7 @@
     aria2
 
     # Office Suite
-    wpsoffice-cn
+    wpsoffice-cn-fcitx
 
     # Password Management
     keepassxc
