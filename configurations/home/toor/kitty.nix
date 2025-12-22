@@ -22,6 +22,7 @@
     # Mappable actions - kitty https://sw.kovidgoyal.net/kitty/actions/
     keybindings = {
       "ctrl+c" = "copy_or_interrupt";  # default to copy_or_noop
+      "ctrl+shift+enter" = "new_window_with_cwd";  # default to new_window
       "alt+shift+1" = "goto_tab 1";
       "alt+shift+2" = "goto_tab 2";
       "alt+shift+3" = "goto_tab 3";
