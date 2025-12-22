@@ -29,6 +29,8 @@ in
           ci = "commit";
         };
 
+        credential.helper = "cache --timeout=14400";
+
         init.defaultBranch = "main";
         # pull.rebase = "false";
         merge.ours.driver = "true";
