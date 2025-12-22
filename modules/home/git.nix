@@ -31,6 +31,7 @@ in
 
         init.defaultBranch = "main";
         # pull.rebase = "false";
+        merge.ours.driver = "true";
       } // lib.mkIf sshSigningEnabled {
         gpg.format = "ssh";
         gpg.ssh.allowedSignersFile =
