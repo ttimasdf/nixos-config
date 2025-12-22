@@ -1,6 +1,8 @@
-{ config, lib, ... }:
+{ config, lib, osConfig, ... }:
 let
+  inherit (lib) mkIf;
   cfg = config.rabit.me;
+  oscfg = osConfig.rabit.nixos;
   sshSigningEnabled = cfg.git.sshSigningKey != null;
 
   # Dynamically determine the public key filename from the key content.
@@ -21,25 +23,33 @@ in
   programs = {
     git = {
       enable = true;
-      settings = {
-        user.name = cfg.fullname;
-        user.email = cfg.email;
+      settings = lib.mkMerge [
+        {
+          user.name = cfg.fullname;
+          user.email = cfg.email;
 
-        alias = {
-          ci = "commit";
-        };
+          alias = {
+            ci = "commit";
+          };
 
-        credential.helper = "cache --timeout=14400";
+          credential.helper = "cache --timeout=14400";
 
-        init.defaultBranch = "main";
-        # pull.rebase = "false";
-        merge.ours.driver = "true";
-      } // lib.mkIf sshSigningEnabled {
-        gpg.format = "ssh";
-        gpg.ssh.allowedSignersFile =
-          "${config.home.homeDirectory}/.config/git/allowed_signers";
-        user.signingkey =
-          "${config.home.homeDirectory}/${pubKeyFileName}";
+          init.defaultBranch = "main";
+          # pull.rebase = "false";
+          merge.ours.driver = "true";
+        }
+        (mkIf sshSigningEnabled {
+          gpg.ssh.allowedSignersFile =
+            "${config.home.homeDirectory}/.config/git/allowed_signers";
+        })
+        (mkIf (oscfg.http_proxy != null) {
+          http."https://github.com".proxy = oscfg.http_proxy;
+        })
+      ];
+
+      signing = mkIf sshSigningEnabled {
+        format = "ssh";
+        key = "${config.home.homeDirectory}/${pubKeyFileName}";
       };
 
       ignores = [ "*~" "*.swp" ];
@@ -47,7 +57,7 @@ in
     lazygit.enable = true;
   };
 
-  home.file = lib.mkIf sshSigningEnabled {
+  home.file = mkIf sshSigningEnabled {
     "${pubKeyFileName}".text = cfg.git.sshSigningKey;
     ".config/git/allowed_signers".text =
       let

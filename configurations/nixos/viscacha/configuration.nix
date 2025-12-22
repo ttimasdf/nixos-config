@@ -223,6 +223,7 @@ in
   services.mihomo.tunMode = true;
   services.mihomo.webui = pkgs.metacubexd;
   services.mihomo.configFile = "/home/u/Documents/clash-config/cfg-2aym2a2s/client.yml";
+  rabit.nixos.http_proxy = "http://127.0.0.1:28888";
 
   programs.nh = {
     enable = true;
@@ -341,6 +342,11 @@ in
       engine = {
         compose_providers = ["/run/current-system/sw/bin/podman-compose"];
         compose_warning_logs = false;
+        env = [
+          "HTTP_PROXY=${config.rabit.nixos.http_proxy}"
+          "HTTPS_PROXY=${config.rabit.nixos.http_proxy}"
+          "NO_PROXY=${config.rabit.nixos.no_proxy}"
+        ];
       };
 
       registry = [
