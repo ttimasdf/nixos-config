@@ -17,13 +17,13 @@ let
       {
         productName = "pro";
         productDesktop = "Burp Suite Professional Edition";
-        hash = "sha256-XsDyJwoEManf8gwPBYERF0GfEGaps37lWOhejWjLaQE=";
+        hash = "sha256-IwseGPMpdaNVCqHg8BrQ+NHLle9ltCQNMUL1m+OTusA=";
       }
     else
       {
         productName = "community";
         productDesktop = "Burp Suite Community Edition";
-        hash = "sha256-vxx+HWNqkzaleeK+qyaTL7CQ3u+V66ZLbk61voNSRp4=";
+        hash = "sha256-+mqGMwCzDRu5Trq8S+K5RGm2rcaZBWkclm3bKLJIRD4=";
       };
   description = "Integrated platform for performing security testing of web applications";
   loader = builtins.path {
@@ -33,7 +33,7 @@ let
 in
 stdenv.mkDerivation rec {
   pname = "burpsuite";
-  version = "2025.10.2";
+  version = "2025.11.6";
 
   src = fetchurl {
     name = "burpsuite-${product.productName}-${version}.jar";
