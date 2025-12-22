@@ -336,10 +336,35 @@ in
       defaultNetwork.settings.dns_enabled = true;
     };
     containers.containersConf.settings = {
+      unqualified-search-registries = ["docker.io"];
+
       engine = {
         compose_providers = ["/run/current-system/sw/bin/podman-compose"];
         compose_warning_logs = false;
       };
+
+      registry = [
+        {
+          prefix = "docker.io";
+          insecure = false;
+          blocked = false;
+          location = "docker.io";
+          mirror = [
+            { location = "***REMOVED***"; }
+            { location = "docker.milktea.info"; }
+            { location = "docker.nju.edu.cn"; }
+          ];
+        }
+        {
+          prefix = "ghcr.io";
+          insecure = false;
+          blocked = false;
+          location = "ghcr.io";
+          mirror = [
+            { location = "ghcr.nju.edu.cn"; }
+          ];
+        }
+      ];
     };
   };
 
