@@ -62,29 +62,6 @@ in {
       };
     };
 
-    # https://nixos.wiki/wiki/Overlays
-    nixpkgs.overlays = [
-      (self: super: {
-        # https://github.com/NixOS/nixpkgs/blob/e643668fd71b949c53f8626614b21ff71a07379d/nixos/modules/i18n/input-method/fcitx5.nix#L96-L98
-        fcitx5-rime-ice = super.fcitx5-rime.override {
-          rimeDataPkgs = [ pkgs.rime-data-ice ];
-        };
-        # https://github.com/NixOS/nixpkgs/blob/e643668fd71b949c53f8626614b21ff71a07379d/pkgs/by-name/ri/rime-ice/package.nix#L19-L30
-        rime-data-ice = super.rime-ice.overrideAttrs (oldAttrs: {
-          installPhase = ''
-            runHook preInstall
-
-            rm -rf others README.md .git*
-
-            mkdir -p $out/share
-            cp -r . $out/share/rime-data
-
-            runHook postInstall
-          '';
-        });
-      })
-    ];
-
     # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/tools/inputmethods/fcitx5/with-addons.nix
     i18n.inputMethod = {
       type = "fcitx5";
