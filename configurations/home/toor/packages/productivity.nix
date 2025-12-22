@@ -40,6 +40,7 @@
 
     # Media Players
     vlc
+    mpv
     qmplay2
     ffmpeg
 
