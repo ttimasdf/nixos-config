@@ -1,1 +1,1 @@
-lanzaboote-downgrade
+flake-update-20251222
