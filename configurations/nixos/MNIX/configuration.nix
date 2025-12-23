@@ -318,9 +318,9 @@ in
     dig.dnsutils
 
     # Hardware info
-    pciutils
-    usbutils
-    intel-gpu-tools
+    pciutils          # lspci
+    usbutils          # lsusb
+    intel-gpu-tools   # intel_gpu_top
 
     # Disk Encryption
     #cryptsetup
