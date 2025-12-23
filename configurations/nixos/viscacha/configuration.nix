@@ -372,6 +372,10 @@ in
         }
       ];
     };
+
+    containers.registries.search = [
+      "docker.io"
+    ];
   };
 
   #endregion containers
