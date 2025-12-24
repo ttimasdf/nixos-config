@@ -326,6 +326,7 @@ in
     # Disk Encryption
     #cryptsetup
     exfatprogs
+    squashfsTools
 
     # containers
     dive # look into docker image layers
