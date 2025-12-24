@@ -3,6 +3,8 @@
   # https://nix-community.github.io/home-manager/options.xhtml#opt-programs.tmux.enable
   programs.tmux = {
     enable = true;
+    historyLimit = 99999;
+    mouse = true;
 
     # https://search.nixos.org/packages?channel=unstable&query=tmuxPlugins.catppuccin
     plugins = with pkgs; [

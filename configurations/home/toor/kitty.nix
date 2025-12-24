@@ -8,7 +8,7 @@
 
     # kitty.conf - kitty https://sw.kovidgoyal.net/kitty/conf/
     settings = {
-      scrollback_lines = 10000;
+      scrollback_lines = 99999;
       # background_opacity = 0.85;
       cursor_trail = 1;
 
