@@ -29,7 +29,10 @@ in
   };
 
   boot.loader.efi.canTouchEfiVariables = true;
-
+  boot.binfmt.emulatedSystems = [
+    "aarch64-linux"
+    "x86_64-windows"
+  ];
   boot.kernelPackages = pkgs.linuxPackages_zen;
   boot.kernel.sysctl = {
     "net.ipv4.ip_forward" = 1;
