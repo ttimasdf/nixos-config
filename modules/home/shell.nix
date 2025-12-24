@@ -10,7 +10,6 @@
   };
 
   programs = {
-    # on macOS, you probably don't need this
     bash = {
       enable = true;
 
@@ -37,12 +36,22 @@
       '';
     };
 
-    # For macOS's default shell.
     zsh = {
       enable = true;
       autosuggestion.enable = true;
       syntaxHighlighting.enable = true;
       enableCompletion = true;
+
+      history = {
+        append = true;
+        size = 100000;
+        save = 100000;
+
+        expireDuplicatesFirst = true;
+        ignoreAllDups = true;
+        saveNoDups = true;
+        # findNoDups = true;
+      };
 
       # zsh - What should/shouldn't go in .zshenv, .zshrc, .zlogin, .zprofile, .zlogout? - Unix & Linux Stack Exchange
       # https://unix.stackexchange.com/questions/71253/what-should-shouldnt-go-in-zshenv-zshrc-zlogin-zprofile-zlogout

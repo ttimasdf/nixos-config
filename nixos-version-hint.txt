@@ -1,1 +1,1 @@
-containerd-mirrors
+zsh-history
