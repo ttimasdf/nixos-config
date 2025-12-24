@@ -5,5 +5,6 @@
     pulseview     # Signal Analyzer
     # SDR
     uhd           # USRP Hardware Driver
+    rkdeveloptool # Rockchip Development Tool
   ];
 }
