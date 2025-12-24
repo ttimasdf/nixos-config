@@ -16,6 +16,7 @@
 
     # VM
     qemu
+    tunctl
     
     # Network and remote access
     freerdp  # Remote Desktop Protocol client
