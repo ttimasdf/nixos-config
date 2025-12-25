@@ -1,1 +1,1 @@
-zsh-history
+windows-auto-mount
