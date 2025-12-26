@@ -26,6 +26,7 @@
     cherry-studio
     # lmstudio
     gimp
+    dvdplusrwtools
 
     # Password Management
     # keepassxc
