@@ -21,6 +21,7 @@ in {
 
       kdePackages.filelight
       kdePackages.spacebar
+      kdePackages.k3b
 
       wayland-utils
       wl-clipboard
