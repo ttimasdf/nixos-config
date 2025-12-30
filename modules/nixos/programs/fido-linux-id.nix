@@ -23,8 +23,8 @@ in
 
     systemd.user.services.fido-linux-id = {
       description = cfg.package.meta.description;
-      # wantedBy = [ "graphical-session.target" ];
-      wantedBy = [ "default.target" ];
+      wantedBy = [ "graphical-session.target" ];
+      # wantedBy = [ "default.target" ];
 
       path = [ cfg.pinentryPackage ];
 
