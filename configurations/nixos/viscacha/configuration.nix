@@ -297,10 +297,14 @@ in
     unzip-nls
     zip-nls
     _7zz-natspec
-
-    # pentest
-    pyghidra
   ];
+
+  # https://wiki.nixos.org/wiki/TPM
+  security.tpm2.enable = true;
+  # expose /run/current-system/sw/lib/libtpm2_pkcs11.so
+  security.tpm2.pkcs11.enable = true;
+  # TPM2TOOLS_TCTI and TPM2_PKCS11_TCTI env variables
+  security.tpm2.tctiEnvironment.enable = true;
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
@@ -312,6 +316,7 @@ in
   #   enable = true;
   #   enableSSHSupport = true;
   # };
+  programs.fido-linux-id.enable = true;
   programs.wireshark.enable = true;
   programs.wireshark.package = pkgs.wireshark-qt;
   programs.wireshark.dumpcap.enable = true;
