@@ -1,0 +1,14 @@
+develop:
+  default:
+    readme: |
+      Welcome to KnownRabbit's NixOS Config. Some frequently used commands:
+
+      ```sh-session
+      # build and switch to new NixOS generation
+      just build
+      # list system/user generations
+      just list
+      just list user
+      ```
+
+      🍎🍎 Run 'just' to see more commands.
