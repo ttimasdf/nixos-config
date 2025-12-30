@@ -34,6 +34,11 @@ in
   boot.kernel.sysctl = {
     "net.ipv4.ip_forward" = 1;
   };
+
+  # add specialisation for zen kernel
+  specialisation.zen-kernel.configuration = {
+    boot.kernelPackages = lib.mkForce pkgs.linuxPackages_zen;
+  };
   # endregion boot & kernel
 
   # region user settings
