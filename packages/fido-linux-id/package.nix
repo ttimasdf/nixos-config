@@ -2,7 +2,6 @@
   lib,
   fetchFromGitHub,
   buildGoModule,
-  pinentry-qt,
 }:
 
 buildGoModule {
@@ -18,12 +17,8 @@ buildGoModule {
 
   vendorHash = "sha256-Aublc4nPudtXO5oPtfBlyE/L0c3DniYHH3M4J1lfoBE=";
 
-  buildInputs = [
-    pinentry-qt
-  ];
-
   ldFlags = [
-    "-s "
+    "-s"
     "-w"
   ];
 
