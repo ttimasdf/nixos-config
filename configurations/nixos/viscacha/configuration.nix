@@ -30,14 +30,14 @@ in
 
   boot.loader.efi.canTouchEfiVariables = true;
 
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelPackages = pkgs.linuxPackages_zen;
   boot.kernel.sysctl = {
     "net.ipv4.ip_forward" = 1;
   };
 
-  # add specialisation for zen kernel
-  specialisation.zen-kernel.configuration = {
-    boot.kernelPackages = lib.mkForce pkgs.linuxPackages_zen;
+  # add specialisation for latest kernel
+  specialisation.kernel-latest.configuration = {
+    boot.kernelPackages = lib.mkForce pkgs.linuxPackages_latest;
   };
   # endregion boot & kernel
 
