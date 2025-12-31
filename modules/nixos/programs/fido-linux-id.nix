@@ -17,7 +17,7 @@ in
     # https://aur.archlinux.org/cgit/aur.git/tree/99-tpm-fido.rules?h=tpm-fido-git
     services.udev.packages = lib.mkIf cfg.enable [
       (pkgs.writeTextDir "etc/udev/rules.d/55-uhid.rules" ''
-        KERNEL=="uhid", SUBSYSTEM=="misc", GROUP="uhid", MODE="0660", TAG+="uaccess"
+        KERNEL=="uhid", SUBSYSTEM=="misc", GROUP="uhid", MODE="0660"
       '')
     ];
 
@@ -27,6 +27,10 @@ in
       # wantedBy = [ "default.target" ];
 
       path = [ cfg.pinentryPackage ];
+
+      unitConfig = {
+        ConditionGroup = "uhid";
+      };
 
       serviceConfig = {
         Type = "simple";
