@@ -11,6 +11,7 @@ in
     nixos-hardware.nixosModules.lenovo-thinkpad-x1-12th-gen
     self.nixosModules.common
     self.nixosModules.hosts
+    self.nixosModules.programs
     self.nixosModules.secure-boot
     self.nixosModules.gui
     self.nixosModules.winapps

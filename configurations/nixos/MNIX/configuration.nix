@@ -365,6 +365,7 @@ in
   #   enable = true;
   #   enableSSHSupport = true;
   # };
+  programs.fido-linux-id.enable = true;
   programs.wireshark.enable = true;
   programs.wireshark.package = pkgs.wireshark-qt;
   programs.wireshark.dumpcap.enable = true;

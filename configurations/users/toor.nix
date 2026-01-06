@@ -11,5 +11,7 @@
     "kvm"         # to make /dev/kvm work with podman. 
     "libvirtd"    # for virtualisation.libvirtd
     "dialout"     # for serial ports
+    "tss"         # tss group has access to TPM devices
+    "uhid"        # uhid is essencial for tpm-fido & linux-id
   ];
 }
