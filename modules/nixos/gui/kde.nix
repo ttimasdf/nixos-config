@@ -21,7 +21,7 @@ in {
 
       kdePackages.filelight
       kdePackages.spacebar
-      kdePackages.k3b
+      # kdePackages.k3b # waiting for PR#475899
 
       wayland-utils
       wl-clipboard
