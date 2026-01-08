@@ -39,7 +39,7 @@ let
 in
 {
   # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/tools/security/ghidra/build.nix
-  ghidra = prev.ghidra.overrideAttrs (oldAttrs: {
+  ghidra-mod = prev.ghidra.overrideAttrs (oldAttrs: {
     pname = oldAttrs.pname + "-mod";
     patches = (oldAttrs.patches or []) ++ rabit-lib.findPatches ./patches;
     nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [ ghidra-ida ghidra-ida-til ];
@@ -100,7 +100,7 @@ in
   });
 
   # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/tools/security/ghidra/extensions.nix
-  ghidra-with-extensions = final.ghidra.withExtensions (exts:
+  ghidra-mod-with-extensions = final.ghidra.withExtensions (exts:
     (with exts; [
       findcrypt
       # ghidra-delinker-extension
@@ -156,7 +156,7 @@ in
       for bin in pyghidra pyghidraw; do
         wrapProgram "$out/bin/$bin" \
           --set GHIDRA_INSTALL_DIR "${final.ghidra}/lib/ghidra" \
-          --set NIX_GHIDRAHOME "${final.ghidra-with-extensions}/lib/ghidra/Ghidra"
+          --set NIX_GHIDRAHOME "${final.ghidra-mod-with-extensions}/lib/ghidra/Ghidra"
       done
     '';
 

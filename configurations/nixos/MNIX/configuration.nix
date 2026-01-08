@@ -350,7 +350,7 @@ in
   programs.wireshark.dumpcap.enable = true;
   programs.wireshark.usbmon.enable = true;
   programs.ghidra.enable = true;
-  programs.ghidra.package = pkgs.ghidra-with-extensions;
+  programs.ghidra.package = pkgs.ghidra-mod-with-extensions;
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
