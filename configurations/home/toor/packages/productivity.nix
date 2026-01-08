@@ -17,16 +17,16 @@
     appimage-run
 
     # Web Browsers & Download Tools
-    # firefox
-    microsoft-edge
+    # firefox  # enabled below
+    # microsoft-edge
     aria2
 
     # Office Suite
     wpsoffice-cn
-    cherry-studio
+    # cherry-studio
     # lmstudio
     gimp
-    dvdplusrwtools
+    # dvdplusrwtools
 
     # Password Management
     # keepassxc
@@ -46,13 +46,13 @@
     ffmpeg
 
     # Networking
-    daed
+    # daed
     v2rayn
     tail-tray
     clash-verge-rev
 
     # Remote Access
-    rustdesk-flutter
+    # rustdesk-flutter
     virt-viewer
     remmina
     winbox4
