@@ -323,8 +323,8 @@ in
   programs.wireshark.usbmon.enable = true;
 
   # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/programs/ghidra.nix
-  programs.ghidra.enable = true;
-  programs.ghidra.package = pkgs.ghidra-mod-with-extensions;
+  # programs.ghidra.enable = true;
+  # programs.ghidra.package = pkgs.ghidra-mod-with-extensions;
 
 
   #endregion software
