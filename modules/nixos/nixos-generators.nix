@@ -30,6 +30,8 @@ in
       boot.supportedFilesystems.zfs = lib.mkForce true;
       boot.zfs.package = pkgs.zfs_2_4;
       boot.supportedFilesystems.bcachefs = true;
+
+      rabit.nixos.myusers = ["nixos"];
     } // fmt_iso;
   };
 }
