@@ -6,5 +6,7 @@
     # SDR
     uhd           # USRP Hardware Driver
     rkdeveloptool # Rockchip Development Tool
+    squashfsTools
+    dtc
   ];
 }
