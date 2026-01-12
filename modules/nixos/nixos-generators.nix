@@ -5,9 +5,15 @@ let
   inherit (self) rabit-lib;
   inherit (flake.inputs) nixos-generators;
 
-  fmt_iso = {
+  cfgISO = {
     formatAttr = "isoImage";
     fileExtension = ".iso";
+  };
+
+  cfgFS = {
+      boot.supportedFilesystems.zfs = lib.mkForce true;
+      boot.zfs.package = pkgs.zfs_2_4;
+      boot.supportedFilesystems.bcachefs = true;
   };
 in
 {
@@ -27,11 +33,16 @@ in
         "${modulesPath}/installer/cd-dvd/latest-kernel.nix"
       ];
 
-      boot.supportedFilesystems.zfs = lib.mkForce true;
-      boot.zfs.package = pkgs.zfs_2_4;
-      boot.supportedFilesystems.bcachefs = true;
+      rabit.nixos.myusers = ["nixos"];
+    } // cfgFS // cfgISO;
+
+    formatConfigs.gnome-iso = { config, pkgs, lib, modulesPath, options, ... }: {
+      imports = [
+        "${modulesPath}/installer/cd-dvd/installation-cd-graphical-gnome.nix"
+        "${modulesPath}/installer/cd-dvd/latest-kernel.nix"
+      ];
 
       rabit.nixos.myusers = ["nixos"];
-    } // fmt_iso;
+    } // cfgFS // cfgISO;
   };
 }
