@@ -1,18 +1,21 @@
+# Load custom packages and overlays:
+# https://github.com/srid/nixos-unified/blob/master/nix/modules/flake-parts/autowire.nix
+
 { self, inputs, config, lib, ... }:
 let
-  # rabit-lib = import "${self}/modules/flake/lib.nix" { inherit self lib; };
   inherit (self) rabit-lib;
 in
 {
-  perSystem = { system, config, self', inputs', pkgs, ... }:
+  perSystem = { system, config', self', inputs', pkgs, ... }:
   let
     # Arguments to pass to overlay files
     overlay_args = {
       inherit pkgs lib;
       flake = {
-        inherit config system;
+        inherit system;
         self = self';
         inputs = inputs';
+        config = config';
       };
     };
 
@@ -40,7 +43,7 @@ in
     };
 
     # Export flattened packages for this flake
-    packages = rabit-lib.flattenPkgs custom_packages;
+    packages = custom_packages;
 
     # use `.#activate` as default package
     # `activate` package is provided by nixos-unified:
