@@ -439,9 +439,9 @@ in
   # region nix config
   systemd.services."nix-daemon".serviceConfig = {
     Environment = [
-      "http_proxy=http://127.0.0.1:28888"
-      "https_proxy=http://127.0.0.1:28888"
-      "no_proxy=localhost,127.0.0.1,192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,172.29.0.0/16,::1"
+      "http_proxy=${config.rabit.nixos.http_proxy}"
+      "https_proxy=${config.rabit.nixos.http_proxy}"
+      "no_proxy=${config.rabit.nixos.no_proxy}"
     ];
   };
 
