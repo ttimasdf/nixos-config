@@ -1,6 +1,8 @@
 { config, lib, pkgs, isDarwin, ... }:
 {
-  xdg.configFile."fontconfig/conf.d/10-hm-fonts.conf".force = true;
+  xdg.configFile = lib.optionalAttrs config.fonts.fontconfig.enable {
+    "fontconfig/conf.d/10-hm-fonts.conf".force = true;
+  };
 
   /**
     https://wiki.nixos.org/wiki/Fonts#Flatpak_applications_can't_find_system_fonts
