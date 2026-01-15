@@ -22,5 +22,9 @@ in
     email = "milktea@vmoe.info";
   };
 
+  home.sessionPath = [
+    "$HOME/.cargo/bin"
+  ];
+
   home.stateVersion = "24.11";
 }
