@@ -325,6 +325,7 @@ in
     pciutils          # lspci
     usbutils          # lsusb
     intel-gpu-tools   # intel_gpu_top
+    smartmontools     # smartctl
 
     # Disk Encryption
     #cryptsetup
