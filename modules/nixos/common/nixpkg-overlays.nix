@@ -10,10 +10,8 @@ let
   packagesPath = self + "/packages";
   packages =
     final: prev:
-    (prev.lib.packagesFromDirectoryRecursive {
-      callPackage = prev.lib.callPackageWith final;
-      directory = packagesPath;
-    });
+      rabit-lib.forAllNixFiles "${self}/packages"
+        (fn: lib.callPackageWith final fn { });
 
 in
 {
