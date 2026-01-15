@@ -35,10 +35,10 @@ in
     "net.ipv4.ip_forward" = 1;
   };
 
-  # add specialisation for latest kernel
-  specialisation.kernel-latest.configuration = {
-    boot.kernelPackages = lib.mkForce pkgs.linuxPackages_latest;
-  };
+  boot.supportedFilesystems.zfs = true;
+  boot.zfs.package = pkgs.zfs_2_4;
+  boot.supportedFilesystems.bcachefs = true;
+
   # endregion boot & kernel
 
   # region user settings
