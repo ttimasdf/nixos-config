@@ -14,8 +14,23 @@
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "/dev/disk/by-uuid/b23e7310-2e3a-4060-bc1f-bcd061f3874d";
-      fsType = "bcachefs";
+    { device = "/dev/mapper/nixos-root";
+      fsType = "btrfs";
+      options = [ "subvol=root" ];
+    };
+
+  boot.initrd.luks.devices."nixos-root".device = "/dev/disk/by-uuid/92342466-5063-489e-ab2c-b79ca70ea7a8";
+
+  fileSystems."/home" =
+    { device = "/dev/mapper/nixos-root";
+      fsType = "btrfs";
+      options = [ "subvol=home" ];
+    };
+
+  fileSystems."/nix" =
+    { device = "/dev/mapper/nixos-root";
+      fsType = "btrfs";
+      options = [ "subvol=nix" ];
     };
 
   fileSystems."/boot" =
