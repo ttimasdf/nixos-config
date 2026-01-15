@@ -4,8 +4,11 @@
       name = "knownrabbit-nixos-config";
       meta.description = "Shell environment for modifying this Nix configuration";
       packages = with pkgs; [
-        just
         nh
+        just
+        xc
+        git-filter-repo
+        git-crypt
       ];
 
       # Set NH_FLAKE environment variable to the current flake's path
