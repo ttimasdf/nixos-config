@@ -428,6 +428,29 @@
         "type": "github"
       }
     },
+    "private-module": {
+      "inputs": {
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "nixos-unified": [
+          "nixos-unified"
+        ]
+      },
+      "locked": {
+        "lastModified": 1768490986,
+        "narHash": "sha256-37sR1qWozccAUNUdYEvT+CkpxpDqW8P95zvTw6yHma0=",
+        "owner": "ttimasdf",
+        "repo": "nixos-config-private",
+        "rev": "c3efb5e986bd65d86b4ff8ea2439e17525976c07",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ttimasdf",
+        "repo": "nixos-config-private",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "agenix": "agenix",
@@ -446,6 +469,7 @@
         "nixpkgs": "nixpkgs",
         "nixpkgs-stable": "nixpkgs-stable",
         "nur": "nur",
+        "private-module": "private-module",
         "systems": "systems",
         "winapps": "winapps"
       }

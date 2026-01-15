@@ -3,6 +3,12 @@
 
   # Principle inputs (updated by `nix run .#update`)
   inputs = {
+    # Setup Github access token in ~/.config/nix/nix.conf
+    # access-tokens = github.com=ghp_xxxxxxxx
+    # see:
+    # https://nix.dev/manual/nix/2.28/command-ref/conf-file#conf-access-tokens
+    private-module = { url = "github:ttimasdf/nixos-config-private"; inputs.nixos-unified.follows = "nixos-unified"; inputs.flake-parts.follows = "flake-parts"; };
+
     # Helpers used as inputs for other flakes
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixos-unified.url = "github:srid/nixos-unified";

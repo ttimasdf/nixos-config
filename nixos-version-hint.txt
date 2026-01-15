@@ -1,1 +1,1 @@
-new-rootfs
+private-module

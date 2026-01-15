@@ -3,13 +3,13 @@
 { flake, ... }:
 
 let
-  inherit (flake.inputs) self nur;
+  inherit (flake.inputs) self nur private-module;
 in
 {
   imports = [
     nur.modules.nixos.default
     self.nixosModules.common
-    self.nixosModules.hosts
+    private-module.nixosModules.hosts
     self.nixosModules.programs
     self.nixosModules.nixos-generators
     ./configuration.nix

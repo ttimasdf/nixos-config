@@ -3,14 +3,14 @@
 { flake, ... }:
 
 let
-  inherit (flake.inputs) self nixos-hardware nur;
+  inherit (flake.inputs) self nixos-hardware nur private-module;
 in
 {
   imports = [
     nur.modules.nixos.default
     nixos-hardware.nixosModules.lenovo-thinkpad-x1-12th-gen
     self.nixosModules.common
-    self.nixosModules.hosts
+    private-module.nixosModules.hosts
     self.nixosModules.programs
     self.nixosModules.secure-boot
     self.nixosModules.gui
