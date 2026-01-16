@@ -1,4 +1,4 @@
-{ flake, lib, ... }:
+{ flake, ... }:
 # Enable NLS (Native Language Support) by adding libnatspec patch from gentoo
 final: prev:
 let

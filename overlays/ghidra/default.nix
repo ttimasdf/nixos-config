@@ -1,9 +1,9 @@
-{ flake, lib, ... }:
+{ flake, ... }:
 
 final: prev:
 let
   inherit (flake.inputs.self) rabit-lib;
-  inherit (prev) stdenv symlinkJoin fetchFromGitHub makeDesktopItem copyDesktopItems;
+  inherit (prev) lib stdenv symlinkJoin fetchFromGitHub makeDesktopItem copyDesktopItems;
   ghidra-ida = fetchFromGitHub {
     owner = "NyaMisty";
     repo = "GhidraIDA";
@@ -148,7 +148,7 @@ in
       uv pip install -f Ghidra/Features/PyGhidra/pypkg/dist/ pyghidra
       uv pip install -f docs/ghidra_stubs ghidra-stubs
       HEREDOC
-      
+
       chmod +x "$out/bin/pyghidra-venv-init"
     '';
 

@@ -6,7 +6,7 @@
   https://github.com/NixOS/nixpkgs/blob/5ae3b07d8d6527c42f17c876e404993199144b6a/pkgs/kde/generated/sources/gear.json#L72-L77
   https://github.com/KDE/ark/releases/tag/v25.08.3
  */
-{ flake, lib, ... }:
+{ flake, ... }:
 
 final: prev:
 let

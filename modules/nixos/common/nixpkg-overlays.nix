@@ -1,12 +1,7 @@
 { flake, lib, config, pkgs, ... }:
 let
   inherit (flake) self;
-  inherit (self) rabit-lib;
-  # Load all overlays from the overlays directory
-  overlays =
-    rabit-lib.forAllNixFiles "${self}/overlays"
-      (fn: import fn {inherit flake lib config;});
-
+  inherit (self) overlays rabit-lib;
   packagesPath = self + "/packages";
   packages =
     final: prev:

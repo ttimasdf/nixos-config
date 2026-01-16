@@ -1,4 +1,4 @@
-{ flake, lib, ... }:
+{ flake, ... }:
 
 final: prev:
 {
