@@ -390,6 +390,10 @@ in
     containers.registries.search = [
       "docker.io"
     ];
+
+    containers.storage.settings = {
+      storage.driver = "btrfs";
+    };
   };
 
   #endregion containers
