@@ -10,6 +10,7 @@ in
     nur.modules.nixos.default
     nixos-hardware.nixosModules.lenovo-thinkpad-x1-12th-gen
     self.nixosModules.common
+    private-module.nixosModules.cacerts
     private-module.nixosModules.hosts
     self.nixosModules.programs
     self.nixosModules.secure-boot

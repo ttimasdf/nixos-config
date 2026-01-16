@@ -113,8 +113,8 @@ in
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
-  rabit.nixos.hosts.corpo.enable = true;
-  rabit.nixos.hosts.pentest.enable = true;
+  rabitprivate.nixos.hosts.corpo.enable = true;
+  rabitprivate.nixos.hosts.pentest.enable = true;
   rabit.nixos.gui.font-dir.enable = true;
   # endregion network
 
@@ -187,7 +187,7 @@ in
 
   programs.java.enable = true;
   programs.java.package = pkgs.jdk.override { enableJavaFX = true; }; # fix javafx
-  
+
   # fimware service
   services.fwupd.enable = true;
   # Thunderbolt service
@@ -396,10 +396,8 @@ in
     ];
   };
 
-  security.pki.certificateFiles = [
-    (toString self + "/files/cacerts/mitmca.pem")
-    (toString self + "/files/cacerts/mitmca2.pem")
-  ];
+  rabitprivate.nixos.cacerts.mitmca.enable = true;
+  rabitprivate.nixos.cacerts.mitmca2.enable = true;
   # endregion software
 
   # region nix config

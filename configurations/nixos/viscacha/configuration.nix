@@ -143,8 +143,8 @@ in
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
-  rabit.nixos.hosts.corpo.enable = true;
-  rabit.nixos.hosts.pentest.enable = true;
+  rabitprivate.nixos.hosts.corpo.enable = true;
+  rabitprivate.nixos.hosts.pentest.enable = true;
   # endregion network
 
   # region UI/UX
@@ -435,9 +435,7 @@ in
     ];
   };
 
-  security.pki.certificateFiles = [
-    (toString self + "/files/cacerts/mitmca.pem")
-  ];
+  rabitprivate.nixos.cacerts.mitmca.enable = true;
   # endregion configurations
 
   # region nix config
