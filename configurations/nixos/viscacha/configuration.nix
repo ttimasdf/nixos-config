@@ -35,11 +35,13 @@ in
     "net.ipv4.ip_forward" = 1;
   };
 
-  boot.supportedFilesystems.zfs = true;
-  boot.zfs.package = pkgs.zfs_2_4;
-  # ZFS requires networking.hostId to be set
-  networking.hostId = "1858f3ed";
-  boot.supportedFilesystems.bcachefs = true;
+  specialisation.extra-fs.configuration = {
+    boot.supportedFilesystems.zfs = true;
+    boot.zfs.package = pkgs.zfs_2_4;
+    # ZFS requires networking.hostId to be set
+    networking.hostId = "1858f3ed";
+    boot.supportedFilesystems.bcachefs = true;
+  };
 
   # endregion boot & kernel
 
