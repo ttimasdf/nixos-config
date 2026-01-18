@@ -6,13 +6,13 @@
         {
             "label": "Update version hint",
             "type": "shell",
-            "command": ["just", "version-hint", "${input:versionHint}"],
+            "command": ["xc", "version-hint", "${input:versionHint}"],
             "problemMatcher": []
         },
         {
             "label": "Build NixOS system",
             "type": "shell",
-            "command": ["just", "build"],
+            "command": ["xc", "build"],
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -21,7 +21,7 @@
         {
             "label": "Test NixOS system build",
             "type": "shell",
-            "command": ["just", "test"],
+            "command": ["xc", "test"],
             "group": {
                 "kind": "test",
                 "isDefault": true

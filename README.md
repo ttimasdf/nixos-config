@@ -1,32 +1,193 @@
 # KnownRabbit NixOS Config
 
-This repository contains my personal NixOS configuration, based on the `juspay/nixos-unified-template`. It aims to provide a unified and reproducible system configuration for various machines.
+The most versatile NixOS config.
+
+## Hosts
+
+- **viscacha**: Personal config for @ttimasdf
+- **MNIX**: Personal config for @Tardis07
+- **savior**: Minimal config for building ISOs (system rescue & benchmarking)
 
 ## Features
 
-*   **NixOS Unified Template**: Leverages `nixos-unified` for a streamlined and modular configuration approach.
-*   **Home Manager**: Manages user-specific configurations and packages for a consistent environment across different systems.
-*   **Nix-Darwin**: Provides configuration for macOS systems, integrating them into the Nix ecosystem (though not explicitly used in this NixOS config, it's available as an input).
-*   **Secure Boot with Lanzaboote**: Includes `lanzaboote` for managing secure boot, enhancing system security.
-*   **Windows Applications Integration**: Utilizes `winapps` for seamless integration of Windows applications on NixOS.
-*   **NixVim**: Integrates `nixvim` for a declarative Neovim configuration.
-*   **Custom Label Suffix**: Allows adding a custom suffix to the NixOS system label for easy identification of different builds.
+- **Modular Design**: Unifies [NixOS](https://nixos.org/), [nix-darwin](https://github.com/LnL7/nix-darwin), and [home-manager](https://github.com/nix-community/home-manager) configuration in a single flake using [nixos-unified](https://github.com/srid/nixos-unified).
+- **Auto-wiring**: Automatically discovers and imports configurations into the final flake output from the directory structure, see the chapter [Structure](#structure) below.
+- **NixOS Generators**: Build ISO/VM/Cloud images from any machine config (e.g., `nix build .#nixosConfigurations.savior.config.formats.gnome-iso`) using [nixos-generators](https://github.com/nix-community/nixos-generators).
+- **Version Hints**: Custom suffixes for system version numbers in boot menus and ISO filenames.
+
+
+## Tasks
+[![xc compatible](https://xcfile.dev/badge.svg)](https://xcfile.dev)
+
+### update
+
+Update nix flake
+
+```bash
+nix flake update
+```
+
+### build
+
+Build and activate the new configuration, and make it the boot default
+
+```bash
+nh os switch $@
+```
+
+### list
+
+List system generations
+
+```bash
+nixos-rebuild list-generations
+```
+
+### list-user
+
+List user profile generations
+
+Inputs: PROFILE
+
+```bash
+nix-env --list-generations $@
+```
+
+### clean
+
+Cleanup nix store
+
+```bash
+nh clean all
+```
+
+### test
+
+Build and activate the new configuration, and make it the boot default
+
+```bash
+nh os build $@
+```
+
+### version-hint
+
+Update version hint file, set `skip` to skip check, set `reset` to restore last value
+
+Inputs: CONTENT
+
+```bash
+#!/usr/bin/env bash
+set -euxo pipefail
+
+version_hint_file="nixos-version-hint.txt"
+version_hint_skip_file=".nixos-version-hint-skip"
+
+if [ "$CONTENT" == "skip" ]; then
+  git restore --staged "$version_hint_file"
+  git restore "$version_hint_file"
+  touch "$version_hint_skip_file"
+elif [ "$CONTENT" == "reset" ]; then
+  git restore --staged "$version_hint_file"
+  git restore "$version_hint_file"
+  rm -f "$version_hint_skip_file"
+else
+  rm -f "$version_hint_skip_file"
+  printf '%s' "$CONTENT" > "$version_hint_file"
+  git add "$version_hint_file"
+fi
+```
+
+
+### remove-generation
+
+Interactively remove generations
+
+```bash
+nixos-rebuild list-generations
+while read -p 'remove generation:' n; do
+  sudo nix-env -p /nix/var/nix/profiles/system --delete-generations "$n"
+  nixos-rebuild list-generations
+done
+```
+
+### trim-generations
+
+> [!WARNING]
+> This command is obsolete, please use `clean` command instead.
+
+Trim old NixOS generations for a given profile with optional arguments.
+
+Inputs: GENERATIONS, DAYS, PROFILE
+
+- **GENERATIONS** — Number of generations to keep (default: `3`)
+- **DAYS** — Number of days of system history to trim to (default: `3`)
+- **PROFILE** — Name of the Nix profile (default: `system`)
+
+```bash
+# trim-generations: Trim old NixOS generations (obsolete; use 'clean' instead).
+# Usage: trim-generations [GENERATIONS] [DAYS] [PROFILE]
+# Defaults: GENERATIONS=3, DAYS=3, PROFILE=system
+
+if [ "$PROFILE" = "system" ]; then
+  sudo=sudo
+else
+  sudo=
+fi
+
+$sudo bash scripts/nixos-trim-generations.sh "$GENERATIONS" "$DAYS" "$PROFILE"
+```
+
+
+### lint
+
+Lint nix files
+
+```bash
+nix fmt
+```
+
+### check
+
+Check nix flake
+
+```bash
+git add .
+nix flake check $@
+```
+
+### dev
+
+Manually enter dev shell
+
+```bash
+nix develop
+```
+
+### pre-commit-hook
+
+Install pre-commit hook
+
+```bash
+sh ./scripts/install-pre-commit-hook.sh
+```
 
 ## Structure
 
 The repository is organized into the following main directories:
 
-*   `flake.nix`: The main Nix flake file, defining inputs and outputs for the entire configuration.
-*   `configurations/`: Contains machine-specific NixOS and Home Manager configurations.
-    *   `configurations/home/<user>.nix`: Defines Home Manager configurations for a specific user. The presence of such a file automatically registers `<user>` for both Home Manager and system-level user configurations. A directory like `configurations/home/<user>/default.nix` is also supported.
-    *   `configurations/nixos/<hostname>/`: NixOS configurations for different machines.
-    *   `configurations/users/<user>.nix`: Provides system-level user configurations (for user groups, system permissions) for users defined in `configurations/home/`. A directory like `configurations/users/<user>/default.nix` is also supported.
-*   `modules/`: Reusable Nix modules for various system and user settings.
-    *   `modules/home/`: Home Manager modules.
-    *   `modules/nixos/`: NixOS modules, including common settings, GUI environments, and specific features like `label-suffix`.
-    *   `modules/flake/`: Flake modules for Nix config debugging and package development.
-*   `justfile`: Defines convenient `just` commands for common development tasks like updating the flake, linting, checking, and entering a development shell.
-*   `nixos-version-hint.txt`: (Optional) A file to specify a custom suffix for the NixOS system label.
+-   `flake.nix`: The main Nix flake file, defining inputs and outputs for the entire configuration.
+-   `packages/`: Custom packages (automatically discovered).
+-   `overlays/`: Nixpkgs overlays (automatically discovered).
+-   `configurations/`: Contains machine-specific NixOS and Home Manager configurations.
+    -   `configurations/home/<user>.nix`: Defines Home Manager configurations for a specific user. The presence of such a file automatically registers `<user>` for both Home Manager and system-level user configurations. A directory like `configurations/home/<user>/default.nix` is also supported.
+    -   `configurations/nixos/<hostname>/`: NixOS configurations for different machines.
+    -   `configurations/users/<user>.nix`: Provides system-level user configurations (for user groups, system permissions) for users defined in `configurations/home/`. A directory like `configurations/users/<user>/default.nix` is also supported.
+-   `modules/`: Reusable Nix modules for various system and user settings.
+    -   `modules/home/`: Home Manager modules.
+    -   `modules/nixos/`: NixOS modules, including common settings, GUI environments, and specific features like `label-suffix`.
+    -   `modules/flake/`: Flake modules for Nix config debugging and package development.
+-   `README.md`: Contains `xc` task definitions for common development and NixOS management tasks (see Tasks section).
+-   `nixos-version-hint.txt`: A file to specify a custom suffix for the NixOS system label.
 
 
 ### Home Manager configurations: `configurations/home/`
@@ -52,86 +213,6 @@ For each user in `rabit.nixos.myusers` (which defaults to users automatically di
 See [NixOS Options Search: `users.user`](https://search.nixos.org/options?channel=unstable&query=users.user) for available options.
 
 
-## Development Workflow
-
-This repository uses `just` for task automation. Ensure you have `just` installed (`nix-shell -p just` or `cargo install just`).
-
-### NixOS Commands
-
-*   **Update Flake Inputs**:
-    ```bash
-    just update
-    ```
-*   **Build and Activate NixOS Configuration**:
-    ```bash
-    just build
-    ```
-*   **List Generations**:
-    ```bash
-    just list-generations
-    ```
-*   **Remove Generation**:
-    ```bash
-    just remove-generation
-    ```
-*   **Clean Nix Store**:
-    ```bash
-    just clean
-    ```
-
-### Development Commands
-
-*   **Install Git pre-commit hooks**:
-    ```bash
-    just pre-commit-hook
-    ```
-*   **Format Nix Files**:
-    ```bash
-    just lint
-    ```
-*   **Check Flake for Errors**:
-    ```bash
-    just check
-    ```
-*   **Manage Version Hint File Before Git Commit**:
-    ```bash
-    # Set custom version hint
-    just version-hint "my-custom-build"
-
-    # Skip version hint check
-    just version-hint skip
-
-    # Reset version hint to last committed value
-    just version-hint reset
-    ```
-
-### Obsolete commands
-
-*   **Rebuild NixOS Configuration (Obsolete)**:
-    ```bash
-    just rebuild-with-nixos-rebuild
-    ```
-    > **Note**: This command is obsolete, please use `just build` instead.
-
-*   **Trim Generations (Obsolete)**:
-    ```bash
-    just trim-generations
-    ```
-    > **Note**: This command is obsolete, please use `just clean` instead.
-
-*   **Activate Configuration (Obsolete)**:
-    ```bash
-    just run
-    ```
-    > **Note**: This command is obsolete and will prompt for confirmation. Use `just build` instead.
-
-*   **Enter Development Shell**:
-    ```bash
-    just dev
-    ```
-    > **Note**: dev shell is automatically activated by direnv, so this command is not
-    useful in any way.
-
 ### Version Hint Feature
 
 The version hint feature allows you to append a custom string to your NixOS system label, which is useful for distinguishing between different builds or versions.
@@ -156,27 +237,49 @@ A pre-commit hook automatically validates version hint updates:
 
 - **Skip Version Hint Check**: Create a `.nixos-version-hint-skip` file to bypass version hint validation for the current commit
   > **Warning**: The skip file remains valid for the current worktree until manually deleted. Remember to delete it after use to re-enable version hint validation.
-- **Reset Version Hint**: Use `just version-hint reset` to restore the version hint to the last committed value
-- **Skip via Command**: Use `just version-hint skip` to create the skip file automatically
+- **Reset Version Hint**: Use `xc version-hint reset` to restore the version hint to the last committed value
+- **Skip via Command**: Use `xc version-hint skip` to create the skip file automatically
 
 This feature is implemented via the `modules/nixos/common/version-hint.nix` module and validated by `scripts/pre-commit-nixos-version-hint.sh`.
 
-## Writing Package Overlay
+## Writing a Package Overlay
 
-This repository provides a streamlined way to manage Nixpkgs overlays. All `.nix` files in the `overlays/` directory are automatically discovered and applied, making it easy to extend and customize your package set. For detailed examples and templates, please refer to the [`overlays/overlay-template.md`](./overlays/overlay-template.md) file.
+You can override or extend Nixpkgs packages by creating overlays in the `overlays/` directory.
 
-Key features of the overlay system in this configuration include:
+> [!IMPORTANT]
+> Overlays in this repository use the following signature at the top, notably the `{ flake, ... }` part, which is *different from the official Nixpkgs method* (see [overlays/overlay-template.md](overlays/overlay-template.md)):
 
-1.  **Automatic Discovery**: Any `.nix` file placed in `overlays/` is automatically loaded as a Nixpkgs overlay. This is managed by the `modules/nixos/common/nixpkg-overlays.nix` module.
-2.  **Flexible Overlay Definitions**: You can define overlays in two primary ways:
-    *   **Standard Overlay**: A simple function that takes `final` and `prev` as arguments.
-    *   **Function with Flake Inputs**: For more complex scenarios, your overlay can be a function that receives `flake`, `lib`, and `config`, allowing it to adapt based on the system's configuration and flake inputs.
+```nix
+{ flake, ... }:
+final: prev: {
+  # ...your overrides here
+}
+```
 
-This setup simplifies the management of custom packages and modifications, promoting a clean and organized repository structure.
+The overlays are autowired by [nixos-unified autowire.nix](https://github.com/srid/nixos-unified/blob/90171c6936a8332ede17e09e337a0e71f4e659b1/nix/modules/flake-parts/autowire.nix#L54-L56) with arguments defined in [lib.nix](https://github.com/srid/nixos-unified/blob/90171c6936a8332ede17e09e337a0e71f4e659b1/nix/modules/flake-parts/lib.nix#L3-L6).
+
+For example, to override the `hello` package:
+
+```nix
+# overlays/hello-override.nix
+{ flake, ... }:
+final: prev: {
+  hello = prev.hello.overrideAttrs (oldAttrs: {
+    version = "2.12.1";
+    src = prev.fetchurl {
+      url = "https://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz";
+      sha256 = "sha256-differenthashgoeshere";
+    };
+  });
+}
+```
+
+See [overlays/overlay-template.md](overlays/overlay-template.md) for more overlay examples and best practices.
+
 
 ## Writing a New Package
 
-This repository allows for easy integration of custom Nix packages. All `.nix` files and directories placed in the `packages/` directory are automatically discovered and transformed into a nested attribute set of derivations using `lib.packagesFromDirectoryRecursive`. This means you don't typically need to manually add new packages from `packages/` to your `flake.nix`.
+This repository allows for easy integration of custom Nix packages. All `.nix` files and directories placed in the `packages/` directory are automatically discovered and transformed into a nested attribute set of derivations (handled by [`modules/nixos/common/nixpkg-overlays.nix`](modules/nixos/common/nixpkg-overlays.nix)). This means you don't typically need to manually add new packages from `packages/` to your `flake.nix`.
 
 ### Example Directory Structure
 
@@ -188,13 +291,13 @@ packages/
 ├── b.nix
 ├── c
 │  ├── my-extra-feature.patch
-│  ├── package.nix
+│  ├── default.nix
 │  └── support-definitions.nix
 └── my-namespace
    ├── d.nix
    ├── e.nix
    └── f
-      └── package.nix
+      └── default.nix
 ```
 
 ### Accessing Packages from the Example Structure
@@ -203,19 +306,19 @@ Based on the `packagesFromDirectoryRecursive` mechanism, these packages would be
 
 *   `pkgs.a` (from `packages/a.nix`)
 *   `pkgs.b` (from `packages/b.nix`)
-*   `pkgs.c` (from `packages/c/package.nix`)
+*   `pkgs.c` (from `packages/c/default.nix`)
 *   `pkgs.my-namespace.d` (from `packages/my-namespace/d.nix`)
 *   `pkgs.my-namespace.e` (from `packages/my-namespace/e.nix`)
-*   `pkgs.my-namespace.f` (from `packages/my-namespace/f/package.nix`)
+*   `pkgs.my-namespace.f` (from `packages/my-namespace/f/default.nix`)
 
 To add a new package:
 
 1.  **Create a New Directory**: Inside `packages/`, create a new directory for your package. For example, `packages/my-new-package/`.
-2.  **Create `package.nix` or other `.nix` files**: Inside your new package directory, create a `package.nix` file (for a single package definition) or multiple `.nix` files (for multiple packages within a namespace).
+2.  **Create `default.nix` or other `.nix` files**: Inside your new package directory, create a `default.nix` file (for a single package definition) or multiple `.nix` files (for multiple packages within a namespace).
 
-    **Example: Single package in `package.nix`**
+    **Example: Single package in `default.nix`**
     ```nix
-    # packages/my-new-package/package.nix
+    # packages/my-new-package/default.nix
     { lib, stdenv, fetchurl }:
 
     stdenv.mkDerivation {
@@ -244,26 +347,26 @@ To add a new package:
     ```
 
     **Example: Multiple packages within a directory (creating a namespace)**
-    If your directory contains multiple `.nix` files or subdirectories with `package.nix`, they will be exposed under a namespace corresponding to the directory name.
+    If your directory contains multiple `.nix` files or subdirectories with `default.nix`, they will be exposed under a namespace corresponding to the directory name.
 
     ```
     packages/my-namespace/
     ├── my-app.nix
     └── my-tool/
-        └── package.nix
+        └── default.nix
     ```
-    In this case, `my-app.nix` would be accessible as `pkgs.my-namespace.my-app`, and `my-tool/package.nix` as `pkgs.my-namespace.my-tool`.
+    In this case, `my-app.nix` would be accessible as `pkgs.my-namespace.my-app`, and `my-tool/default.nix` as `pkgs.my-namespace.my-tool`.
 
 3.  **Using your new package**:
     You can then use your new package in your NixOS configuration or Home Manager.
 
-    - If your package directory (`packages/your-package-name/`) contains a single `package.nix` file, it will typically be accessible directly as `pkgs.your-package-name`.
+    - If your package directory (`packages/your-package-name/`) contains a single `default.nix` file, it will typically be accessible directly as `pkgs.your-package-name`.
     - If your package directory returns more than one package (e.g., it contains multiple `.nix` files or subdirectories defining packages), you will need to use the directory name as a namespace. For example, if `packages/my-namespace/` contains `my-app.nix`, you would refer to it as `pkgs.my-namespace.my-app`.
 
     ```nix
     # In configurations/nixos/viscacha/configuration.nix
     environment.systemPackages = with pkgs; [
-      my-new-package # For a single package defined in packages/my-new-package/package.nix
+      my-new-package # For a single package defined in packages/my-new-package/default.nix
       my-namespace.my-app # For a package within a namespace
     ];
     ```
