@@ -14,6 +14,7 @@ The most versatile NixOS config.
 - **Auto-wiring**: Automatically discovers and imports configurations into the final flake output from the directory structure, see the chapter [Structure](#structure) below.
 - **NixOS Generators**: Build ISO/VM/Cloud images from any machine config (e.g., `nix build .#nixosConfigurations.savior.config.formats.gnome-iso`) using [nixos-generators](https://github.com/nix-community/nixos-generators).
 - **Version Hints**: Custom suffixes for system version numbers in boot menus and ISO filenames.
+- **Private Module**: Supports private configuration separation via a private module (a [module template](https://github.com/ttimasdf/nixos-config-module) is provided for reference), see [Using this config](#using-this-config).
 
 
 ## Tasks
@@ -241,6 +242,50 @@ A pre-commit hook automatically validates version hint updates:
 - **Skip via Command**: Use `xc version-hint skip` to create the skip file automatically
 
 This feature is implemented via the `modules/nixos/common/version-hint.nix` module and validated by `scripts/pre-commit-nixos-version-hint.sh`.
+
+## Using this config
+
+To include this module in your NixOS config, you need to provide a `private-module` input. This allows for separation of public and private configuration details.
+
+For public users who want to use this config as a base or reference without access to the private repository, you should use the public shim.
+
+Add the following to your `flake.nix` inputs:
+
+```nix
+inputs = {
+  ttimasdf-nixos-config = {
+    url = "github:ttimasdf/nixos-config";
+    # Follow the private-module input to the public shim
+    inputs.private-module.follows = "private-module";
+  };
+
+  # The public shim for the private module
+  private-module = {
+    url = "github:ttimasdf/nixos-config-module";
+  };
+};
+```
+
+Then you can use the packages and overlays from this config in your own configuration. It is recommended to configure `nixpkgs.overlays` similarly to [`modules/nixos/common/nixpkg-overlays.nix`](modules/nixos/common/nixpkg-overlays.nix):
+
+```nix
+outputs = { self, nixpkgs, ttimasdf-nixos-config, ... }: {
+  nixosConfigurations.my-machine = nixpkgs.lib.nixosSystem {
+    system = "x86_64-linux";
+    modules = [
+      {
+        nixpkgs.overlays =
+          (builtins.attrValues ttimasdf-nixos-config.overlays)
+          ++ [
+            (final: prev: ttimasdf-nixos-config.packages)
+          ];
+      }
+    ];
+  };
+};
+```
+
+
 
 ## Writing a Package Overlay
 
