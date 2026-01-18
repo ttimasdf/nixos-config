@@ -7,7 +7,7 @@ This document provides examples of how to create and use Nixpkgs overlays. Overl
 The fundamental structure of a Nixpkgs overlay.
 
 ```nix
-{ flake, lib, ... }:
+{ flake, ... }:
 # This overlay provides custom packages and overrides for Nixpkgs.
 # It allows you to introduce new packages, modify existing ones, or pin specific versions of packages.
 final: prev:
@@ -29,7 +29,7 @@ Examples of how to incorporate specific Nixpkgs versions into your overlay, eith
 This is useful for ensuring reproducibility or accessing newer/older packages not yet in your main Nixpkgs.
 
 ```nix
-{ flake, lib, ... }:
+{ flake, ... }:
 final: prev:
 let
   pkgs-pinned-commit = import (prev.fetchTarball {
@@ -51,7 +51,7 @@ in
 This assumes you have a `nixpkgs-stable` input defined in your `flake.nix`.
 
 ```nix
-{ flake, lib, ... }:
+{ flake, ... }:
 final: prev:
 let
   nixpkgs-from-flake-input = import flake.inputs.nixpkgs-stable {
@@ -71,7 +71,7 @@ Examples of modifying attributes of an existing package. This can be used to cha
 ### General Package Override Example
 
 ```nix
-{ flake, lib, ... }:
+{ flake, ... }:
 final: prev:
 let
   # Assuming pkgs-pinned-commit or nixpkgs-from-flake-input is defined as above
@@ -109,7 +109,7 @@ in
 This example demonstrates adding a patch and a new build input to an existing package.
 
 ```nix
-{ flake, lib, ... }:
+{ flake, ... }:
 final: prev:
 {
   my-custom-7zip = prev._7zz-rar.overrideAttrs (oldAttrs: {
@@ -136,7 +136,7 @@ final: prev:
 This example demonstrates how to apply a directory of patches using `rabit-lib.findPatches`. This is particularly useful when you have multiple patches that need to be applied to a package, and `rabit-lib` is available as part of your current flake's inputs.
 
 ```nix
-{ flake, lib, ... }:
+{ flake, ... }:
 final: prev:
 let
   inherit (flake.inputs.self) rabit-lib; # Assuming 'rabit-lib' is inherited from the current flake's (self) inputs
@@ -154,7 +154,7 @@ in
 ### Overriding Packages within a Specific Package Set (e.g., `kdePackages`)
 
 ```nix
-{ flake, lib, ... }:
+{ flake, ... }:
 final: prev:
 {
   kdePackages = prev.kdePackages.overrideScope (kfinal: kprev: {
@@ -174,7 +174,7 @@ This is useful for customizing Python packages or their dependencies.
 To test: `nix-shell -p python3.pkgs.my-python-package`
 
 ```nix
-{ flake, lib, ... }:
+{ flake, ... }:
 final: prev:
 {
   python3 = prev.python3.override {
@@ -228,7 +228,7 @@ final: prev:
 This overlay provides a fix for `wpsoffice-cn` to work correctly with the Fcitx input method, by wrapping its executables with the necessary environment variables.
 
 ```nix
-{ flake, lib, ... }:
+{ flake, ... }:
 
 final: prev:
 let

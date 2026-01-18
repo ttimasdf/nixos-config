@@ -8,8 +8,10 @@ Here are some common patterns for writing overlays:
 ### General Package Override Example
 This example shows how to modify attributes of an existing package, such as changing its version, source, or adding a post-installation hook.
 
+when writing source hash, use `lib.fakeHash` as the placeholder.
+
 ```nix
-{ flake, lib, ... }:
+{ flake, ... }:
 final: prev:
 {
   my-package-override = prev.my-package.overrideAttrs (oldAttrs: {
@@ -40,7 +42,7 @@ final: prev:
 This example demonstrates how to apply a directory of patches using `rabit-lib.findPatches`. This is particularly useful when you have multiple patches that need to be applied to a package, and `rabit-lib` is available as part of your current flake's inputs.
 
 ```nix
-{ flake, lib, ... }:
+{ flake, ... }:
 final: prev:
 let
   inherit (flake.inputs.self) rabit-lib; # Assuming 'rabit-lib' is inherited from the current flake's (self) inputs
