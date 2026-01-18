@@ -2,7 +2,7 @@
 
 # Check if there are any .nix files in the staged changes
 if ! git diff --cached --name-only | grep -qE '\.nix$'; then
-  echo "No .nix files staged for commit. Skipping nixos-version-hint.txt check."
+  # No .nix files staged for commit. Skipping nixos-version-hint.txt check.
   exit 0
 fi
 
@@ -10,7 +10,7 @@ FILE_NAME="nixos-version-hint.txt"
 FILE_NAME_SKIP=".nixos-version-hint-skip"
 
 if [ -f "$FILE_NAME_SKIP" ]; then
-  echo "$FILE_NAME_SKIP exists. skip version hint check"
+  # $FILE_NAME_SKIP exists. skip version hint check
   exit 0
 fi
 
