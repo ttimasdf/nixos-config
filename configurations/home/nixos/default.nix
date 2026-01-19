@@ -14,7 +14,7 @@ in
       self.homeModules.default
     ];
 
-  # Defined by /modules/home/options.nix
+  # Defined by /modules/home/home-options.nix
   # And used all around in /modules/home/*
   rabit.me = {
     username = "nixos";
