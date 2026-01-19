@@ -16,6 +16,142 @@ The most versatile NixOS config.
 - **Version Hints**: Custom suffixes for system version numbers in boot menus and ISO filenames.
 - **Private Module**: Supports private configuration separation via a private module (a [module template](https://github.com/ttimasdf/nixos-config-module) is provided for reference), see [Using this config](#using-this-config).
 
+## Using this config
+
+You can simply clone or fork this repository as a configuration template, or include it as a Flake module and reference the provided packages and NixOS modules.
+
+To include this module in your NixOS config, you need to provide a `private-module` input. This allows for separation of public and private configuration details.
+
+For public users who want to use this config as a base or reference without access to the private repository, please use the [public module template](https://github.com/ttimasdf/nixos-config-module) in place of the private module.
+
+Add the following to your `flake.nix` inputs:
+
+```nix
+inputs = {
+  ttimasdf-nixos-config = {
+    url = "github:ttimasdf/nixos-config";
+    # Follow the private-module input to the public module template
+    inputs.private-module.follows = "private-module";
+  };
+
+  # The public module template for the private module
+  private-module = {
+    url = "github:ttimasdf/nixos-config-module";
+  };
+};
+```
+
+Then you can use the [flake outputs](#flake-outputs) from this config in your own configuration. It is recommended to configure `nixpkgs.overlays` similarly to [`modules/nixos/common/nixpkgs-overlays.nix`](modules/nixos/common/nixpkgs-overlays.nix):
+
+```nix
+outputs = { self, nixpkgs, ttimasdf-nixos-config, ... }: {
+  nixosConfigurations.my-machine = nixpkgs.lib.nixosSystem {
+    system = "x86_64-linux";
+    modules = [
+      {
+        nixpkgs.overlays =
+          (builtins.attrValues ttimasdf-nixos-config.overlays)
+          ++ [
+            (final: prev: ttimasdf-nixos-config.packages)
+          ];
+      }
+    ];
+  };
+};
+```
+
+## Structure
+
+The repository is organized into the following main directories:
+
+-   `flake.nix`: The main Nix flake file, defining inputs and outputs for the entire configuration.
+-   `packages/`: Custom packages (automatically discovered).
+-   `overlays/`: Nixpkgs overlays (automatically discovered).
+-   `configurations/`: Contains machine-specific NixOS and Home Manager configurations.
+    -   `configurations/home/<user>.nix`: Defines Home Manager configurations for a specific user. The presence of such a file automatically registers `<user>` for both Home Manager and system-level user configurations. A directory like `configurations/home/<user>/default.nix` is also supported.
+    -   `configurations/nixos/<hostname>/`: NixOS configurations for different machines.
+    -   `configurations/users/<user>.nix`: Provides system-level user configurations (for user groups, system permissions) for users defined in `configurations/home/`. A directory like `configurations/users/<user>/default.nix` is also supported.
+-   `modules/`: Reusable Nix modules for various system and user settings.
+    -   `modules/home/`: Home Manager modules.
+    -   `modules/nixos/`: NixOS modules, including common settings, GUI environments, and specific features like `label-suffix`.
+    -   `modules/flake/`: Flake modules for Nix config debugging and package development.
+-   `README.md`: Contains `xc` task definitions for common development and NixOS management tasks (see Tasks section).
+-   `nixos-version-hint.txt`: A file to specify a custom suffix for the NixOS system label.
+
+### Flake Outputs
+
+Each of the directories are wired to the corresponding flake output, as indicated in the below table:
+
+
+| Directory                                     | Flake Output                                                    |
+| --------------------------------------------- | --------------------------------------------------------------- |
+| `configurations/nixos/foo.nix`<sup>(1)</sup>  | `nixosConfigurations.foo`                                       |
+| `configurations/darwin/foo.nix`<sup>(1)</sup> | `darwinConfigurations.foo`                                      |
+| `configurations/home/foo.nix`<sup>(1)</sup>   | `legacyPackages.${system}.homeConfigurations.foo`<sup>(2)</sup> |
+| `modules/nixos/foo.nix`                       | `nixosModules.foo`                                              |
+| `modules/darwin/foo.nix`                      | `darwinModules.foo`                                             |
+| `modules/flake/foo.nix`                       | `flakeModules.foo`                                              |
+| `overlays/foo.nix`                            | `overlays.foo`                                                  |
+| `packages/foo.nix`                            | `packages.${system}.foo`<sup>(3)</sup>                          |
+
+(1): This path could as well be `configurations/nixos/foo/default.nix`. Likewise for other output types.
+
+(2): Why `legacyPackages`? Because, creating a home-manager configuration [requires `pkgs`](https://github.com/srid/nixos-unified/blob/47a26bc9118d17500bbe0c4adb5ebc26f776cc36/nix/modules/flake-parts/lib.nix#L97). See <https://github.com/nix-community/home-manager/issues/3075>
+
+(3): Package files should export a function that can be called with `callPackage`. The autowiring system automatically calls `pkgs.callPackage` on each package file, making them available as `packages.${system}.{name}` in your flake outputs.
+
+### Home Manager configurations: `configurations/home/`
+
+The [`modules/nixos/common/myusers.nix`](modules/nixos/common/myusers.nix) module automatically discovers users by listing all `.nix` files (e.g., `configurations/home/<user>.nix` or `configurations/home/<user>/default.nix`) in `configurations/home/`. These discovered users are used as the default for the `rabit.nixos.myusers` option. This option can also be manually specified to define the list of users. For each user in `rabit.nixos.myusers`, their respective Home Manager configuration is loaded into `config.home-manager.users.<user>`.
+
+
+In all cases, home manager configuration is loaded by [nixos-unified autowire](https://github.com/srid/nixos-unified/blob/1f8ab18330354d2305a0d793da58a6ef83e2857c/nix/modules/flake-parts/autowire.nix#L60-L63) and exposed into flake `flake.perSystem.legacyPackages.homeConfigurations`,
+
+### NixOS configurations: `configurations/nixos/`
+
+`configurations/nixos` is loaded by [nixos-unified autowire](https://github.com/srid/nixos-unified/blob/1f8ab18330354d2305a0d793da58a6ef83e2857c/nix/modules/flake-parts/autowire.nix#L38-L41) into `flake.nixosConfigurations` via `forAllNixFiles`.
+
+#### common module: `configurations/nixos/common/`
+
+`configurations/nixos/common` includes some common modules shared by nixos and nix-darwin. Do not add NixOS-specific config into this module.
+
+
+### System-level user configurations: `configurations/users/`
+
+For each user in `rabit.nixos.myusers` (which defaults to users automatically discovered from `configurations/home/`, but can also be manually specified), their corresponding system-level user configuration (`configurations/users/<user>.nix` or `configurations/users/<user>/default.nix`) is loaded by [`modules/nixos/common/myusers.nix`](modules/nixos/common/myusers.nix) into `config.users.users.<user>`.
+
+See [NixOS Options Search: `users.user`](https://search.nixos.org/options?channel=unstable&query=users.user) for available options.
+
+
+### Version Hint Feature
+
+The version hint feature allows you to append a custom string to your NixOS system label, which is useful for distinguishing between different builds or versions.
+
+**How to Use:**
+
+1.  **Create the Version Hint File**: In the root of this repository, create a file named `nixos-version-hint.txt`.
+2.  **Add Your Version Hint**: Open `nixos-version-hint.txt` and add your desired version hint. For example:
+    ```
+    my-custom-build
+    ```
+    *   **Important**: The build will fail if this file is empty or contains the string `changeme`.
+3.  **Rebuild Your System**: When you rebuild your NixOS system, the content of `nixos-version-hint.txt` will be appended to your system's label.
+
+**Pre-commit Hook Integration:**
+
+A pre-commit hook automatically validates version hint updates:
+- When committing `.nix` files, the hook ensures `nixos-version-hint.txt` is also staged for commit
+- The hook displays current work tree value and last committed value for reference
+
+**Skip and Reset Functionality:**
+
+- **Skip Version Hint Check**: Create a `.nixos-version-hint-skip` file to bypass version hint validation for the current commit
+  > **Warning**: The skip file remains valid for the current worktree until manually deleted. Remember to delete it after use to re-enable version hint validation.
+- **Reset Version Hint**: Use `xc version-hint reset` to restore the version hint to the last committed value
+- **Skip via Command**: Use `xc version-hint skip` to create the skip file automatically
+
+This feature is implemented via the [`modules/nixos/common/version-hint.nix`](modules/nixos/common/version-hint.nix) module and validated by [`scripts/pre-commit-nixos-version-hint.sh`](scripts/pre-commit-nixos-version-hint.sh).
+
 
 ## Tasks
 [![xc compatible](https://xcfile.dev/badge.svg)](https://xcfile.dev)
@@ -171,138 +307,6 @@ Install pre-commit hook
 ```bash
 sh ./scripts/install-pre-commit-hook.sh
 ```
-
-## Structure
-
-The repository is organized into the following main directories:
-
--   `flake.nix`: The main Nix flake file, defining inputs and outputs for the entire configuration.
--   `packages/`: Custom packages (automatically discovered).
--   `overlays/`: Nixpkgs overlays (automatically discovered).
--   `configurations/`: Contains machine-specific NixOS and Home Manager configurations.
-    -   `configurations/home/<user>.nix`: Defines Home Manager configurations for a specific user. The presence of such a file automatically registers `<user>` for both Home Manager and system-level user configurations. A directory like `configurations/home/<user>/default.nix` is also supported.
-    -   `configurations/nixos/<hostname>/`: NixOS configurations for different machines.
-    -   `configurations/users/<user>.nix`: Provides system-level user configurations (for user groups, system permissions) for users defined in `configurations/home/`. A directory like `configurations/users/<user>/default.nix` is also supported.
--   `modules/`: Reusable Nix modules for various system and user settings.
-    -   `modules/home/`: Home Manager modules.
-    -   `modules/nixos/`: NixOS modules, including common settings, GUI environments, and specific features like `label-suffix`.
-    -   `modules/flake/`: Flake modules for Nix config debugging and package development.
--   `README.md`: Contains `xc` task definitions for common development and NixOS management tasks (see Tasks section).
--   `nixos-version-hint.txt`: A file to specify a custom suffix for the NixOS system label.
-
-### Flake Outputs
-
-Each of the directories are wired to the corresponding flake output, as indicated in the below table:
-
-| Directory                                 | Flake Output                                                |
-| ----------------------------------------- | ----------------------------------------------------------- |
-| `configurations/nixos/foo.nix`[^default]  | `nixosConfigurations.foo`                                   |
-| `configurations/darwin/foo.nix`[^default] | `darwinConfigurations.foo`                                  |
-| `configurations/home/foo.nix`[^default]   | `legacyPackages.${system}.homeConfigurations.foo`[^hm-pkgs] |
-| `modules/nixos/foo.nix`                   | `nixosModules.foo`                                          |
-| `modules/darwin/foo.nix`                  | `darwinModules.foo`                                         |
-| `modules/flake/foo.nix`                   | `flakeModules.foo`                                          |
-| `overlays/foo.nix`                        | `overlays.foo`                                              |
-| `packages/foo.nix`                        | `packages.${system}.foo`[^packages]                         |
-
-[^default]: This path could as well be `configurations/nixos/foo/default.nix`. Likewise for other output types.
-
-
-### Home Manager configurations: `configurations/home/`
-
-The [`modules/nixos/common/myusers.nix`](modules/nixos/common/myusers.nix) module automatically discovers users by listing all `.nix` files (e.g., `configurations/home/<user>.nix` or `configurations/home/<user>/default.nix`) in `configurations/home/`. These discovered users are used as the default for the `rabit.nixos.myusers` option. This option can also be manually specified to define the list of users. For each user in `rabit.nixos.myusers`, their respective Home Manager configuration is loaded into `config.home-manager.users.<user>`.
-
-
-In all cases, home manager configuration is loaded by [nixos-unified autowire](https://github.com/srid/nixos-unified/blob/1f8ab18330354d2305a0d793da58a6ef83e2857c/nix/modules/flake-parts/autowire.nix#L60-L63) and exposed into flake `flake.perSystem.legacyPackages.homeConfigurations`,
-
-### NixOS configurations: `configurations/nixos/`
-
-`configurations/nixos` is loaded by [nixos-unified autowire](https://github.com/srid/nixos-unified/blob/1f8ab18330354d2305a0d793da58a6ef83e2857c/nix/modules/flake-parts/autowire.nix#L38-L41) into `flake.nixosConfigurations` via `forAllNixFiles`.
-
-#### common module: `configurations/nixos/common/`
-
-`configurations/nixos/common` includes some common modules shared by nixos and nix-darwin. Do not add NixOS-specific config into this module.
-
-
-### System-level user configurations: `configurations/users/`
-
-For each user in `rabit.nixos.myusers` (which defaults to users automatically discovered from `configurations/home/`, but can also be manually specified), their corresponding system-level user configuration (`configurations/users/<user>.nix` or `configurations/users/<user>/default.nix`) is loaded by [`modules/nixos/common/myusers.nix`](modules/nixos/common/myusers.nix) into `config.users.users.<user>`.
-
-See [NixOS Options Search: `users.user`](https://search.nixos.org/options?channel=unstable&query=users.user) for available options.
-
-
-### Version Hint Feature
-
-The version hint feature allows you to append a custom string to your NixOS system label, which is useful for distinguishing between different builds or versions.
-
-**How to Use:**
-
-1.  **Create the Version Hint File**: In the root of this repository, create a file named `nixos-version-hint.txt`.
-2.  **Add Your Version Hint**: Open `nixos-version-hint.txt` and add your desired version hint. For example:
-    ```
-    my-custom-build
-    ```
-    *   **Important**: The build will fail if this file is empty or contains the string `changeme`.
-3.  **Rebuild Your System**: When you rebuild your NixOS system, the content of `nixos-version-hint.txt` will be appended to your system's label.
-
-**Pre-commit Hook Integration:**
-
-A pre-commit hook automatically validates version hint updates:
-- When committing `.nix` files, the hook ensures `nixos-version-hint.txt` is also staged for commit
-- The hook displays current work tree value and last committed value for reference
-
-**Skip and Reset Functionality:**
-
-- **Skip Version Hint Check**: Create a `.nixos-version-hint-skip` file to bypass version hint validation for the current commit
-  > **Warning**: The skip file remains valid for the current worktree until manually deleted. Remember to delete it after use to re-enable version hint validation.
-- **Reset Version Hint**: Use `xc version-hint reset` to restore the version hint to the last committed value
-- **Skip via Command**: Use `xc version-hint skip` to create the skip file automatically
-
-This feature is implemented via the [`modules/nixos/common/version-hint.nix`](modules/nixos/common/version-hint.nix) module and validated by [`scripts/pre-commit-nixos-version-hint.sh`](scripts/pre-commit-nixos-version-hint.sh).
-
-## Using this config
-
-To include this module in your NixOS config, you need to provide a `private-module` input. This allows for separation of public and private configuration details.
-
-For public users who want to use this config as a base or reference without access to the private repository, you should use the public shim.
-
-Add the following to your `flake.nix` inputs:
-
-```nix
-inputs = {
-  ttimasdf-nixos-config = {
-    url = "github:ttimasdf/nixos-config";
-    # Follow the private-module input to the public shim
-    inputs.private-module.follows = "private-module";
-  };
-
-  # The public shim for the private module
-  private-module = {
-    url = "github:ttimasdf/nixos-config-module";
-  };
-};
-```
-
-Then you can use the [flake outputs](#flake-outputs) from this config in your own configuration. It is recommended to configure `nixpkgs.overlays` similarly to [`modules/nixos/common/nixpkgs-overlays.nix`](modules/nixos/common/nixpkgs-overlays.nix):
-
-```nix
-outputs = { self, nixpkgs, ttimasdf-nixos-config, ... }: {
-  nixosConfigurations.my-machine = nixpkgs.lib.nixosSystem {
-    system = "x86_64-linux";
-    modules = [
-      {
-        nixpkgs.overlays =
-          (builtins.attrValues ttimasdf-nixos-config.overlays)
-          ++ [
-            (final: prev: ttimasdf-nixos-config.packages)
-          ];
-      }
-    ];
-  };
-};
-```
-
-
 
 ## Writing a Package Overlay
 
