@@ -2,7 +2,7 @@
 { config, lib, ... }:
 {
   options = {
-    rabit.me = {
+    rabit.home.me = {
       username = lib.mkOption {
         type = lib.types.str;
         description = "Your username as shown by `id -un`";
@@ -23,13 +23,13 @@
         };
         allowedSigners = lib.mkOption {
           type = lib.types.listOf lib.types.str;
-          default = [ config.rabit.me.email ];
+          default = [ config.rabit.home.me.email ];
           description = "Allowed signers for Git commit verification";
         };
       };
     };
   };
   config = {
-    home.username = config.rabit.me.username;
+    home.username = config.rabit.home.me.username;
   };
 }

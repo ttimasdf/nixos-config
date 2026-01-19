@@ -1,6 +1,6 @@
 { config, lib, pkgs, isDarwin, ... }:
 let
-  home = "/home/${config.rabit.me.username}";
+  home = "/home/${config.rabit.home.me.username}";
   datadir = "${home}/.config/distrobox/data";
 in
 {

@@ -1,7 +1,7 @@
 { config, lib, osConfig, ... }:
 let
   inherit (lib) mkIf;
-  cfg = config.rabit.me;
+  cfg = config.rabit.home.me;
   oscfg = osConfig.rabit.nixos;
   sshSigningEnabled = cfg.git.sshSigningKey != null;
 

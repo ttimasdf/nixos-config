@@ -16,7 +16,7 @@ in
 
   # Defined by /modules/home/options.nix
   # And used all around in /modules/home/*
-  rabit.me = {
+  rabit.home.me = {
     username = "u";
     fullname = "ttimasdf";
     email = "opensource@rabit.pw";
