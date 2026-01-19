@@ -5,7 +5,6 @@
       meta.description = "Shell environment for modifying this Nix configuration";
       packages = with pkgs; [
         nh
-        just
         xc
         git-filter-repo
         git-crypt
