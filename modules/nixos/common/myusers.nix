@@ -11,15 +11,6 @@ let
   userImports = rabit-lib.forAllNixFiles (self + /configurations/users) (path: import path { inherit flake pkgs lib config; });
 in
 {
-  options = {
-    rabit.nixos.myusers = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      description = "List of usernames";
-      defaultText = "All users under ./configuration/home are included by default";
-      default = lib.attrNames homePaths;
-    };
-  };
-
   config = {
     # For home-manager to work.
     # https://github.com/nix-community/home-manager/issues/4026#issuecomment-1565487545
