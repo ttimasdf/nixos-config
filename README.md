@@ -190,10 +190,27 @@ The repository is organized into the following main directories:
 -   `README.md`: Contains `xc` task definitions for common development and NixOS management tasks (see Tasks section).
 -   `nixos-version-hint.txt`: A file to specify a custom suffix for the NixOS system label.
 
+### Flake Outputs
+
+Each of the directories are wired to the corresponding flake output, as indicated in the below table:
+
+| Directory                                 | Flake Output                                                |
+| ----------------------------------------- | ----------------------------------------------------------- |
+| `configurations/nixos/foo.nix`[^default]  | `nixosConfigurations.foo`                                   |
+| `configurations/darwin/foo.nix`[^default] | `darwinConfigurations.foo`                                  |
+| `configurations/home/foo.nix`[^default]   | `legacyPackages.${system}.homeConfigurations.foo`[^hm-pkgs] |
+| `modules/nixos/foo.nix`                   | `nixosModules.foo`                                          |
+| `modules/darwin/foo.nix`                  | `darwinModules.foo`                                         |
+| `modules/flake/foo.nix`                   | `flakeModules.foo`                                          |
+| `overlays/foo.nix`                        | `overlays.foo`                                              |
+| `packages/foo.nix`                        | `packages.${system}.foo`[^packages]                         |
+
+[^default]: This path could as well be `configurations/nixos/foo/default.nix`. Likewise for other output types.
+
 
 ### Home Manager configurations: `configurations/home/`
 
-The `modules/nixos/common/myusers.nix` module automatically discovers users by listing all `.nix` files (e.g., `configurations/home/<user>.nix` or `configurations/home/<user>/default.nix`) in `configurations/home/`. These discovered users are used as the default for the `rabit.nixos.myusers` option. This option can also be manually specified to define the list of users. For each user in `rabit.nixos.myusers`, their respective Home Manager configuration is loaded into `config.home-manager.users.<user>`.
+The [`modules/nixos/common/myusers.nix`](modules/nixos/common/myusers.nix) module automatically discovers users by listing all `.nix` files (e.g., `configurations/home/<user>.nix` or `configurations/home/<user>/default.nix`) in `configurations/home/`. These discovered users are used as the default for the `rabit.nixos.myusers` option. This option can also be manually specified to define the list of users. For each user in `rabit.nixos.myusers`, their respective Home Manager configuration is loaded into `config.home-manager.users.<user>`.
 
 
 In all cases, home manager configuration is loaded by [nixos-unified autowire](https://github.com/srid/nixos-unified/blob/1f8ab18330354d2305a0d793da58a6ef83e2857c/nix/modules/flake-parts/autowire.nix#L60-L63) and exposed into flake `flake.perSystem.legacyPackages.homeConfigurations`,
@@ -209,7 +226,7 @@ In all cases, home manager configuration is loaded by [nixos-unified autowire](h
 
 ### System-level user configurations: `configurations/users/`
 
-For each user in `rabit.nixos.myusers` (which defaults to users automatically discovered from `configurations/home/`, but can also be manually specified), their corresponding system-level user configuration (`configurations/users/<user>.nix` or `configurations/users/<user>/default.nix`) is loaded by [modules/nixos/common/myusers.nix](modules/nixos/common/myusers.nix) into `config.users.users.<user>`.
+For each user in `rabit.nixos.myusers` (which defaults to users automatically discovered from `configurations/home/`, but can also be manually specified), their corresponding system-level user configuration (`configurations/users/<user>.nix` or `configurations/users/<user>/default.nix`) is loaded by [`modules/nixos/common/myusers.nix`](modules/nixos/common/myusers.nix) into `config.users.users.<user>`.
 
 See [NixOS Options Search: `users.user`](https://search.nixos.org/options?channel=unstable&query=users.user) for available options.
 
@@ -241,7 +258,7 @@ A pre-commit hook automatically validates version hint updates:
 - **Reset Version Hint**: Use `xc version-hint reset` to restore the version hint to the last committed value
 - **Skip via Command**: Use `xc version-hint skip` to create the skip file automatically
 
-This feature is implemented via the `modules/nixos/common/version-hint.nix` module and validated by `scripts/pre-commit-nixos-version-hint.sh`.
+This feature is implemented via the [`modules/nixos/common/version-hint.nix`](modules/nixos/common/version-hint.nix) module and validated by [`scripts/pre-commit-nixos-version-hint.sh`](scripts/pre-commit-nixos-version-hint.sh).
 
 ## Using this config
 
@@ -266,7 +283,7 @@ inputs = {
 };
 ```
 
-Then you can use the packages and overlays from this config in your own configuration. It is recommended to configure `nixpkgs.overlays` similarly to [`modules/nixos/common/nixpkg-overlays.nix`](modules/nixos/common/nixpkg-overlays.nix):
+Then you can use the [flake outputs](#flake-outputs) from this config in your own configuration. It is recommended to configure `nixpkgs.overlays` similarly to [`modules/nixos/common/nixpkg-overlays.nix`](modules/nixos/common/nixpkg-overlays.nix):
 
 ```nix
 outputs = { self, nixpkgs, ttimasdf-nixos-config, ... }: {
