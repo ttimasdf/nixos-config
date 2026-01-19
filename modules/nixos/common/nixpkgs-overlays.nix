@@ -4,6 +4,7 @@ let
   inherit (self) rabit-lib;
   inherit (flake.inputs) private-module;
 
+  # Manually call packages, as using self.packages here would lead to infinite recursion
   packages =
     final: prev:
       rabit-lib.forAllNixFiles "${self}/packages"

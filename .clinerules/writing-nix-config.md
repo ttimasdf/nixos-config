@@ -1,7 +1,7 @@
 # Writing Nix Config
 
 ## Write an overlay
-All `.nix` files placed in the `overlays/` directory are automatically discovered and applied as Nixpkgs overlays. This is handled by the `modules/nixos/common/nixpkg-overlays.nix` module.
+All `.nix` files placed in the `overlays/` directory are automatically discovered and applied as Nixpkgs overlays. This is handled by the `modules/nixos/common/nixpkgs-overlays.nix` module.
 
 Here are some common patterns for writing overlays:
 

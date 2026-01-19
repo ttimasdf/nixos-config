@@ -283,7 +283,7 @@ inputs = {
 };
 ```
 
-Then you can use the [flake outputs](#flake-outputs) from this config in your own configuration. It is recommended to configure `nixpkgs.overlays` similarly to [`modules/nixos/common/nixpkg-overlays.nix`](modules/nixos/common/nixpkg-overlays.nix):
+Then you can use the [flake outputs](#flake-outputs) from this config in your own configuration. It is recommended to configure `nixpkgs.overlays` similarly to [`modules/nixos/common/nixpkgs-overlays.nix`](modules/nixos/common/nixpkgs-overlays.nix):
 
 ```nix
 outputs = { self, nixpkgs, ttimasdf-nixos-config, ... }: {
@@ -341,7 +341,7 @@ See [overlays/overlay-template.md](overlays/overlay-template.md) for more overla
 
 ## Writing a New Package
 
-This repository allows for easy integration of custom Nix packages. All `.nix` files and directories placed in the `packages/` directory are automatically discovered and transformed into a nested attribute set of derivations (handled by [`modules/nixos/common/nixpkg-overlays.nix`](modules/nixos/common/nixpkg-overlays.nix)). This means you don't typically need to manually add new packages from `packages/` to your `flake.nix`.
+This repository allows for easy integration of custom Nix packages. All `.nix` files and directories placed in the `packages/` directory are automatically discovered and transformed into a nested attribute set of derivations (handled by [`modules/nixos/common/nixpkgs-overlays.nix`](modules/nixos/common/nixpkgs-overlays.nix)). This means you don't typically need to manually add new packages from `packages/` to your `flake.nix`.
 
 ### Example Directory Structure
 
