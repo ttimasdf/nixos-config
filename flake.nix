@@ -3,10 +3,18 @@
 
   # Principle inputs (updated by `nix run .#update`)
   inputs = {
-    # Setup Github access token in ~/.config/nix/nix.conf
-    # access-tokens = github.com=ghp_xxxxxxxx
-    # see:
-    # https://nix.dev/manual/nix/2.28/command-ref/conf-file#conf-access-tokens
+    # 1.  Create a new GitHub Fine-grained personal access token at https://github.com/settings/personal-access-tokens
+    #     with the following permissions:
+    #     - repository: `ttimasdf/nixos-config-private`
+    #     - permissions: content (read-only), metadata (read-only)
+    #     The token should start with github_pat_xxxxx
+    #
+    # 2.  Set up the GitHub access token in ~/.config/nix/nix.conf
+    #     access-tokens = github.com=github_pat_xxxxxxxx
+    #     Reference: https://nix.dev/manual/nix/2.28/command-ref/conf-file#conf-access-tokens
+    #
+    # 3.  Run `nix flake update private-module` to verify that the access token has been successfully applied.
+    #     If no error message appears, the setup is complete.
     private-module = { url = "github:ttimasdf/nixos-config-private"; inputs.nixos-unified.follows = "nixos-unified"; inputs.flake-parts.follows = "flake-parts"; };
 
     # Helpers used as inputs for other flakes
