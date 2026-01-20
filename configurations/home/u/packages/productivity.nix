@@ -30,6 +30,7 @@
     flameshot
     # asciinema_3   # enabled by programs.asciinema.enable
     obs-studio
+    spectacle-ocr-screenshot
 
     # Media Players
     vlc
