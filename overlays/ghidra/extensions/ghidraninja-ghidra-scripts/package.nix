@@ -16,7 +16,7 @@
 
 buildGhidraScripts {
   pname = "ghidraninja-ghidra-scripts";
-  version = "unstable-2020-10-07";
+  version = "0-unstable-2020-10-07";
 
   src = fetchFromGitHub {
     owner = "ghidraninja";
