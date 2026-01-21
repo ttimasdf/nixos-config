@@ -5,12 +5,12 @@
 
 buildGoModule rec {
   pname = "unlock-music-cli";
-  version = "0.2.12";
+  version = "0-unstable-2025-08-12";
 
   src = fetchgit {
     url = "https://git.unlock-music.dev/um/cli.git";
-    rev = "v${version}";
-    hash = "sha256-v8ODgmcg+e4v7x2dP6hDCDQCYALw57tCayQ4W00yTGw=";
+    rev = "589e573b55f4b2d9c50970ebe5f77f1b30ac1e05";
+    hash = "sha256-pFzF3f4TDoKanHyG735pYq7gkVP3t+ahBeUhLxsjyrM=";
   };
 
   vendorHash = "sha256-tiYP4Bivq7qq7aQAZw0lzjuNn1cMEhgTH8Tzi+L8OvA=";
