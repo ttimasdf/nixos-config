@@ -1,1 +1,1 @@
-private-module
+pkg-um-cli
