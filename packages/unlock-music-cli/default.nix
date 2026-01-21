@@ -1,6 +1,7 @@
-{ lib
-, buildGoModule
-, fetchgit
+{
+  lib,
+  buildGoModule,
+  fetchgit,
 }:
 
 buildGoModule rec {
@@ -15,11 +16,17 @@ buildGoModule rec {
 
   vendorHash = "sha256-tiYP4Bivq7qq7aQAZw0lzjuNn1cMEhgTH8Tzi+L8OvA=";
 
-  ldflags = [
-    "-s"
-    "-w"
-    "-X main.version=${version}"
-  ];
+  ldflags =
+    let
+      # Determine the version string to use in the source code
+      appVersion =
+        if lib.hasInfix "unstable" version then "git-${builtins.substring 0 10 src.rev}" else version;
+    in
+    [
+      "-s"
+      "-w"
+      "-X main.AppVersion=${appVersion}"
+    ];
 
   meta = with lib; {
     description = "Unlock Music CLI - Command line tool to unlock encrypted music files";
