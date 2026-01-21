@@ -35,6 +35,7 @@
     # Media Players
     vlc
     qmplay2
+    unlock-music-cli
 
     # Networking
     daed
