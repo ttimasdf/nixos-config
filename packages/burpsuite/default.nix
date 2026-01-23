@@ -1,3 +1,7 @@
+# The original Burp Suite package is defined by buildFHSEnv, which is not overridable.
+# Therefore, we are writing our own.
+# Reference:
+# https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/by-name/bu/burpsuite/package.nix
 {
   lib,
   stdenv,
