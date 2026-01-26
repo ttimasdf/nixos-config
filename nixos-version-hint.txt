@@ -1,1 +1,1 @@
-pkg-um-cli
+kmod-spd5118

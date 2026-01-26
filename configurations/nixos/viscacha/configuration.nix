@@ -34,6 +34,10 @@ in
   boot.kernel.sysctl = {
     "net.ipv4.ip_forward" = 1;
   };
+  # https://bugzilla.kernel.org/show_bug.cgi?id=219721
+  boot.blacklistedKernelModules = lib.trace "FIXME: blacklist spd5118 due to kernel bug #219721" [
+    "spd5118"
+  ];
 
   specialisation.extra-fs.configuration = {
     boot.supportedFilesystems.zfs = true;
