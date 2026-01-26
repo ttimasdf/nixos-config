@@ -1,17 +1,19 @@
-{ flake, config, lib, pkgs, ... }:
 # https://github.com/pbek/nixcfg/blob/bf9196dd7e3d219de5c02f1ffede64f2bf007090/modules/hokage/programs/espanso.nix
 # https://github.com/pbek/nixcfg/blob/fd37b9e548c6f6cdc93b3db4bf348b89e449705b/modules/mixins/espanso.nix
+
+{ flake, config, lib, pkgs, ... }:
+
 let
   homeConfigs = config.home-manager.users;
   systemEnabled = lib.traceIf
     config.services.espanso.enable
-    "Espanso Wayland fix is enabled for system service"
+    "FIXME: Espanso Wayland permission fix is enabled by NixOS config"
     config.services.espanso.enable;
   userEnabled = lib.any
-  (u: lib.traceIf
-    u.services.espanso.enable
-    "Espanso Wayland fix is enabled for user service '${u.home.username}'"
-    u.services.espanso.enable or false)
+  (homeConfig: lib.traceIf
+    homeConfig.services.espanso.enable
+    "FIXME: Espanso Wayland permission fix is enabled by Home-Manager config for user '${homeConfig.home.username}'"
+    homeConfig.services.espanso.enable or false)
   (lib.attrValues (lib.filterAttrs (name: _: lib.elem name config.rabit.nixos.myusers) homeConfigs));
 in
 {
