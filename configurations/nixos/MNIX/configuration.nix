@@ -233,6 +233,7 @@ in
   services.mihomo.tunMode = true;
   services.mihomo.webui = pkgs.metacubexd;
   services.mihomo.configFile = "/home/toor/Documents/clash-config/client.yml";
+  rabit.nixos.http_proxy = "http://127.0.0.1:28888";
 
   programs.nh = {
     enable = true;
@@ -281,12 +282,51 @@ in
       defaultNetwork.settings.dns_enabled = true;
     };
     containers.containersConf.settings = {
+      unqualified-search-registries = ["docker.io"];
+
       engine = {
         compose_providers = ["/run/current-system/sw/bin/podman-compose"];
         compose_warning_logs = false;
+        env = [
+          "HTTP_PROXY=${config.rabit.nixos.http_proxy}"
+          "HTTPS_PROXY=${config.rabit.nixos.http_proxy}"
+          "NO_PROXY=${config.rabit.nixos.no_proxy}"
+        ];
       };
+
+      registry = [
+        {
+          prefix = "docker.io";
+          insecure = false;
+          blocked = false;
+          location = "docker.io";
+          mirror = [
+            { location = "docker.milktea.info"; }
+            { location = "docker.nju.edu.cn"; }
+          ];
+        }
+        {
+          prefix = "ghcr.io";
+          insecure = false;
+          blocked = false;
+          location = "ghcr.io";
+          mirror = [
+            { location = "ghcr.nju.edu.cn"; }
+          ];
+        }
+      ];
     };
+
+    containers.registries.search = [
+      "docker.io"
+    ];
+
+    # containers.storage.settings = {
+    #   storage.driver = "btrfs";
+    # };
   };
+
+  #endregion containers
 
   #region VMs
   # https://wiki.nixos.org/wiki/Virt-manager
@@ -347,6 +387,13 @@ in
     uv
   ];
 
+  # https://wiki.nixos.org/wiki/TPM
+  security.tpm2.enable = true;
+  # expose /run/current-system/sw/lib/libtpm2_pkcs11.so
+  security.tpm2.pkcs11.enable = true;
+  # TPM2TOOLS_TCTI and TPM2_PKCS11_TCTI env variables
+  security.tpm2.tctiEnvironment.enable = true;
+
   # Fix uv python ssl.SSLCertVerificationError
   environment.etc.certfile = {
     source = "/etc/ssl/certs/ca-bundle.crt";
@@ -381,11 +428,16 @@ in
   # Open ports in the firewall.
   networking.firewall = {
     enable = true;
+    # Allow mihomo TUN mode to work with system stack
+    trustedInterfaces = [ "mihomo0" ];
+    checkReversePath = "loose";
+    
     allowedTCPPorts = [
       #22000   # syncthing
       53317   # localsend
       8888    # MITM
       4444    # reverse listener
+      6806    # siyuan
       25      # SMTP for phish
     ];
     allowedUDPPorts = [
@@ -403,9 +455,9 @@ in
   # region nix config
   systemd.services."nix-daemon".serviceConfig = {
     Environment = [
-      "http_proxy=http://127.0.0.1:28888"
-      "https_proxy=http://127.0.0.1:28888"
-      "no_proxy=localhost,127.0.0.1,192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,172.29.0.0/16,::1"
+      "http_proxy=${config.rabit.nixos.http_proxy}"
+      "https_proxy=${config.rabit.nixos.http_proxy}"
+      "no_proxy=${config.rabit.nixos.no_proxy}"
     ];
   };
 
