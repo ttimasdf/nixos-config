@@ -8,12 +8,13 @@ let
   cfgISO = {
     formatAttr = "isoImage";
     fileExtension = ".iso";
+    rabit.nixos.myusers = ["nixos"];
   };
 
   cfgFS = {
-      boot.supportedFilesystems.zfs = lib.mkForce true;
-      boot.zfs.package = pkgs.zfs_2_4;
-      boot.supportedFilesystems.bcachefs = true;
+    boot.supportedFilesystems.zfs = lib.mkForce true;
+    boot.zfs.package = pkgs.zfs_2_4;
+    boot.supportedFilesystems.bcachefs = true;
   };
 in
 {
@@ -32,8 +33,6 @@ in
         "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
         "${modulesPath}/installer/cd-dvd/latest-kernel.nix"
       ];
-
-      rabit.nixos.myusers = ["nixos"];
     } // cfgFS // cfgISO;
 
     formatConfigs.gnome-iso = { config, pkgs, lib, modulesPath, options, ... }: {
@@ -41,8 +40,28 @@ in
         "${modulesPath}/installer/cd-dvd/installation-cd-graphical-gnome.nix"
         "${modulesPath}/installer/cd-dvd/latest-kernel.nix"
       ];
+    } // cfgFS // cfgISO;
 
-      rabit.nixos.myusers = ["nixos"];
+    formatConfigs.xfce-iso = { config, pkgs, lib, modulesPath, options, ... }: {
+      # https://wiki.nixos.org/wiki/Xfce
+      # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/services/x11/desktop-managers/xfce.nix
+      imports = [
+        "${modulesPath}/installer/cd-dvd/installation-cd-graphical-base.nix"
+        "${modulesPath}/installer/cd-dvd/latest-kernel.nix"
+      ];
+      isoImage.edition = "xfce";
+
+      nixpkgs.config.pulseaudio = true;
+
+      services.xserver.desktopManager = {
+        xterm.enable = false;
+        xfce.enable = true;
+      };
+      services.displayManager.defaultSession = "xfce";
+
+      environment.xfce.excludePackages = with pkgs; [
+        parole
+      ];
     } // cfgFS // cfgISO;
   };
 }
