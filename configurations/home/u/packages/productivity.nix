@@ -18,6 +18,7 @@
     microsoft-edge
     # chromium      # enabled by programs.chromium.enable
     aria2
+    wormhole-cli
 
     # Office Suite
     wpsoffice-cn-fcitx

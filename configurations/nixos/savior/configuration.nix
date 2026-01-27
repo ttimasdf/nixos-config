@@ -20,5 +20,6 @@ in
     _7zz-natspec
     compsize
     ripgrep
+    wormhole-cli
   ];
 }
