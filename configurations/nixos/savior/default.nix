@@ -9,6 +9,7 @@ in
   imports = [
     nur.modules.nixos.default
     self.nixosModules.common
+    private-module.nixosModules.cacerts
     private-module.nixosModules.hosts
     self.nixosModules.programs
     self.nixosModules.nixos-generators
