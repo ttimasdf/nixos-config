@@ -8,13 +8,13 @@ let
   cfgISO = {
     formatAttr = "isoImage";
     fileExtension = ".iso";
-    isoImage.appendToMenuLabel = " Live System";
+    isoImage.appendToMenuLabel = " Live CD:";
     rabit.nixos.myusers = ["nixos"];
   };
 
   cfgFS = {
     boot.supportedFilesystems.zfs = lib.mkForce true;
-    boot.zfs.package = pkgs.zfs_2_4;
+    boot.zfs.package = lib.trace "TODO: ZFS package pinned to zfs_2_4" pkgs.zfs_2_4;
     boot.supportedFilesystems.bcachefs = true;
   };
 

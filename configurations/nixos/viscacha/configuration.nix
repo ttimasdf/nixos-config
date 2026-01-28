@@ -41,7 +41,7 @@ in
 
   specialisation.extra-fs.configuration = {
     boot.supportedFilesystems.zfs = true;
-    boot.zfs.package = pkgs.zfs_2_4;
+    boot.zfs.package = lib.trace "TODO: ZFS package pinned to zfs_2_4" pkgs.zfs_2_4;
     # ZFS requires networking.hostId to be set
     networking.hostId = "1858f3ed";
     boot.supportedFilesystems.bcachefs = true;
