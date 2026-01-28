@@ -19,6 +19,12 @@
             }
         },
         {
+            "label": "Build 'savior' system rescue CD",
+            "type": "shell",
+            "command": ["xc", "build-xfce-iso"],
+            "group": "build"
+        },
+        {
             "label": "Test NixOS system build",
             "type": "shell",
             "command": ["xc", "test"],

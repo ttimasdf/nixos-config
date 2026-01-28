@@ -172,6 +172,15 @@ Build and activate the new configuration, and make it the boot default
 nh os switch $@
 ```
 
+### build-xfce-iso
+
+Build xfce-iso for NixOS configuration [`savior`](configurations/nixos/savior).
+I usually use this ISO as a system rescue CD.
+
+```bash
+nix build .#nixosConfigurations.savior.config.formats.xfce-iso
+```
+
 ### list
 
 List system generations
