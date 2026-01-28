@@ -63,14 +63,9 @@ in
       # <volume-name> <encrypted-device>                        [key-file]                                              [options]
       crypt-windows   UUID=72932a38-260b-4616-af6f-748f396852f6 /root/.secrets/24860161-2878-4FA2-A9D2-4238687ED9BF.BEK bitlk,discard,nofail
       crypt-code      UUID=1e0fec8f-f4fc-4c26-b91a-cdd932899b9d /root/.secrets/AF91DAF0-D5B6-405F-9F6D-AC53F5F557CB.BEK bitlk,discard,nofail
-      crypt-vm-images UUID=a854d8d7-9e44-4bf2-b02a-a995c30209f0 /root/.secrets/a854d8d7-9e44-4bf2-b02a-a995c30209f0.key discard,nofail
     '';
   };
 
-  fileSystems."/mnt/vm-images" = {
-    device = "/dev/mapper/crypt-vm-images";
-    options = [ "defaults,nofail,discard" ];
-  };
   fileSystems."/mnt/code" = {
     device = "/dev/mapper/crypt-code";
     fsType = "ntfs3";
