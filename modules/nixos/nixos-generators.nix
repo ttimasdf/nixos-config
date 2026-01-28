@@ -59,6 +59,11 @@ in
       };
       services.displayManager.defaultSession = "xfce";
 
+      programs.thunar.plugins = with pkgs; [
+        thunar-archive-plugin
+        thunar-volman
+      ];
+
       environment.xfce.excludePackages = with pkgs; [
         parole
       ];

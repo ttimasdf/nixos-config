@@ -1,1 +1,1 @@
-pkg-wormhole-cli
+xfce-thunar-plugins
