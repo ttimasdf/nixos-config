@@ -100,11 +100,22 @@ let
       (lib.filter (name: lib.hasSuffix ".patch" name))
       (lib.map (name: "${patchesDir}/${name}"))
     ];
+
+  /**
+    mergeAttrsList: Merge a list of attribute sets into a single attribute set using recursive update.
+
+    Parameters:
+      list: A list of attribute sets to merge
+
+    Returns: A single attribute set containing all merged attributes.
+             Later elements in the list take precedence over earlier ones.
+  */
+  mergeAttrsList = list: lib.foldl lib.recursiveUpdate { } list;
 in
 {
   config.flake = {
     rabit-lib = {
-      inherit mapAttrsMaybe forAllNixFiles flattenPkgs mapListToAttrs findPatches;
+      inherit mapAttrsMaybe forAllNixFiles flattenPkgs mapListToAttrs findPatches mergeAttrsList;
     };
   };
 }
