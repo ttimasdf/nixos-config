@@ -12,6 +12,7 @@ in
       (filter (fn: fn != "default.nix") (attrNames (readDir ./.))))
     ++ [
       self.homeModules.default
+      ../u/tmux.nix
     ];
 
   # Defined by /modules/home/home-options.nix
