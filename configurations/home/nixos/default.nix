@@ -23,5 +23,5 @@ in
     email = "livecd@nixos.org";
   };
 
-  home.stateVersion = "24.11";
+  home.stateVersion = "26.05";
 }
