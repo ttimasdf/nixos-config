@@ -27,6 +27,11 @@ in
     htop
     btop
 
+    # hardware info
+    inxi
+    lm_sensors
+    pciutils
+
     # file utilities
     ncdu
     _7zz-natspec
