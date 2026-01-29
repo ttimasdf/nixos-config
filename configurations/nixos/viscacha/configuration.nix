@@ -227,6 +227,7 @@ in
   programs.java.enable = true;
   programs.java.package = pkgs.jdk.override { enableJavaFX = true; };
 
+  programs.kdeconnect.enable = true;
   services.mihomo.enable = true;
   services.mihomo.tunMode = true;
   services.mihomo.webui = pkgs.metacubexd;
