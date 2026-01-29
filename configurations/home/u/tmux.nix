@@ -2,6 +2,7 @@
 {
   programs.tmux = {
     enable = true;
+    terminal = "tmux-256color";
     prefix = "C-o";
     mouse = true;
     baseIndex = 1;
