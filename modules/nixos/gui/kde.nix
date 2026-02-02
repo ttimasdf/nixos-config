@@ -21,6 +21,7 @@ in {
 
       kdePackages.filelight
       kdePackages.spacebar
+      kdePackages.kdeconnect-kde
       # kdePackages.k3b # waiting for PR#475899
 
       wayland-utils
