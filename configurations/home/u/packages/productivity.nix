@@ -46,7 +46,9 @@
     # Remote Access
     rustdesk-flutter
     virt-viewer
-    remmina
+    proxychains-ng
+    sshpass
+    android-tools
   ];
 
   # Add symlink for edge for Apps to work

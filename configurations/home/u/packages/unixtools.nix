@@ -5,28 +5,12 @@
     sd       # Intuitive find and replace tool
     tree     # Directory listing in tree format
     file     # File type identifier
+    pv       # Pipe viewer for monitoring data progress
 
     # System monitoring and process management
-    pv       # Pipe viewer for monitoring data progress
     killall  # Kill processes by name
     ncdu     # Disk usage analyzer with ncurses interface
-    hardinfo2 # System information and benchmarking tool
-
-    # Development and build tools
-    gnumake  # GNU Make build automation tool
-    cmake
-    gcc
-    ninja
-    just     # Modern command runner with justfile syntax
     nix-tree # Interactive Nix package browser
-    nixfmt   # Nix code formatter
-    android-tools # Android development and debugging tools
-
-    # Network and remote access
-    freerdp  # Remote Desktop Protocol client
-    openssl  # Cryptography toolkit and SSL/TLS implementation
-    proxychains-ng # Proxy tool for forcing TCP connections through proxies
-    sshpass  # Non-interactive SSH password authentication
 
     # Miscellaneous utilities
     ascii    # ASCII table and character reference

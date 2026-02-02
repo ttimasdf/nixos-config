@@ -4,7 +4,15 @@
     python3
     uv
 
-    # Development & Code Editors
+    # build tools
+    gnumake  # GNU Make build automation tool
+    cmake
+    gcc
+    ninja
+
+    openssl  # Cryptography toolkit and SSL/TLS implementation
+
+    # Code Editors
     # vscode  # enabled by programs.vscode.enable
     antigravity
 
