@@ -366,6 +366,8 @@ in
     usbutils          # lsusb
     intel-gpu-tools   # intel_gpu_top
     smartmontools     # smartctl
+    inxi
+    lm_sensors
 
     # Disk Encryption
     #cryptsetup
