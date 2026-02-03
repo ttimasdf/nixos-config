@@ -23,11 +23,22 @@ git log --pretty=format:"%H" "$FILE" | while read -r commit_hash; do
     fi
 
     target_commit=$(git rev-parse "${commit_hash}^")
+    if [ "$target_commit" = "47cb985265b393c057033262f45065f115ea0bba" ]; then
+        echo "skip older commits..."
+        exit 0
+    fi
     version_hint=$(git show "${target_commit}:$FILE")
     commit_date=$(git show -s --format=%cd --date=format:'%Y.%m.%d' "$target_commit")
 
+    # Check if tag already exists on this commit (skip creation)
+    existing_tags=$(git tag --points-at "$target_commit")
+    if [ "$DELETE" != true ] && [[ -n "$existing_tags" ]]; then
+        echo "Skipping commit $target_commit - already has tag(s): $existing_tags"
+        continue
+    fi
+
     if [ "$DELETE" = true ]; then
-        tags=$(git tag --points-at "$target_commit")
+        tags=$existing_tags
         for tag in $tags; do
             if [[ "$tag" =~ ^v[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]+$ ]]; then
                 if [ "$DRY_RUN" = true ]; then
@@ -36,7 +47,6 @@ git log --pretty=format:"%H" "$FILE" | while read -r commit_hash; do
                     git tag -d "$tag"
                     echo "Deleted tag $tag on $target_commit"
                 fi
-                # if [ "$tag" = "v2026.01.16.6" ]; then echo "skip older commits"; exit 0; fi
             fi
         done
         continue
@@ -45,29 +55,15 @@ git log --pretty=format:"%H" "$FILE" | while read -r commit_hash; do
     counter=1
     tag_name=$(printf "v%s.%02d" "$commit_date" "$counter")
 
-    if [ "$DRY_RUN" = true ]; then
-        if [[ -n "${DRY_RUN_COUNTERS[$commit_date]}" ]]; then
-            counter=$((${DRY_RUN_COUNTERS[$commit_date]} + 1))
-        else
-            while git rev-parse "v${commit_date}.${counter}" >/dev/null 2>&1; do
-                counter=$((counter + 1))
-            done
-        fi
-
-        DRY_RUN_COUNTERS[$commit_date]=$counter
+    while git rev-parse "$tag_name" >/dev/null 2>&1; do
+        counter=$((counter + 1))
         tag_name=$(printf "v%s.%02d" "$commit_date" "$counter")
-
-        echo "[DRY RUN] Would create tag '$tag_name' on commit $target_commit with message:"
-        echo "$version_hint"
-        echo "---------------------------------------------------"
+    done
+    if [ "$DRY_RUN" = true ]; then
+        echo "[DRY RUN] Would create tag '$tag_name' on commit $target_commit with message: $version_hint"
     else
-        while git rev-parse "$tag_name" >/dev/null 2>&1; do
-            counter=$((counter + 1))
-            tag_name=$(printf "v%s.%02d" "$commit_date" "$counter")
-        done
 
-        git tag -a "$tag_name" "$target_commit" -m "$version_hint"
+        git tag "$tag_name" "$target_commit" -m "$version_hint"
         echo "Created tag $tag_name on $target_commit"
     fi
-    if [ "$tag_name" = "v2026.01.16.06" ]; then echo "skip older commits"; exit 0; fi
 done
