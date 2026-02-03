@@ -5,6 +5,7 @@
     enable = true;
     historyLimit = 99999;
     mouse = true;
+    terminal = "tmux-256color";
 
     # https://search.nixos.org/packages?channel=unstable&query=tmuxPlugins.catppuccin
     plugins = with pkgs; [
@@ -15,8 +16,9 @@
 
     extraConfig = ''
         # Options to make tmux more pleasant
-        set -g mouse on
-        set -g default-terminal "tmux-256color"
+        # set -g mouse on
+        # set -g default-terminal "tmux-256color"
+        set -g update-environment 'DISPLAY SSH_ASKPASS SSH_AGENT_PID SSH_CONNECTION WINDOWID XAUTHORITY TERM XMODIFIERS'
 
         # Configure the catppuccin plugin
         set -g @catppuccin_flavor "mocha"
