@@ -45,6 +45,7 @@ git log --pretty=format:"%H" "$FILE" | while read -r commit_hash; do
                     echo "[DRY RUN] Would delete tag '$tag' on commit $target_commit"
                 else
                     git tag -d "$tag"
+                    git push --delete origin "$tag" || true
                     echo "Deleted tag $tag on $target_commit"
                 fi
             fi
