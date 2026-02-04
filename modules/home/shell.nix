@@ -26,8 +26,27 @@ let
   # zsh: ~/.zshrc (via initContent)
   interactiveShellExtra = lib.optionalString (oscfg.http_proxy != null) ''
     # Toggle proxy on/off
+    # Usage: px [port|ip:port|url]
+    #   px          - toggle proxy using default (${oscfg.http_proxy})
+    #   px 7890     - set proxy to http://localhost:7890
+    #   px 1.2.3.4:8080 - set proxy to http://1.2.3.4:8080
+    #   px http://... - set proxy to the given URL directly
     function px(){
-      if [ -z "$http_proxy" ]; then
+      local proxy_url=""
+      if [[ -n "$1" ]]; then
+        if [[ "$1" =~ ^[0-9]+$ ]]; then
+          # Argument is a port number
+          proxy_url="http://localhost:$1"
+        elif [[ "$1" == *"://"* ]]; then
+          # Argument is a full URL (contains ://)
+          proxy_url="$1"
+        else
+          # Argument is host:port or ip:port format
+          proxy_url="http://$1"
+        fi
+        export http_proxy="$proxy_url" https_proxy="$proxy_url" all_proxy="$proxy_url"
+        echo -e "[proxy] \e[32menabled\e[0m, set to $http_proxy"
+      elif [ -z "$http_proxy" ]; then
         export http_proxy="${oscfg.http_proxy}" https_proxy="${oscfg.http_proxy}" all_proxy="${oscfg.http_proxy}"
         echo -e "[proxy] \e[32menabled\e[0m, set to $http_proxy"
       else
