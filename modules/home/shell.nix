@@ -60,7 +60,7 @@ let
       local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
       yazi "$@" --cwd-file="$tmp"
       IFS= read -r -d "" cwd < "$tmp"
-      [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+      [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin pushd -- "$cwd"
       rm -f -- "$tmp"
     }
   '' + lib.optionalString config.programs.fzf.enable ''
@@ -153,9 +153,6 @@ in
       # Custom ~/.zprofile goes here
       profileExtra = loginShellExtra;
     };
-
-    # Type `z <pat>` to cd to some directory
-    zoxide.enable = true;
 
     # Better shell prompt!
     starship = {
