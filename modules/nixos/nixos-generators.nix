@@ -14,7 +14,7 @@ let
 
   cfgFS = {
     boot.supportedFilesystems.zfs = lib.mkForce true;
-    boot.zfs.package = lib.trace "TODO: ZFS package pinned to zfs_2_4" pkgs.zfs_2_4;
+    boot.zfs.package = lib.trace "FYI: [nixos-generators] zfs pinned to zfs_2_4" pkgs.zfs_2_4;
     boot.supportedFilesystems.bcachefs = true;
   };
 
