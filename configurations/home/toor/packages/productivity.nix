@@ -22,7 +22,7 @@
     aria2
 
     # Office Suite
-    wpsoffice-cn
+    wpsoffice-cn-fcitx
     # cherry-studio
     # lmstudio
     gimp
