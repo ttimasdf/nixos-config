@@ -17,7 +17,12 @@ in
         volume = lib.join " " [
           "${datadir}/debian/home-local-bin:${home}/.local/bin"
         ];
-        additional_packages = "git curl wget build-essential python3-pip nano sudo";
+        additional_packages = lib.join " " [
+          # basic development packages
+          "git curl wget build-essential python3-pip python3-venv vim sudo"
+          # Host shell integration
+          "kitty-terminfo fzf zoxide"
+        ];
         pre_init_hooks = [
           "export SHELL=/bin/bash"
           "sed -i -E 's@https?://((deb|security).debian.org|(archive|security).ubuntu.com)@http://mirrors.pku.edu.cn@g' /etc/apt/sources.list.d/*.sources"
