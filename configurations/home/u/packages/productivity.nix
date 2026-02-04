@@ -39,16 +39,13 @@
     unlock-music-cli
 
     # Networking
-    daed
-    v2rayn
+    proxychains-ng
     tail-tray
 
     # Remote Access
     rustdesk-flutter
     virt-viewer
-    proxychains-ng
     sshpass
-    android-tools
   ];
 
   # Add symlink for edge for Apps to work

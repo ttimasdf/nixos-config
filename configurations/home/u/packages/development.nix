@@ -5,12 +5,13 @@
     uv
 
     # build tools
-    gnumake  # GNU Make build automation tool
+    gnumake
     cmake
     gcc
     ninja
 
-    openssl  # Cryptography toolkit and SSL/TLS implementation
+    openssl
+    android-tools
 
     # Code Editors
     # vscode  # enabled by programs.vscode.enable
