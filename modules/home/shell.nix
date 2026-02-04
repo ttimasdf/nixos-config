@@ -44,6 +44,24 @@ let
       [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
       rm -f -- "$tmp"
     }
+  '' + lib.optionalString config.programs.fzf.enable ''
+    # Re-source fzf shell integration for fzf < 0.66
+    # There's a breaking change (`toggle-raw` feature) in fzf 0.66.0
+    if [[ -n "$DISTROBOX_ENTER_PATH" ]] && command -v fzf &>/dev/null; then
+      _fzf_version=$(fzf --version | awk '{print $1}')
+      _fzf_major=''${_fzf_version%%.*}
+      _fzf_minor=''${_fzf_version#*.}
+      _fzf_minor=''${_fzf_minor%%.*}
+      if [[ "$_fzf_major" -eq 0 && "$_fzf_minor" -lt 66 ]]; then
+        echo -e "\e[33m[fzf] Warning: fzf version $_fzf_version < 0.66, re-sourcing shell integration\e[0m" >&2
+        if [[ -n "$BASH_VERSION" ]]; then
+          source <(fzf --bash)
+        elif [[ -n "$ZSH_VERSION" ]]; then
+          source <(fzf --zsh)
+        fi
+      fi
+      unset _fzf_version _fzf_major _fzf_minor
+    fi
   '';
 
   # Login shell config (runs once at login)
