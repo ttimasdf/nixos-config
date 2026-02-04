@@ -57,11 +57,11 @@ let
   '' + lib.optionalString config.programs.yazi.enable ''
     # y for yazi - change directory on exit
     function y() {
-      local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
-      yazi "$@" --cwd-file="$tmp"
-      IFS= read -r -d "" cwd < "$tmp"
+      local cwd
+      exec 3>&1
+      cwd=$(yazi "$@" --cwd-file=/dev/fd/3 3>&1 >&/dev/tty)
+      exec 3>&-
       [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin pushd -- "$cwd"
-      rm -f -- "$tmp"
     }
   '' + lib.optionalString config.programs.fzf.enable ''
     # Re-source fzf shell integration for fzf < 0.66
