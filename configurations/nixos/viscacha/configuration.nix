@@ -234,6 +234,9 @@ in
   services.mihomo.configFile = "/home/u/Documents/clash-config/cfg-2aym2a2s/client.yml";
   rabit.nixos.http_proxy = "http://127.0.0.1:28888";
 
+  programs.throne.enable = true;
+  programs.throne.tunMode.enable = true;
+
   programs.nh = {
     enable = true;
     clean.enable = true;
