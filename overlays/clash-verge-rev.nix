@@ -1,15 +1,18 @@
 { flake, ... }:
 
 final: prev:
+let
+  lib = final.lib;
+in
 {
-  clash-verge-rev = prev.clash-verge-rev.overrideAttrs (oldAttrs: {
+  clash-verge-rev = prev.clash-verge-rev.overrideAttrs (oldAttrs: rec {
     # https://github.com/clash-verge-rev/clash-verge-rev/commits/dev/
-    version = "2.4.3-git-51a7b4f";
-    src = prev.fetchFromGitHub {
+    version = "2.4.5";
+    src = lib.trace "FYI: clash-verge-rev pinned to ${version}" prev.fetchFromGitHub {
       owner = "clash-verge-rev";
       repo = "clash-verge-rev";
-      rev = "51a7b4fe750e077ad6b373624a4187d827d581a5";
-      hash = "sha256-4pTXHgQ6Pjdy53sbEVVv/6GSbITOIewOTCiR8KEV7Hk=";
+      tag = "v${version}";
+      hash = "sha256-FFo0jy8RF2nnb2lA9mLfW7jhbUCv+Sq0dd0P0iTv2SQ=";
     };
   });
 }
