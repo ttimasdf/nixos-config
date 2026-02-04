@@ -34,7 +34,7 @@ in
 
     # file utilities
     ncdu
-    _7zz-natspec
+    _7zz-nls
     compsize
     ripgrep
     wormhole-cli

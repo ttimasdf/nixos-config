@@ -16,8 +16,8 @@ in
 {
   zip-nls = nlsWrap (prev.zip.override { enableNLS = true; });
   unzip-nls = nlsWrap (prev.unzip.override { enableNLS = true; });
-  _7zz-natspec = prev._7zz-rar.overrideAttrs (oldAttrs: {
-    pname = oldAttrs.pname + "-natspec";
+  _7zz-nls = prev._7zz-rar.overrideAttrs (oldAttrs: {
+    pname = oldAttrs.pname + "-nls";
 
     # Add libnatspec as a build input
     buildInputs = (oldAttrs.buildInputs or []) ++ [

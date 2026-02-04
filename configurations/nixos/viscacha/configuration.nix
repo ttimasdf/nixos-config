@@ -303,7 +303,7 @@ in
     rar
     unzip-nls
     zip-nls
-    _7zz-natspec
+    _7zz-nls
   ];
 
   # https://wiki.nixos.org/wiki/TPM

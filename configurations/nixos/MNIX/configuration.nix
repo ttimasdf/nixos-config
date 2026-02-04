@@ -341,7 +341,7 @@ in
     rar
     unzip-nls
     zip-nls
-    _7zz-natspec
+    _7zz-nls
 
     # Development
     uv

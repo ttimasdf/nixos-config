@@ -11,7 +11,7 @@ set -euo pipefail
 
 # Ensure 7zz is installed
 if ! command -v 7zz &> /dev/null; then
-    echo "7zz command not found. Please install _7zz or _7zz-natspec from nixpkgs."
+    echo "7zz command not found. Please install _7zz or _7zz-nls from nixpkgs."
     exit 1
 fi
 
