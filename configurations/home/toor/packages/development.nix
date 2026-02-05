@@ -11,8 +11,8 @@
     uv       # python runtime environment
     go       # golang runtime environment
     php      # php runtime environment
-    # rustup # rust toolchains
-    cargo    # rust package manager
-    rustc    # rust compiler
+    rustup # rust toolchains manager
+    # cargo    # rust package manager
+    # rustc    # rust compiler
   ];
 }
