@@ -319,6 +319,9 @@ in
   programs.traceroute.enable = true;
   programs.mtr.enable = true;
 
+  programs.appimage.enable = true;
+  programs.appimage.binfmt = true;
+
   # programs.gnupg.agent = {
   #   enable = true;
   #   enableSSHSupport = true;
