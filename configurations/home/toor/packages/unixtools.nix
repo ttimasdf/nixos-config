@@ -27,6 +27,7 @@
     # Miscellaneous utilities
     ascii    # ASCII table and character reference
     kdiff3   # Diff and merge tool for files and directories
+    parallel # parallel execute command
   ];
 
   # Programs natively supported by home-manager.
