@@ -19,6 +19,9 @@ let
     if [[ -n "$DISTROBOX_ENTER_PATH" ]]; then
       export PATH="$HOME/.local/bin:$PATH"
     fi
+    if [[ -d "$HOME/.bun/bin" ]]; then
+      export PATH="$HOME/.bun/bin:$HOME/.cache/.bun/bin:$PATH"
+    fi
   '';
 
   # Interactive shell config: aliases, functions, key bindings
