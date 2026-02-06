@@ -14,7 +14,6 @@
     # Development & Code Editors
     # vscode
     antigravity
-    appimage-run
 
     # Web Browsers & Download Tools
     # firefox  # enabled below
