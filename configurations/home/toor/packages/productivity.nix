@@ -37,6 +37,7 @@
     snipaste
     # asciinema_3
     obs-studio
+    spectacle-ocr-screenshot
 
     # Media Players
     vlc
