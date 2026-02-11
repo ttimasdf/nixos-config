@@ -359,11 +359,6 @@ in
       engine = {
         compose_providers = ["/run/current-system/sw/bin/podman-compose"];
         compose_warning_logs = false;
-        env = [
-          "HTTP_PROXY=${config.rabit.nixos.http_proxy}"
-          "HTTPS_PROXY=${config.rabit.nixos.http_proxy}"
-          "NO_PROXY=${config.rabit.nixos.no_proxy}"
-        ];
       };
 
       registry = [
@@ -373,7 +368,6 @@ in
           blocked = false;
           location = "docker.io";
           mirror = [
-            { location = "***REMOVED***"; }
             { location = "docker.milktea.info"; }
             { location = "docker.nju.edu.cn"; }
           ];
