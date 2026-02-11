@@ -3,24 +3,28 @@
   stdenv,
   appimageTools,
   fetchurl,
+  curl,
+  jq,
+  common-updater-scripts,
+  writeShellScript,
 }:
 
 let
-  version = "1.4.5-1124";
+  version = "1.4.6-0206";
   pname = "yakit";
 
-  srcs = {
-    "x86_64-linux" = {
+  sources = {
+    "x86_64-linux" = fetchurl {
       url = "https://github.com/yaklang/yakit/releases/download/v${version}/Yakit-${version}-linux-amd64.AppImage";
-      hash = "sha256-IOW5wajVBmxjTfsyQeBztzA0bVwLTvzX4E5Fu9JVytE=";
+      hash = "sha256-CYe5TBp/jzbsbDMjMbTirnFtdaOtpzKWPOEi9MxXjvk=";
     };
-    "aarch64-linux" = {
+    "aarch64-linux" = fetchurl {
       url = "https://github.com/yaklang/yakit/releases/download/v${version}/Yakit-${version}-linux-arm64.AppImage";
-      hash = lib.fakeSha256;
+      hash = lib.fakeHash;
     };
   };
 
-  src = fetchurl (srcs.${stdenv.hostPlatform.system} or (throw "Unsupported system: ${stdenv.hostPlatform.system}"));
+  src = (sources.${stdenv.hostPlatform.system} or (throw "yakit ${version} unsupported system: ${stdenv.hostPlatform.system}"));
 
   appimageContents = appimageTools.extractType2 {
     inherit pname version src;
@@ -40,6 +44,28 @@ appimageTools.wrapType2 rec {
     done
   '';
 
+  passthru = {
+    inherit sources;
+    updateScript = writeShellScript "update-yakit" ''
+      set -o errexit
+      export PATH="${
+        lib.makeBinPath [
+          curl
+          jq
+          common-updater-scripts
+        ]
+      }"
+      NEW_VERSION=$(curl --silent https://api.github.com/repos/yaklang/yakit/releases/latest | jq '.tag_name | ltrimstr("v")' --raw-output)
+      if [[ "${version}" = "$NEW_VERSION" ]]; then
+          echo "The new version same as the old version."
+          exit 0
+      fi
+      for platform in ${lib.escapeShellArgs meta.platforms}; do
+        update-source-version "yakit" "$NEW_VERSION" --ignore-same-version --source-key="passthru.sources.$platform"
+      done
+    '';
+  };
+
   meta = with lib; {
     description = "A local cross-platform reverse-engineering framework";
     homepage = "https://github.com/yaklang/yakit";
@@ -47,7 +73,7 @@ appimageTools.wrapType2 rec {
     license = licenses.agpl3Only;
     sourceProvenance = with sourceTypes; [ binaryNativeCode ];
     maintainers = with maintainers; [ ];
-    platforms = attrNames srcs;
+    platforms = builtins.attrNames passthru.sources;
     mainProgram = "yakit";
   };
 }
