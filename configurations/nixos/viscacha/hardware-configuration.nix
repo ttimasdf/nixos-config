@@ -16,7 +16,7 @@
   fileSystems."/" =
     { device = "/dev/mapper/nixos-root";
       fsType = "btrfs";
-      options = [ "subvol=root" ];
+      options = [ "subvol=root,compress=zstd" ];
     };
 
   boot.initrd.luks.devices."nixos-root".device = "/dev/disk/by-uuid/92342466-5063-489e-ab2c-b79ca70ea7a8";
@@ -24,13 +24,13 @@
   fileSystems."/home" =
     { device = "/dev/mapper/nixos-root";
       fsType = "btrfs";
-      options = [ "subvol=home" ];
+      options = [ "subvol=home,compress=zstd" ];
     };
 
   fileSystems."/nix" =
     { device = "/dev/mapper/nixos-root";
       fsType = "btrfs";
-      options = [ "subvol=nix" ];
+      options = [ "subvol=nix,compress=zstd" ];
     };
 
   fileSystems."/boot" =
