@@ -30,11 +30,10 @@ let
 in
 {
   config.image.modules = {
-    # https://github.com/nix-community/nixos-generators/blob/master/formats/iso.nix
-    # https://github.com/nix-community/nixos-generators/blob/master/formats/install-iso.nix
     # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/installer/cd-dvd/iso-image.nix
     # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix
     # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/installer/cd-dvd/latest-kernel.nix
+    # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/virtualisation/proxmox-image.nix
 
     iso-minimal = rabit-lib.mergeAttrsList [
       {
