@@ -18,7 +18,6 @@ in
 
   # ZFS support for the raid-z pool "bank"
   boot.supportedFilesystems.zfs = true;
-  boot.zfs.package = lib.trace "FYI: [basenji] zfs pinned to zfs_2_4" pkgs.zfs_2_4;
   # ZFS requires networking.hostId to be set
   networking.hostId = "a8c4e2f1";
 

@@ -13,7 +13,6 @@ let
 
   cfgFS = {
     boot.supportedFilesystems.zfs = lib.mkForce true;
-    boot.zfs.package = lib.trace "FYI: [images] zfs pinned to zfs_2_4" pkgs.zfs_2_4;
     boot.supportedFilesystems.bcachefs = true;
   };
 
