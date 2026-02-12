@@ -11,7 +11,7 @@ in
       (fn: ./${fn})
       (filter (fn: fn != "default.nix") (attrNames (readDir ./.))))
     ++ [
-      self.homeModules.default
+      self.homeModules.all
     ];
 
   # Defined by /modules/home/options.nix
