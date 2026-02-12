@@ -29,6 +29,7 @@
   fileSystems."/bank" = {
     device = "bank";
     fsType = "zfs";
+    options = [ "nofail" ];
   };
 
   swapDevices = [ ];

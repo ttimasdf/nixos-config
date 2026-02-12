@@ -65,6 +65,10 @@ in
   # endregion Cockpit web management
 
   # region Samba file sharing
+  # Ensure samba starts after the ZFS pool /bank is mounted
+  systemd.services.samba-smbd.requires = [ "bank.mount" ];
+  systemd.services.samba-smbd.after = [ "bank.mount" ];
+
   services.samba = {
     enable = true;
     openFirewall = true;
