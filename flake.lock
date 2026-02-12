@@ -399,14 +399,17 @@
         ],
         "nixos-unified": [
           "nixos-unified"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1770128481,
-        "narHash": "sha256-bHbS9HBtdxlkaTAGHLOry6OOcMXhEuJE+BmX24m1NsQ=",
+        "lastModified": 1770903791,
+        "narHash": "sha256-GH5a5ZKiblyq7YMvDnpBXw/qg3yWWfzQg/l5/MUlRmM=",
         "owner": "ttimasdf",
         "repo": "nixos-config-private",
-        "rev": "9cf4ce8b51f534ba56ca28788f949712e7e31acb",
+        "rev": "b5ad2947552d361016eaa66aff4384970bebe607",
         "type": "github"
       },
       "original": {
