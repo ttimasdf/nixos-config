@@ -178,7 +178,7 @@ Build xfce-iso for NixOS configuration [`savior`](configurations/nixos/savior).
 I usually use this ISO as a system rescue CD.
 
 ```bash
-nix build .#nixosConfigurations.savior.config.formats.xfce-iso
+nixos-rebuild build-image --flake .#savior --image-variant iso-xfce
 ```
 
 ### list

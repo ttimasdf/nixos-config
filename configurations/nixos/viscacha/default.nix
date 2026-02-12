@@ -15,7 +15,7 @@ in
     self.nixosModules.secure-boot
     self.nixosModules.gui
     self.nixosModules.winapps
-    self.nixosModules.nixos-generators
+    self.nixosModules.images
     ./configuration.nix
   ];
 }

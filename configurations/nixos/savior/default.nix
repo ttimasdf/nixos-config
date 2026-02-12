@@ -11,7 +11,7 @@ in
     self.nixosModules.common
     private-module.nixosModules.all
     self.nixosModules.programs
-    self.nixosModules.nixos-generators
+    self.nixosModules.images
     ./configuration.nix
   ];
 }
