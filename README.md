@@ -181,6 +181,12 @@ I usually use this ISO as a system rescue CD.
 nixos-rebuild build-image --flake .#savior --image-variant iso-xfce
 ```
 
+### build-nas-vm
+
+```bash
+nixos-rebuild build-image --flake .#basenji --image-variant proxmox
+```
+
 ### list
 
 List system generations
