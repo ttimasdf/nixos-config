@@ -8,6 +8,7 @@
         xc
         git-filter-repo
         git-crypt
+        nixfmt
       ];
 
       # Set NH_FLAKE environment variable to the current flake's path
