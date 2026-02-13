@@ -11,6 +11,12 @@ in
   ];
 
   # region boot & kernel
+  boot.loader = {
+    grub = {
+      efiSupport = true;
+      device = "/dev/disk/by-diskseq/1";
+    };
+  };
   boot.kernelPackages = pkgs.linuxPackages;
   boot.kernel.sysctl = {
     "net.ipv4.ip_forward" = 1;
@@ -51,10 +57,8 @@ in
   services.cockpit = {
     enable = true;
     port = 9090;
+    allowed-origins = [ "*" ];
     settings = {
-      Cockpit = {
-        Origins = "*";
-      };
       WebService = {
         ProtocolHeader = "X-Forwarded-Proto";
         ForwardedForHeader = "X-Forwarded-For";
