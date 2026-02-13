@@ -215,10 +215,14 @@ in
   # region firewall
   networking.firewall = {
     enable = true;
-    # allowedTCPPorts = [
-    # ];
-    # allowedUDPPorts = [
-    # ];
+    allowedTCPPorts = [
+      8384    # Syncthing (WebUI)
+      22000   # Syncthing (Sync)
+    ];
+    allowedUDPPorts = [
+      21027   # Syncthing (Discovery)
+      22000   # Syncthing (Sync)
+    ];
   };
   # endregion firewall
 
