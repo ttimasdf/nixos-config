@@ -1,5 +1,11 @@
 # NAS virtual machine configuration with Cockpit for remote management
-{ flake, config, lib, pkgs, ... }:
+{
+  flake,
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   inherit (flake.inputs) self;
@@ -57,6 +63,7 @@ in
   services.cockpit = {
     enable = true;
     port = 9090;
+    openFirewall = true;
     allowed-origins = [ "*" ];
     settings = {
       WebService = {
@@ -76,33 +83,49 @@ in
   services.samba = {
     enable = true;
     openFirewall = true;
-    settings = {
-      global = {
-        workgroup = "WORKGROUP";
-        "server string" = "basenji NAS";
-        "server role" = "standalone server";
-        security = "user";
-        "map to guest" = "Bad User";
-        "dns proxy" = "no";
+    settings =
+      let
+        commonConfig = {
+          browseable = "yes";
+          "read only" = "no";
+          "guest ok" = "no";
+          "create mask" = "0644";
+          "directory mask" = "0755";
+          "force user" = "nas";
+          "force group" = "users";
+        };
+      in
+      {
+        global = {
+          workgroup = "WORKGROUP";
+          "server string" = "basenji NAS";
+          "server role" = "standalone server";
+          security = "user";
+          "map to guest" = "Bad User";
+          "dns proxy" = "no";
+        };
+        # Samba shares
+        backups = commonConfig // {
+          path = "/bank/data/backups";
+        };
+        docs = commonConfig // {
+          path = "/bank/data/docs";
+        };
+        media = commonConfig // {
+          path = "/bank/data/media";
+          "guest ok" = "yes";
+        };
+        pictures = commonConfig // {
+          path = "/bank/data/pictures";
+        };
       };
-      # Share the bank pool - adjust path as needed
-      bank = {
-        path = "/bank";
-        browseable = "yes";
-        "read only" = "no";
-        "guest ok" = "no";
-        "create mask" = "0644";
-        "directory mask" = "0755";
-        "force user" = "nas";
-        "force group" = "users";
-      };
-    };
   };
 
   # Enable wsdd for Windows network discovery
   services.samba-wsdd = {
     enable = true;
     workgroup = "WORKGROUP";
+    openFirewall = true;
   };
   # endregion Samba file sharing
 
@@ -140,6 +163,7 @@ in
   services.openssh = {
     enable = true;
     ports = [ 22 ];
+    openFirewall = true;
     settings = {
       PasswordAuthentication = false;
       KbdInteractiveAuthentication = false;
@@ -148,9 +172,6 @@ in
   };
 
   services.fail2ban.enable = true;
-
-  # Tailscale for secure remote access
-  services.tailscale.enable = true;
 
   systemd.user.extraConfig = ''
     DefaultEnvironment="PATH=/run/current-system/sw/bin:/run/wrappers/bin:${lib.makeBinPath [ pkgs.bash ]}"
@@ -194,17 +215,10 @@ in
   # region firewall
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [
-      22    # SSH
-      9090  # Cockpit
-      139   # Samba (NetBIOS)
-      445   # Samba (SMB)
-    ];
-    allowedUDPPorts = [
-      137   # Samba (NetBIOS Name Service)
-      138   # Samba (NetBIOS Datagram)
-      5353  # mDNS (for wsdd)
-    ];
+    # allowedTCPPorts = [
+    # ];
+    # allowedUDPPorts = [
+    # ];
   };
   # endregion firewall
 
