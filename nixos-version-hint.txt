@@ -1,1 +1,1 @@
-new-host-basenji
+pkg-astral
