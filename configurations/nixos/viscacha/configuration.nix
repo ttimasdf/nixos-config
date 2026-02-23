@@ -425,7 +425,11 @@ in
   networking.firewall = {
     enable = true;
     # Allow mihomo/easytier TUN mode to work with system stack
-    trustedInterfaces = [ "mihomo0" "easytier0" ];
+    trustedInterfaces = [
+      "mihomo0"
+      "easytier0"
+      "astral"
+    ];
     checkReversePath = "loose";
 
     allowedTCPPorts = [

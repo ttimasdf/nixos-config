@@ -41,6 +41,7 @@
     # Networking
     proxychains-ng
     tail-tray
+    astral
 
     # Remote Access
     rustdesk-flutter
