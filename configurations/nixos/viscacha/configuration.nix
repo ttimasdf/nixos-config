@@ -317,6 +317,7 @@ in
 
   programs.traceroute.enable = true;
   programs.mtr.enable = true;
+  programs.astral.enable = true;
 
   programs.appimage.enable = true;
   programs.appimage.binfmt = true;

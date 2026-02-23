@@ -5,10 +5,8 @@
   autoPatchelfHook,
   makeDesktopItem,
   copyDesktopItems,
-  makeWrapper,
   libgcc,
   libayatana-appindicator,
-  pkexecPath ? "/run/wrappers/bin/pkexec",
   gdkScale ? 2,
 }:
 
@@ -24,7 +22,6 @@ stdenv.mkDerivation rec {
   nativeBuildInputs = [
     autoPatchelfHook
     copyDesktopItems
-    makeWrapper
   ];
 
   # The tarball unpacks directly into the current directory (no single root folder)
@@ -48,10 +45,17 @@ stdenv.mkDerivation rec {
     cp $out/opt/astral/data/flutter_assets/assets/logo.png $out/share/pixmaps/astral.png
 
     # Create wrapper script for bin
+    # Fake UID=0/USER=root so astral thinks it's running as root.
+    # Real cap_net_admin is provided via security.wrappers in the NixOS module.
     mkdir -p $out/bin
-    makeWrapper $out/opt/astral/astral $out/bin/${pname} \
-      --set GDK_SCALE "${lib.toString gdkScale}" \
-      --set GDK_DPI_SCALE "${lib.strings.floatToString (1.0 / gdkScale)}"
+    cat > $out/bin/${pname} <<WRAPPER
+    #!/bin/sh
+    exec env UID=0 USER=root SUDO_USER="\''${SUDO_USER:-\''${USER:-user}}" \
+      GDK_SCALE="${lib.toString gdkScale}" \
+      GDK_DPI_SCALE="${lib.strings.floatToString (1.0 / gdkScale)}" \
+      $out/opt/astral/astral "\$@"
+    WRAPPER
+    chmod +x $out/bin/${pname}
 
     runHook postInstall
   '';
@@ -61,7 +65,7 @@ stdenv.mkDerivation rec {
       name = "astral";
       desktopName = "Astral";
       comment = "Astral is an Easytier desktop client";
-      exec = "${pkexecPath} astral %u";
+      exec = "astral %u";
       icon = "astral";
       terminal = false;
       type = "Application";
