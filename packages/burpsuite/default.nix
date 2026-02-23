@@ -13,7 +13,7 @@
   copyDesktopItems,
   makeWrapper,
   proEdition ? true,
-  gdkScale ? "2",
+  gdkScale ? 2,
 }:
 let
   product =
@@ -77,9 +77,10 @@ stdenv.mkDerivation rec {
 
     ${unzip}/bin/unzip -p ${src} resources/Media/icon64${product.productName}.png > "$out/share/pixmaps/burpsuite.png"
 
-    makeWrapper ${jdk}/bin/java $out/bin/${pname} \
+    makeWrapper "${jdk}/bin/java" "$out/bin/${pname}" \
       --chdir "$out/share/burpsuite" \
-      --set GDK_SCALE ${gdkScale} \
+      --set GDK_SCALE "${lib.toString gdkScale}" \
+      --set GDK_DPI_SCALE "${lib.strings.floatToString (1.0 / gdkScale)}" \
       --add-flags "-jar $out/share/burpsuite/burploader.jar"
 
     runHook postInstall
