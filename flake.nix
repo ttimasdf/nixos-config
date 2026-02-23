@@ -15,7 +15,12 @@
     #
     # 3.  Run `nix flake update private-module` to verify that the access token has been successfully applied.
     #     If no error message appears, the setup is complete.
-    private-module = { url = "github:ttimasdf/nixos-config-private"; inputs.nixpkgs.follows = "nixpkgs"; inputs.nixos-unified.follows = "nixos-unified"; inputs.flake-parts.follows = "flake-parts"; };
+    private-module = {
+      url = "github:ttimasdf/nixos-config-private";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixos-unified.follows = "nixos-unified";
+      inputs.flake-parts.follows = "flake-parts";
+    };
 
     # Helpers used as inputs for other flakes
     flake-parts.url = "github:hercules-ci/flake-parts";
