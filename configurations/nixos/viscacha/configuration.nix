@@ -424,8 +424,8 @@ in
   # Open ports in the firewall.
   networking.firewall = {
     enable = true;
-    # Allow mihomo TUN mode to work with system stack
-    trustedInterfaces = [ "mihomo0" ];
+    # Allow mihomo/easytier TUN mode to work with system stack
+    trustedInterfaces = [ "mihomo0" "easytier0" ];
     checkReversePath = "loose";
 
     allowedTCPPorts = [

@@ -233,6 +233,8 @@ in
       21027   # Syncthing (Discovery)
       22000   # Syncthing (Sync)
     ];
+    # Allow easytier TUN mode to work with system stack
+    trustedInterfaces = [ "easytier0" ];
   };
   # endregion firewall
 
