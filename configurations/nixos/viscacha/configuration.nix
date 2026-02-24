@@ -447,13 +447,6 @@ in
   # endregion configurations
 
   # region nix config
-  systemd.services."nix-daemon".serviceConfig = {
-    Environment = [
-      "http_proxy=${config.rabit.nixos.http_proxy}"
-      "https_proxy=${config.rabit.nixos.http_proxy}"
-      "no_proxy=${config.rabit.nixos.no_proxy}"
-    ];
-  };
 
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
