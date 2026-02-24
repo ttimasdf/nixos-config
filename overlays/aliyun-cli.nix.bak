@@ -10,7 +10,7 @@ final: prev:
         owner = "aliyun";
         repo = "aliyun-cli";
         tag = "v${version}";
-        hash = "sha256-MIVhESm/5UJxUyN4ZnFLmVKX+2VCBjT33dIbsae3yVA=";
+        hash = "sha256-lmlCPBEqopmoNjkihVOh8zKSKsS4HmaDQ+QAEJ/pEvA=";
         fetchSubmodules = true;
     };
   });
