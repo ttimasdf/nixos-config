@@ -39,4 +39,6 @@
     # or https://github.com/kovidgoyal/kitty-themes/tree/master/themes
     themeFile = "Catppuccin-Latte";
   };
+
+  rabit.home.kitty.kitty-in-tab.enable = true;
 }
