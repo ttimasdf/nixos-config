@@ -328,7 +328,7 @@ in
   # };
   programs.fido-linux-id.enable = true;
   programs.wireshark.enable = true;
-  programs.wireshark.package = pkgs.wireshark-qt;
+  programs.wireshark.package = pkgs.wireshark;
   programs.wireshark.dumpcap.enable = true;
   programs.wireshark.usbmon.enable = true;
 
