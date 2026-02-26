@@ -11,6 +11,7 @@
     "libvirtd"    # for virtualisation.libvirtd
     "tss"         # tss group has access to TPM devices
     "uhid"        # uhid is essencial for tpm-fido & linux-id
+    config.hardware.i2c.group   # for ddccontrol
   ];
 } // lib.optionalAttrs config.programs.zsh.enable {
   shell = pkgs.zsh;

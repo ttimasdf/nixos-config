@@ -266,6 +266,9 @@ in
     enable = true;
   };
 
+  # Enable ddccontrol for controlling DDC/CI monitors
+  services.ddccontrol.enable = true;
+
   # Add 'newuidmap' and 'sh' to the PATH for users' Systemd units.
   # Required for Rootless podman.
   systemd.user.extraConfig = ''
