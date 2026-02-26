@@ -58,14 +58,14 @@ in
 For more advanced examples, including how to override packages in specific sets (like `kdePackages` or `python3.pkgs`), or how to use pinned Nixpkgs versions, please refer to [`overlays/overlay-template.md`](../../overlays/overlay-template.md).
 
 ## Write a new package
-All `.nix` files and directories placed in the `packages/` directory are automatically discovered and transformed into a nested attribute set of derivations using `lib.packagesFromDirectoryRecursive`.
+All `.nix` files and directories placed in the `packages/` directory are automatically discovered using `rabit-lib.forAllNixFiles "${self}/packages"`. Each `.nix` file or directory containing a `default.nix` becomes a top-level package attribute.
 
 To add a new package:
-1.  **Create a New Directory**: Inside `packages/`, create a new directory for your package (e.g., `packages/my-new-package/`).
-2.  **Create `package.nix` or other `.nix` files**:
-    **Example: Single package in `package.nix`**
+1.  **Create a package file or directory**: Inside `packages/`, either create a `.nix` file directly (e.g., `packages/my-new-package.nix`) or create a directory with a `default.nix` entry point (e.g., `packages/my-new-package/default.nix`).
+2.  **Write the package definition**:
+    **Example: Single-file package (`packages/my-new-package.nix`)**
     ```nix
-    # packages/my-new-package/package.nix
+    # packages/my-new-package.nix
     { lib, stdenv, fetchurl }:
 
     stdenv.mkDerivation {
@@ -83,23 +83,22 @@ To add a new package:
       # ... your package logic here ...
     }
     ```
-    **Example: Multiple packages within a directory (creating a namespace)**
-    If your directory contains multiple `.nix` files or subdirectories with `package.nix`, they will be exposed under a namespace corresponding to the directory name.
+    **Example: Directory package with `default.nix` (`packages/my-new-package/default.nix`)**
+    Use a directory when you need extra files (patches, helper scripts, etc.) alongside the package definition.
     ```
-    packages/my-namespace/
-    ├── my-app.nix
-    └── my-tool/
-        └── package.nix
+    packages/my-new-package/
+    ├── default.nix
+    ├── my-extra-feature.patch
+    └── support-definitions.nix
     ```
-    `my-app.nix` would be accessible as `pkgs.my-namespace.my-app`, and `my-tool/package.nix` as `pkgs.my-namespace.my-tool`.
+    Note: `forAllNixFiles` does NOT recurse into nested namespaces. Every discovered entry becomes a top-level package attribute.
 
 3.  **Using your new package**:
-    - If your package directory contains a single `package.nix` file, it will typically be accessible directly as `pkgs.your-package-name`.
-    - If your package directory returns more than one package, you will need to use the directory name as a namespace (e.g., `pkgs.my-namespace.my-app`).
+    - A `.nix` file `packages/foo.nix` is accessible as `pkgs.foo`.
+    - A directory `packages/foo/default.nix` is accessible as `pkgs.foo`.
 
     ```nix
     # In configurations/nixos/viscacha/configuration.nix
     environment.systemPackages = with pkgs; [
-      my-new-package # For a single package defined in packages/my-new-package/package.nix
-      my-namespace.my-app # For a package within a namespace
+      my-new-package # From packages/my-new-package.nix or packages/my-new-package/default.nix
     ];

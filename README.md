@@ -98,7 +98,7 @@ Each of the directories are wired to the corresponding flake output, as indicate
 
 (2): Why `legacyPackages`? Because, creating a home-manager configuration [requires `pkgs`](https://github.com/srid/nixos-unified/blob/47a26bc9118d17500bbe0c4adb5ebc26f776cc36/nix/modules/flake-parts/lib.nix#L97). See <https://github.com/nix-community/home-manager/issues/3075>
 
-(3): Package files should export a function that can be called with `callPackage`. The autowiring system automatically calls `pkgs.callPackage` on each package file, making them available as `packages.${system}.{name}` in your flake outputs.
+(3): Package files are discovered using `rabit-lib.forAllNixFiles "${self}/packages"`. Each `.nix` file or directory with a `default.nix` in `packages/` becomes a top-level package attribute, available as `packages.${system}.{name}` in your flake outputs.
 
 ### Home Manager configurations: `configurations/home/`
 
@@ -130,7 +130,7 @@ The version hint feature allows you to append a custom string to your NixOS syst
 **How to Use:**
 
 1.  **Create the Version Hint File**: In the root of this repository, create a file named `nixos-version-hint.txt`.
-2.  **Add Your Version Hint**: Open `nixos-version-hint.txt` and add your desired version hint. For example:
+2.  **Add Your Version Hint**: Open `nixos-vers`ion-hint.txt` and add your desired version hint. For example:
     ```
     my-custom-build
     ```
@@ -360,7 +360,7 @@ See [overlays/overlay-template.md](overlays/overlay-template.md) for more overla
 
 ## Writing a New Package
 
-This repository allows for easy integration of custom Nix packages. All `.nix` files and directories placed in the `packages/` directory are automatically discovered and transformed into a nested attribute set of derivations (handled by [`modules/nixos/common/nixpkgs-overlays.nix`](modules/nixos/common/nixpkgs-overlays.nix)). This means you don't typically need to manually add new packages from `packages/` to your `flake.nix`.
+This repository allows for easy integration of custom Nix packages. All `.nix` files and directories containing `default.nix` placed in the `packages/` directory are automatically discovered using `rabit-lib.forAllNixFiles "${self}/packages"` (handled by [`modules/nixos/common/nixpkgs-overlays.nix`](modules/nixos/common/nixpkgs-overlays.nix)). This means you don't typically need to manually add new packages from `packages/` to your `flake.nix`.
 
 ### Example Directory Structure
 
@@ -370,36 +370,30 @@ Consider the following structure within `packages/`:
 packages/
 ├── a.nix
 ├── b.nix
-├── c
-│  ├── my-extra-feature.patch
-│  ├── default.nix
-│  └── support-definitions.nix
-└── my-namespace
-   ├── d.nix
-   ├── e.nix
-   └── f
-      └── default.nix
+└── c
+   ├── my-extra-feature.patch
+   ├── default.nix
+   └── support-definitions.nix
 ```
 
 ### Accessing Packages from the Example Structure
 
-Based on the `packagesFromDirectoryRecursive` mechanism, these packages would be accessible as follows:
+Using `rabit-lib.forAllNixFiles`, these packages would be accessible as top-level attributes:
 
 *   `pkgs.a` (from `packages/a.nix`)
 *   `pkgs.b` (from `packages/b.nix`)
 *   `pkgs.c` (from `packages/c/default.nix`)
-*   `pkgs.my-namespace.d` (from `packages/my-namespace/d.nix`)
-*   `pkgs.my-namespace.e` (from `packages/my-namespace/e.nix`)
-*   `pkgs.my-namespace.f` (from `packages/my-namespace/f/default.nix`)
+
+Note: `forAllNixFiles` does NOT recurse into nested namespaces. Every `.nix` file and every directory with a `default.nix` directly under `packages/` becomes a top-level package attribute.
 
 To add a new package:
 
-1.  **Create a New Directory**: Inside `packages/`, create a new directory for your package. For example, `packages/my-new-package/`.
-2.  **Create `default.nix` or other `.nix` files**: Inside your new package directory, create a `default.nix` file (for a single package definition) or multiple `.nix` files (for multiple packages within a namespace).
+1.  **Create a package file or directory**: Inside `packages/`, either create a `.nix` file directly (e.g., `packages/my-new-package.nix`) or create a directory with a `default.nix` entry point (e.g., `packages/my-new-package/default.nix`).
+2.  **Write the package definition**:
 
-    **Example: Single package in `default.nix`**
+    **Example: Single-file package (`packages/my-new-package.nix`)**
     ```nix
-    # packages/my-new-package/default.nix
+    # packages/my-new-package.nix
     { lib, stdenv, fetchurl }:
 
     stdenv.mkDerivation {
@@ -427,28 +421,25 @@ To add a new package:
     }
     ```
 
-    **Example: Multiple packages within a directory (creating a namespace)**
-    If your directory contains multiple `.nix` files or subdirectories with `default.nix`, they will be exposed under a namespace corresponding to the directory name.
-
+    **Example: Directory package with `default.nix`**
+    Use a directory when you need extra files (patches, helper scripts, etc.) alongside the package definition.
     ```
-    packages/my-namespace/
-    ├── my-app.nix
-    └── my-tool/
-        └── default.nix
+    packages/my-new-package/
+    ├── default.nix
+    ├── my-extra-feature.patch
+    └── support-definitions.nix
     ```
-    In this case, `my-app.nix` would be accessible as `pkgs.my-namespace.my-app`, and `my-tool/default.nix` as `pkgs.my-namespace.my-tool`.
 
 3.  **Using your new package**:
     You can then use your new package in your NixOS configuration or Home Manager.
 
-    - If your package directory (`packages/your-package-name/`) contains a single `default.nix` file, it will typically be accessible directly as `pkgs.your-package-name`.
-    - If your package directory returns more than one package (e.g., it contains multiple `.nix` files or subdirectories defining packages), you will need to use the directory name as a namespace. For example, if `packages/my-namespace/` contains `my-app.nix`, you would refer to it as `pkgs.my-namespace.my-app`.
+    - A `.nix` file `packages/foo.nix` is accessible as `pkgs.foo`.
+    - A directory `packages/foo/default.nix` is accessible as `pkgs.foo`.
 
     ```nix
     # In configurations/nixos/viscacha/configuration.nix
     environment.systemPackages = with pkgs; [
-      my-new-package # For a single package defined in packages/my-new-package/default.nix
-      my-namespace.my-app # For a package within a namespace
+      my-new-package # From packages/my-new-package.nix or packages/my-new-package/default.nix
     ];
     ```
 
