@@ -1,20 +1,21 @@
 # KnownRabbit NixOS Config
 
-The most versatile NixOS config.
+A modular, multi-host NixOS configuration with private module support so you can ditch agenix.
 
 ## Hosts
 
-- **viscacha**: Personal config for @ttimasdf
-- **MNIX**: Personal config for @Tardis07
+- **viscacha**: Personal config for [@ttimasdf](https://github.com/ttimasdf)
+- **MNIX**: Personal config for [@Tardis07](https://github.com/Tardis07)
 - **savior**: Minimal config for building ISOs (system rescue & benchmarking)
+- **basenji**: NAS virtual machine with ZFS storage, Cockpit web management, Samba file sharing, and Podman containers
 
 ## Features
 
+- **Version Hints**: Custom suffixes for system version numbers in boot menus and ISO filenames.
+- **Private Module**: Supports separation of public and private configuration via a private module; a [module template](https://github.com/ttimasdf/nixos-config-module) is available for reference (see [Using this config](#using-this-config)).
 - **Modular Design**: Unifies [NixOS](https://nixos.org/), [nix-darwin](https://github.com/LnL7/nix-darwin), and [home-manager](https://github.com/nix-community/home-manager) configuration in a single flake using [nixos-unified](https://github.com/srid/nixos-unified).
 - **Auto-wiring**: Automatically discovers and imports configurations into the final flake output from the directory structure, see the chapter [Structure](#structure) below.
-- **NixOS Generators**: Build ISO/VM/Cloud images from any machine config (e.g., `nix build .#nixosConfigurations.savior.config.formats.gnome-iso`) using [nixos-generators](https://github.com/nix-community/nixos-generators).
-- **Version Hints**: Custom suffixes for system version numbers in boot menus and ISO filenames.
-- **Private Module**: Supports private configuration separation via a private module (a [module template](https://github.com/ttimasdf/nixos-config-module) is provided for reference), see [Using this config](#using-this-config).
+- **Image Building**: Build ISO/VM/Cloud images from any machine config using `nixos-rebuild build-image` (e.g., `nixos-rebuild build-image --flake .#savior --image-variant iso-xfce`).
 
 ## Using this config
 
