@@ -1,7 +1,6 @@
 { flake, config, lib, pkgs, isDarwin, ... }:
 let
-  inherit (flake) inputs;
-  inherit (inputs) self;
+  inherit (flake.inputs) self private-module;
 in
 {
   imports =
@@ -12,6 +11,7 @@ in
       (filter (fn: fn != "default.nix") (attrNames (readDir ./.))))
     ++ [
       self.homeModules.all
+      private-module.homeModules.all
     ];
 
   # Defined by /modules/home/options.nix
