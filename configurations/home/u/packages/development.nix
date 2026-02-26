@@ -3,6 +3,8 @@
   home.packages = with pkgs; [
     python3
     uv
+    pnpm
+    # bun     # bun is installed from prebuilt binary.
 
     # build tools
     gnumake
