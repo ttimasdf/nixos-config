@@ -42,6 +42,10 @@ in
 
   # region network
   networking.hostName = "basenji";
+  # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/tasks/network-interfaces-systemd.nix
+  networking.useNetworkd = true;
+  networking.nftables.enable = true;
+
   services.resolved.settings.Resolve = lib.mkIf (config.services.resolved.enable) {
     # DNSStubListener = false;
     # compiled-in fallback DNS:
