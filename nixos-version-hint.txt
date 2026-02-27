@@ -1,1 +1,1 @@
-kitty-in-tab
+pkg-easytier-manager
