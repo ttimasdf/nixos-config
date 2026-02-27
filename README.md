@@ -460,21 +460,21 @@ nix develop .#binaryninja-commercial-dev
 nix develop .#nixosConfigurations.viscacha.pkgs._010editor
 
 # in dev shell
-mkdir -p result/{output,unpack} && pushd result/unpack && export out=$(realpath ../output)
+mkdir -p result/{output,unpack} && pushd result/unpack
 ```
 
 Run package phases manually inside dev shell.
 
 ```bash
-runPhase unpackPhase && export out=$(realpath ../output)
-# runPhase patchPhase
-# runPhase configurePhase
-# runPhase buildPhase
-# runPhase checkPhase
-runPhase installPhase
-runPhase fixupPhase
-runPhase installCheckPhase
-runPhase distPhase
+runPhase unpackPhase  # step 1
+runPhase patchPhase  # step 2
+runPhase configurePhase  # step 3
+runPhase buildPhase  # step 4
+runPhase checkPhase  # step 5
+runPhase installPhase  # step 6
+runPhase fixupPhase  # step 7
+runPhase installCheckPhase  # step 8
+runPhase distPhase  # step 9
 ```
 
 ### Run Shell
