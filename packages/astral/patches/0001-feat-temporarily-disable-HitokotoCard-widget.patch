@@ -1,0 +1,25 @@
+From f619bdb705c7936664450783023497f692b5988d Mon Sep 17 00:00:00 2001
+From: ttimasdf <opensource@rabit.pw>
+Date: Sat, 28 Feb 2026 22:32:07 +0800
+Subject: [PATCH 1/2] feat: temporarily disable HitokotoCard widget
+
+---
+ lib/features/home/pages/home_page.dart | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/features/home/pages/home_page.dart b/lib/features/home/pages/home_page.dart
+index b7f53c2..b5661cb 100644
+--- a/lib/features/home/pages/home_page.dart
++++ b/lib/features/home/pages/home_page.dart
+@@ -66,7 +66,7 @@ class _HomePageState extends State<HomePage> {
+                           ServersHome(),
+                           // UdpLog(),
+                           AboutHome(),
+-                          HitokotoCard(),
++                          // HitokotoCard(),
+                           // 底部空白保护，使内容能滚动得更深
+                           StaggeredGridTile.fit(
+                             crossAxisCellCount: columnCount,
+-- 
+2.52.0
+

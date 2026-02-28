@@ -1,63 +1,108 @@
 {
   lib,
   stdenv,
-  fetchurl,
-  autoPatchelfHook,
+  flutter338,
+  rustPlatform,
+  fetchFromGitHub,
+  runCommand,
   makeDesktopItem,
   copyDesktopItems,
-  libgcc,
+  writeText,
   libayatana-appindicator,
+  protobuf,
   gdkScale ? 2,
 }:
 
-stdenv.mkDerivation rec {
+let
   pname = "astral";
   version = "2.7.1";
 
-  src = fetchurl {
-    url = "https://github.com/ldoubil/astral/releases/download/v${version}/astral-linux-x64.tar.gz";
-    hash = "sha256-vMcnKqEdVfFaGwhJRaR9oH+ncaF/Clon6tN+SjMdkdw=";
+  src = fetchFromGitHub {
+    owner = "ldoubil";
+    repo = "astral";
+    tag = "v${version}";
+    hash = "sha256-4oaYNzf6khp7KIu6qj+N+C7GIH3fiSBLswC8jFZse3k=";
+    fetchSubmodules = true;
+  };
+
+  rustDep = rustPlatform.buildRustPackage {
+    inherit pname version src;
+
+    sourceRoot = "${src.name}/rust";
+
+    useFetchCargoVendor = true;
+    cargoHash = "sha256-FaqxEsu/+9TjnebWNNShcSbX5l4ebBQljz0jjrV+nUw=";
+
+    nativeBuildInputs = [
+      protobuf
+      rustPlatform.bindgenHook
+    ];
+
+    passthru.libraryPath = "lib/librust_lib_astral.so";
+
+    meta.platforms = [ "x86_64-linux" ];
+  };
+in
+flutter338.buildFlutterApplication {
+  inherit pname version src;
+
+  patches = [
+    ./patches/0001-feat-temporarily-disable-HitokotoCard-widget.patch
+    ./patches/0002-chore-remove-linux-root-privilege-check.patch
+  ];
+
+  # The upstream pubspec.lock uses Chinese mirror (pub.flutter-io.cn).
+  # autoPubspecLock is evaluated at Nix eval time (IFD), so we produce a
+  # patched pubspec.lock derivation before it's consumed.
+  autoPubspecLock = runCommand "astral-pubspec-lock" { } ''
+    sed 's|https://pub.flutter-io.cn|https://pub.dev|g' ${src}/pubspec.lock > $out
+  '';
+
+  customSourceBuilders = {
+    rust_lib_astral =
+      { version, src, ... }:
+      stdenv.mkDerivation {
+        pname = "rust_lib_astral";
+        inherit version src;
+        inherit (src) passthru;
+
+        postPatch =
+          let
+            fakeCargokitCmake = writeText "FakeCargokit.cmake" ''
+              function(apply_cargokit target manifest_dir lib_name any_symbol_name)
+                set("''${target}_cargokit_lib" ${rustDep}/${rustDep.passthru.libraryPath} PARENT_SCOPE)
+              endfunction()
+            '';
+          in
+          ''
+            cp ${fakeCargokitCmake} rust_builder/cargokit/cmake/cargokit.cmake
+          '';
+
+        installPhase = ''
+          runHook preInstall
+
+          cp -r . "$out"
+
+          runHook postInstall
+        '';
+      };
   };
 
   nativeBuildInputs = [
-    autoPatchelfHook
     copyDesktopItems
   ];
 
-  # The tarball unpacks directly into the current directory (no single root folder)
-  sourceRoot = ".";
-
   buildInputs = [
-    libgcc.lib
     libayatana-appindicator
   ];
 
-  installPhase = ''
-    runHook preInstall
-
-    mkdir -p $out/opt/astral
-    # DO NOT `cp -R . $out/xxx`
-    # otherwize nativeBuildInputs and src will be included as dependencies in the final derivation
-    cp -r astral data lib/ $out/opt/astral/
-
-    # Install icon
+  postInstall = ''
     mkdir -p $out/share/pixmaps
-    cp $out/opt/astral/data/flutter_assets/assets/logo.png $out/share/pixmaps/astral.png
+    cp $out/app/${pname}/data/flutter_assets/assets/logo.png $out/share/pixmaps/astral.png
+  '';
 
-    # Create wrapper script for bin
-    # Fake UID=0/USER=root so astral thinks it's running as root.
-    # Real cap_net_admin is provided via security.wrappers in the NixOS module.
-    mkdir -p $out/bin
-    cat > $out/bin/${pname} <<WRAPPER
-    #!/bin/sh
-    exec env UID=0 USER=root SUDO_USER="\''${SUDO_USER:-\''${USER:-user}}" \
-      GDK_SCALE="${lib.toString gdkScale}" \
-      GDK_DPI_SCALE="${lib.strings.floatToString (1.0 / gdkScale)}" \
-      $out/opt/astral/astral "\$@"
-    WRAPPER
-    chmod +x $out/bin/${pname}
-
-    runHook postInstall
+  extraWrapProgramArgs = ''
+    --prefix LD_LIBRARY_PATH : $out/app/${pname}/lib
   '';
 
   desktopItems = [
@@ -74,6 +119,10 @@ stdenv.mkDerivation rec {
       keywords = [ "Easytier" "VPN" "Network" "Proxy" ];
     })
   ];
+
+  passthru = {
+    inherit rustDep;
+  };
 
   meta = with lib; {
     description = "Astral desktop client";
