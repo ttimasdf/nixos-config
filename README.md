@@ -1,3 +1,5 @@
+[![xc compatible](https://xcfile.dev/badge.svg)](https://xcfile.dev)
+
 # KnownRabbit NixOS Config
 
 A modular, multi-host NixOS configuration with private module support so you can ditch agenix.
@@ -155,7 +157,8 @@ This feature is implemented via the [`modules/nixos/common/version-hint.nix`](mo
 
 
 ## Tasks
-[![xc compatible](https://xcfile.dev/badge.svg)](https://xcfile.dev)
+
+The tasks in this section are compatible with the [xc task runner](https://xcfile.dev/). You can execute any of these commands simply by running `xc <task-name>`, e.g., `xc build`.
 
 ### update
 
