@@ -33,12 +33,6 @@ in
     # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/installer/cd-dvd/iso-image.nix
     # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix
     # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/installer/cd-dvd/latest-kernel.nix
-    # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/virtualisation/proxmox-image.nix
-
-    proxmox = {
-      # Import config.proxmox values from rabitprivate.nixos.proxmoxConf
-      proxmox = config.rabitprivate.nixos.proxmoxConf.${config.networking.hostName};
-    };
 
     iso-minimal = rabit-lib.mergeAttrsList [
       {
