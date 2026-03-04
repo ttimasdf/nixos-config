@@ -76,9 +76,6 @@ in
 
   # region Cockpit web management
   # Cockpit provides a web-based interface for system administration.
-  # Note: Many plugins are built into cockpit or provided via cockpit-zfs.
-  # For podman management, install cockpit-podman on the system (if available)
-  # or use the built-in terminal/session features.
   services.cockpit = {
     enable = true;
     port = 9090;
@@ -90,6 +87,12 @@ in
         ForwardedForHeader = "X-Forwarded-For";
       };
     };
+    plugins = with pkgs; [
+      cockpit-zfs
+      cockpit-podman
+      cockpit-files
+      cockpit-file-sharing
+    ];
   };
 
   # endregion Cockpit web management
