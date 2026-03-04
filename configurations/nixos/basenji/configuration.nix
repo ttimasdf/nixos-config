@@ -237,14 +237,6 @@ in
   # region firewall
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [
-      8384    # Syncthing (WebUI)
-      22000   # Syncthing (Sync)
-    ];
-    allowedUDPPorts = [
-      21027   # Syncthing (Discovery)
-      22000   # Syncthing (Sync)
-    ];
     # Allow easytier TUN mode to work with system stack
     trustedInterfaces = [ "easytier0" ];
   };
