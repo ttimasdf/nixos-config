@@ -23,6 +23,11 @@ in
       device = "/dev/disk/by-diskseq/1";
     };
   };
+  boot.initrd.systemd = {
+    enable = true;
+    repart.enable = true;
+  };
+
   boot.kernelPackages = pkgs.linuxPackages;
   boot.kernel.sysctl = {
     "net.ipv4.ip_forward" = 1;
