@@ -1,0 +1,52 @@
+From 614a9c2038e62cd73cc47280eac73a56c8b02bd1 Mon Sep 17 00:00:00 2001
+From: ttimasdf <opensource@rabit.pw>
+Date: Wed, 4 Mar 2026 15:58:17 +0800
+Subject: [PATCH] fix: disable VueDevTools and add missing dependencies for
+ Yarn PnP
+
+- Remove vite-plugin-vue-devtools from vite.config.ts (peer dependency issues)
+- Add p-limit and uuid to dependencies (required for Yarn PnP strict resolution)
+
+This fixes build errors when building with Nix and Yarn Berry PnP.
+---
+ file-sharing/package.json   | 2 ++
+ file-sharing/vite.config.ts | 3 +--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/file-sharing/package.json b/file-sharing/package.json
+index 8a39a1b..346155e 100644
+--- a/file-sharing/package.json
++++ b/file-sharing/package.json
+@@ -23,6 +23,8 @@
+     "@heroicons/vue": "^2.0.18",
+     "monet": "^0.9.3",
+     "neverthrow": "^6.2.1",
++    "p-limit": "^7.2.0",
++    "uuid": "^9.0.1",
+     "vue": "^3.5",
+     "vue-router": "^4.3.2",
+     "zod": "^3.23.8"
+diff --git a/file-sharing/vite.config.ts b/file-sharing/vite.config.ts
+index 61dfd83..ed63866 100644
+--- a/file-sharing/vite.config.ts
++++ b/file-sharing/vite.config.ts
+@@ -2,7 +2,6 @@ import { fileURLToPath, URL } from "node:url";
+ 
+ import { defineConfig, PluginOption } from "vite";
+ import vue from "@vitejs/plugin-vue";
+-import VueDevTools from "vite-plugin-vue-devtools";
+ 
+ import manifest from "../manifest.json";
+ 
+@@ -12,7 +11,7 @@ const getAppVersionDefine = () => {
+ 
+ // https://vitejs.dev/config/
+ export default defineConfig({
+-  plugins: [vue(), VueDevTools()] as PluginOption[],
++  plugins: [vue()] as PluginOption[],
+   base: "./",
+   resolve: {
+     alias: {
+-- 
+2.52.0
+
