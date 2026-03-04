@@ -52,7 +52,10 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-EoPakV7FVMOxA6yNhteS3s1+aeAF72etpZ4qM7/Dpgo=";
   };
 
-  patches = findPatches ./patches;
+  patches =
+    (findPatches ./patches)
+    # with cockpit-zfs de-branding patch
+    ++ [ ../../overlays/cockpit-zfs/patches/houston-common-0001-feat-remove-45Drives-logo-from-header.patch ];
 
   nativeBuildInputs = [
     yarn-berry
