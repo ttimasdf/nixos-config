@@ -1,0 +1,26 @@
+From 34d38859288e6530dc8fce96ed56d5e86e2b3b1e Mon Sep 17 00:00:00 2001
+From: ttimasdf <opensource@rabit.pw>
+Date: Wed, 4 Mar 2026 11:19:27 +0800
+Subject: [PATCH] feat: remove 45Drives branding from web interface
+
+Replace '45Drives ZFS' with 'ZFS' in the Cockpit menu label to remove vendor branding from the web frontend.
+---
+ zfs/public/manifest.json | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/zfs/public/manifest.json b/zfs/public/manifest.json
+index e111296..79a07f8 100644
+--- a/zfs/public/manifest.json
++++ b/zfs/public/manifest.json
+@@ -3,7 +3,7 @@
+ 
+   "menu": {
+       "zfs": {
+-          "label": "45Drives ZFS",
++          "label": "ZFS",
+           "path": "index.html",
+           "order": 111
+           
+-- 
+2.52.0
+

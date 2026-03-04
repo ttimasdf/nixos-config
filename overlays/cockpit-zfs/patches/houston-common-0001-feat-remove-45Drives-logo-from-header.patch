@@ -1,0 +1,35 @@
+From 74cbc7aa231b93feb512d8a806ae2835917615d0 Mon Sep 17 00:00:00 2001
+From: ttimasdf <opensource@rabit.pw>
+Date: Wed, 4 Mar 2026 11:30:12 +0800
+Subject: [PATCH] feat: remove 45Drives logo from header
+
+Remove Logo45Drives component from HoustonHeader to eliminate vendor branding from the web interface.
+---
+ houston-common/houston-common-ui/lib/components/HoustonHeader.vue | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/houston-common/houston-common-ui/lib/components/HoustonHeader.vue b/houston-common/houston-common-ui/lib/components/HoustonHeader.vue
+index 2a6bdbb..60a3950 100644
+--- a/houston-common/houston-common-ui/lib/components/HoustonHeader.vue
++++ b/houston-common/houston-common-ui/lib/components/HoustonHeader.vue
+@@ -20,7 +20,6 @@ If not, see <https://www.gnu.org/licenses/>.
+ import { defineProps, defineEmits } from "vue";
+ import LoadingSpinner from "@/components/LoadingSpinner.vue";
+ import { useGlobalProcessingState } from "@/composables/useGlobalProcessingState";
+-import Logo45Drives from "@/components/Logo45Drives.vue";
+ 
+ const props = defineProps<{ moduleName: string }>();
+ 
+@@ -72,9 +71,6 @@ function vape() {
+     <div
+       class="flex flex-row flex-wrap items-baseline basis-32 grow shrink-0 gap-x-4 content-between"
+     >
+-      <div class="flex flex-row items-center my-5">
+-        <Logo45Drives class="h-6" />
+-      </div>
+       <slot name="header-left"></slot>
+     </div>
+     <h1
+-- 
+2.52.0
+
