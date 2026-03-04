@@ -15,6 +15,8 @@
       # Set NH_FLAKE environment variable to the current flake's path
       shellHook = ''
         export NH_FLAKE=$(pwd)
+        # Force override SSH_AUTH_SOCK for nixos-rebuild (nix-copy-closure)
+        export NIX_SSHOPTS="-o IdentityAgent=$SSH_AUTH_SOCK"
 
         # FIXME: need to run `nix develop` manually for this function to work.
         # due to direnv bug:
