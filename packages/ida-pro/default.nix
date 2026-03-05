@@ -24,7 +24,18 @@
   libunwind,
   libxkbcommon,
   openssl,
-  xorg,
+  libICE,
+  libSM,
+  libX11,
+  libXau,
+  libxcb,
+  libXext,
+  libXi,
+  libXrender,
+  libxcb-image,
+  libxcb-keysyms,
+  libxcb-render-util,
+  libxcb-wm,
   zlib,
   licenseName ? "NixOS User",
   licenseStartDate ? "2025-11-25",
@@ -95,18 +106,18 @@ stdenv.mkDerivation rec {
     libsecret
     openssl
     stdenv.cc.cc
-    xorg.libICE
-    xorg.libSM
-    xorg.libX11
-    xorg.libXau
-    xorg.libxcb
-    xorg.libXext
-    xorg.libXi
-    xorg.libXrender
-    xorg.xcbutilimage
-    xorg.xcbutilkeysyms
-    xorg.xcbutilrenderutil
-    xorg.xcbutilwm
+    libICE
+    libSM
+    libX11
+    libXau
+    libxcb
+    libXext
+    libXi
+    libXrender
+    libxcb-image
+    libxcb-keysyms
+    libxcb-render-util
+    libxcb-wm
     zlib
     curl
     pythonEnv
