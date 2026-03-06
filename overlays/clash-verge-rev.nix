@@ -12,7 +12,7 @@ in
       owner = "clash-verge-rev";
       repo = "clash-verge-rev";
       tag = "v${version}";
-      hash = "sha256-FFo0jy8RF2nnb2lA9mLfW7jhbUCv+Sq0dd0P0iTv2SQ=";
+      hash = "sha256-s/dUy9vYxdUlAahVPkoOHjoF+WCl3xhJOubZtS1PB5o=";
     };
   });
 }
