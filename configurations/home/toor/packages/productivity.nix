@@ -14,6 +14,7 @@
     # Development & Code Editors
     # vscode
     antigravity
+    code-cursor
 
     # Web Browsers & Download Tools
     # firefox  # enabled below
