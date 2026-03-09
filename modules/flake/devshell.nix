@@ -10,6 +10,7 @@
         git-crypt
         gh
         nixfmt
+        nix-update
       ];
 
       # Set NH_FLAKE environment variable to the current flake's path
