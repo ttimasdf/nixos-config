@@ -191,8 +191,8 @@ in
   services.mihomo.configFile = "/home/toor/Documents/clash-config/client.yml";
   rabit.nixos.http_proxy = "http://127.0.0.1:28888";
 
-  programs.throne.enable = true;
-  programs.throne.tunMode.enable = true;
+  # programs.throne.enable = true;
+  # programs.throne.tunMode.enable = true;
 
   programs.nh = {
     enable = true;
