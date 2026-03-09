@@ -19,16 +19,17 @@ let
       builtins.listToAttrs          # Convert back to attribute set
     ];
   /**
-    forAllNixFiles: Recursively process all .nix files in a directory
+    forAllNixFiles': Recursively process all .nix files in a directory with custom index file name
 
     Parameters:
       dir: Directory path to scan for .nix files
       callback: Function to apply to each found .nix file (path -> value)
+      indexNixFileName: Directory entry point file name to look for when indexing directories
 
     Returns: Attribute set where keys are file names (without .nix extension)
             and values are the result of applying callback to each file
    */
-  forAllNixFiles = dir: callback:
+  forAllNixFiles' = dir: callback: indexNixFileName:
     if builtins.pathExists dir then
       lib.pipe dir [
         builtins.readDir  # Read directory contents
@@ -42,14 +43,27 @@ let
             else
               # File doesn't have .nix extension, skip
               null
-          else if type == "directory" && builtins.pathExists "${dir}/${fn}/default.nix" then
-            # Handle directories with default.nix files
+          else if type == "directory" && builtins.pathExists "${dir}/${fn}/${indexNixFileName}" then
+            # Handle directories with an index .nix file
             lib.nameValuePair fn (callback "${dir}/${fn}")
           else
-            # Skip other file types and directories without default.nix
+            # Skip other file types and directories without the index .nix file
             null
         ))
       ] else { };
+
+  /**
+    forAllNixFiles: Recursively process all .nix files in a directory (uses default.nix for directories)
+
+    Parameters:
+      dir: Directory path to scan for .nix files
+      callback: Function to apply to each found .nix file (path -> value)
+
+    Returns: Attribute set where keys are file names (without .nix extension)
+            and values are the result of applying callback to each file
+   */
+  forAllNixFiles = dir: callback:
+    forAllNixFiles' dir callback "default.nix";
 
   /**
     flattenPkgs: Recursively flatten nested package structures into a flat attribute set
@@ -115,7 +129,7 @@ in
 {
   config.flake = {
     rabit-lib = {
-      inherit mapAttrsMaybe forAllNixFiles flattenPkgs mapListToAttrs findPatches mergeAttrsList;
+      inherit mapAttrsMaybe forAllNixFiles forAllNixFiles' flattenPkgs mapListToAttrs findPatches mergeAttrsList;
     };
   };
 }
