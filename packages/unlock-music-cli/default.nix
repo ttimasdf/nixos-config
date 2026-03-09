@@ -11,11 +11,11 @@ buildGoModule rec {
 
   src = fetchgit {
     url = "https://git.um-react.app/um/cli.git";
-    rev = "589e573b55f4b2d9c50970ebe5f77f1b30ac1e05";
-    hash = "sha256-pFzF3f4TDoKanHyG735pYq7gkVP3t+ahBeUhLxsjyrM=";
+    rev = "107aa2c3a843e6b30406d45d64789f3c155dd68f";
+    hash = "sha256-mPT5H4pIvnCfKeNR0V5ENXEPZtFXFlNIKF+kEtiQ85c=";
   };
 
-  vendorHash = "sha256-tiYP4Bivq7qq7aQAZw0lzjuNn1cMEhgTH8Tzi+L8OvA=";
+  vendorHash = "sha256-ozRvYx6+7MZomiFq1aE39Yu1lFVfgmAmJ7gxDzLyH8M=";
 
   ldflags =
     let
