@@ -115,12 +115,12 @@ in
 
   rabitprivate.nixos.hosts.corpo.enable = true;
   rabitprivate.nixos.hosts.pentest.enable = true;
-  rabit.nixos.gui.font-dir.enable = true;
   # endregion network
 
   # region UI/UX
   rabit.nixos.gui.kde.enable = true;
   rabit.nixos.gui.l10n-chinese.enable = true;
+  rabit.nixos.gui.font-dir.enable = true;
   # Select internationalisation properties.
   i18n.defaultLocale = "en_GB.UTF-8";
   console = {
@@ -132,9 +132,6 @@ in
   # Configure keymap in X11
   services.xserver.xkb.layout = "us";
   # services.xserver.xkb.options = "eurosign:e,caps:escape";
-
-  # Provided by:
-  # https://github.com/NixOS/nixos-hardware/blob/9ed85f8afebf2b7478f25db0a98d0e782c0ed903/common/gpu/nvidia/prime.nix#L7
 
   hardware.bluetooth = {
     enable = true;
@@ -188,52 +185,14 @@ in
   programs.java.enable = true;
   programs.java.package = pkgs.jdk.override { enableJavaFX = true; }; # fix javafx
 
-  # fimware service
-  services.fwupd.enable = true;
-  # Thunderbolt service
-  services.hardware.bolt.enable = true;
-
-  # fingerprint scanner https://wiki.nixos.org/wiki/Fingerprint_scanner
-  # Install the driver
-  services.fprintd.enable = true;
-  # If simply enabling fprintd is not enough, try enabling fprintd.tod...
-  # services.fprintd.tod.enable = true;
-  # ...and use one of the next four drivers
-  # services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix; # Goodix driver module
-  # services.fprintd.tod.driver = pkgs.libfprint-2-tod1-elan; # Elan(04f3:0c4b) driver
-  # services.fprintd.tod.driver = pkgs.libfprint-2-tod1-vfs0090; # (Marked as broken as of 2025/04/23!) driver for 2016 ThinkPads
-  # services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix-550a; # Goodix 550a driver (from Lenovo)
-
-  # however for focaltech 2808:a658, use fprintd with overidden package (without tod)
-  # services.fprintd.package = pkgs.fprintd.override {
-  #   libfprint = pkgs.libfprint-focaltech-2808-a658;
-  # };
-  security.pam.services.login.fprintAuth = false;
-  security.pam.services.gdm-fingerprint = lib.mkIf (config.services.fprintd.enable) {
-    text = ''
-      auth       required                    pam_shells.so
-      auth       requisite                   pam_nologin.so
-      auth       requisite                   pam_faillock.so      preauth
-      auth       required                    ${pkgs.fprintd}/lib/security/pam_fprintd.so
-      auth       optional                    pam_permit.so
-      auth       required                    pam_env.so
-      auth       [success=ok default=1]      ${pkgs.gdm}/lib/security/pam_gdm.so
-      auth       optional                    ${pkgs.gnome-keyring}/lib/security/pam_gnome_keyring.so
-
-      account    include                     login
-
-      password   required                    pam_deny.so
-
-      session    include                     login
-      session    optional                    ${pkgs.gnome-keyring}/lib/security/pam_gnome_keyring.so auto_start
-    '';
-  };
-
   services.mihomo.enable = true;
   services.mihomo.tunMode = true;
   services.mihomo.webui = pkgs.metacubexd;
   services.mihomo.configFile = "/home/toor/Documents/clash-config/client.yml";
   rabit.nixos.http_proxy = "http://127.0.0.1:28888";
+
+  programs.throne.enable = true;
+  programs.throne.tunMode.enable = true;
 
   programs.nh = {
     enable = true;
@@ -264,9 +223,90 @@ in
     enable = true;
   };
 
-  ## Container config
+  # Enable ddccontrol for controlling DDC/CI monitors
+  services.ddccontrol.enable = true;
 
-  # hardware.nvidia-container-toolkit.enable = true;
+  # Add 'newuidmap' and 'sh' to the PATH for users' Systemd units.
+  # Required for Rootless podman.
+  systemd.user.extraConfig = ''
+    DefaultEnvironment="PATH=/run/current-system/sw/bin:/run/wrappers/bin:${lib.makeBinPath [ pkgs.bash ]}"
+  '';
+
+  systemd.services."user@".serviceConfig = {
+    TimeoutStopSec = "30s";
+  };
+
+  # List packages installed in system profile.
+  # You can use https://search.nixos.org/ to find more packages (and options).
+  environment.systemPackages = with pkgs; [
+    # Basic packages for editing nix config
+    git
+
+    # sysadmin
+    inetutils   # ftp  hostname  ifconfig  telnet  tftp  traceroute  whois
+    net-tools   # netstat
+    htop
+    tcpdump
+    dig.dnsutils
+
+    # Hardware info
+    pciutils          # lspci
+    usbutils          # lsusb
+    intel-gpu-tools   # intel_gpu_top
+    smartmontools     # smartctl
+    inxi
+    lm_sensors
+
+    # Disk Encryption
+    #cryptsetup
+    exfatprogs
+
+    # containers
+    dive # look into docker image layers
+    podman-tui # status of containers in the terminal
+    #docker-compose # start group of containers for dev
+    podman-compose # start group of containers for dev
+
+    # Archive
+    rar
+    unzip-nls
+    zip-nls
+    _7zz-nls
+  ];
+
+  # https://wiki.nixos.org/wiki/TPM
+  security.tpm2.enable = true;
+  # expose /run/current-system/sw/lib/libtpm2_pkcs11.so
+  security.tpm2.pkcs11.enable = true;
+  # TPM2TOOLS_TCTI and TPM2_PKCS11_TCTI env variables
+  security.tpm2.tctiEnvironment.enable = true;
+
+  # Some programs need SUID wrappers, can be configured further or are
+  # started in user sessions.
+
+  programs.traceroute.enable = true;
+  programs.mtr.enable = true;
+  # programs.easytier-gui.enable = true;
+  programs.appimage.enable = true;
+  programs.appimage.binfmt = true;
+
+  # programs.gnupg.agent = {
+  #   enable = true;
+  #   enableSSHSupport = true;
+  # };
+  programs.fido-linux-id.enable = true;
+  programs.wireshark.enable = true;
+  programs.wireshark.package = pkgs.wireshark;
+  programs.wireshark.dumpcap.enable = true;
+  programs.wireshark.usbmon.enable = true;
+
+  # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/programs/ghidra.nix
+  # programs.ghidra.enable = true;
+  # programs.ghidra.package = pkgs.ghidra-mod-with-extensions;
+
+  # endregion software
+
+  #region containers
 
   # Enable common container config files in /etc/containers
   virtualisation.containers.enable = true;
@@ -338,64 +378,7 @@ in
   programs.virt-manager.enable = true;
   #endregion VMs
 
-  # Add 'newuidmap' and 'sh' to the PATH for users' Systemd units.
-  # Required for Rootless podman.
-  systemd.user.extraConfig = ''
-    DefaultEnvironment="PATH=/run/current-system/sw/bin:/run/wrappers/bin:${lib.makeBinPath [ pkgs.bash ]}"
-  '';
-
-  systemd.services."user@".serviceConfig = {
-    TimeoutStopSec = "30s";
-  };
-
-  # List packages installed in system profile.
-  # You can use https://search.nixos.org/ to find more packages (and options).
-  environment.systemPackages = with pkgs; [
-    # Basic packages for editing nix config
-    git
-
-    # sysadmin
-    inetutils   # ftp  hostname  ifconfig  telnet  tftp  traceroute  whois
-    net-tools   # netstat
-    htop
-    tcpdump
-    dig.dnsutils
-
-    # Hardware info
-    pciutils          # lspci
-    usbutils          # lsusb
-    intel-gpu-tools   # intel_gpu_top
-    smartmontools     # smartctl
-    inxi
-    lm_sensors
-
-    # Disk Encryption
-    #cryptsetup
-    exfatprogs
-
-    # containers
-    dive # look into docker image layers
-    podman-tui # status of containers in the terminal
-    #docker-compose # start group of containers for dev
-    podman-compose # start group of containers for dev
-
-    # Archive
-    rar
-    unzip-nls
-    zip-nls
-    _7zz-nls
-
-    # Development
-    uv
-  ];
-
-  # https://wiki.nixos.org/wiki/TPM
-  security.tpm2.enable = true;
-  # expose /run/current-system/sw/lib/libtpm2_pkcs11.so
-  security.tpm2.pkcs11.enable = true;
-  # TPM2TOOLS_TCTI and TPM2_PKCS11_TCTI env variables
-  security.tpm2.tctiEnvironment.enable = true;
-
+  #region configurations
   # Fix uv python ssl.SSLCertVerificationError
   environment.etc.certfile = {
     source = "/etc/ssl/certs/ca-bundle.crt";
@@ -404,26 +387,6 @@ in
   # ~/.local/bin in PATH for `uv tool install`
   environment.localBinInPath = true;
 
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-
-  programs.traceroute.enable = true;
-  programs.mtr.enable = true;
-
-  programs.appimage.enable = true;
-  programs.appimage.binfmt = true;
-
-  # programs.gnupg.agent = {
-  #   enable = true;
-  #   enableSSHSupport = true;
-  # };
-  programs.fido-linux-id.enable = true;
-  programs.wireshark.enable = true;
-  programs.wireshark.package = pkgs.wireshark;
-  programs.wireshark.dumpcap.enable = true;
-  programs.wireshark.usbmon.enable = true;
-  # programs.ghidra.enable = true;
-  # programs.ghidra.package = pkgs.ghidra-mod-with-extensions;
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
@@ -454,10 +417,8 @@ in
   };
 
   rabitprivate.nixos.cacerts.mitmca.enable = true;
-  rabitprivate.nixos.cacerts.mitmca2.enable = true;
-  # endregion software
+  # endregion configurations
 
-  # region nix config
   systemd.services."nix-daemon".serviceConfig = {
     Environment = [
       "http_proxy=${config.rabit.nixos.http_proxy}"
@@ -465,6 +426,49 @@ in
       "no_proxy=${config.rabit.nixos.no_proxy}"
     ];
   };
+
+  # fimware service
+  services.fwupd.enable = true;
+  # Thunderbolt service
+  services.hardware.bolt.enable = true;
+
+  # fingerprint scanner https://wiki.nixos.org/wiki/Fingerprint_scanner
+  # Install the driver
+  services.fprintd.enable = true;
+  # If simply enabling fprintd is not enough, try enabling fprintd.tod...
+  # services.fprintd.tod.enable = true;
+  # ...and use one of the next four drivers
+  # services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix; # Goodix driver module
+  # services.fprintd.tod.driver = pkgs.libfprint-2-tod1-elan; # Elan(04f3:0c4b) driver
+  # services.fprintd.tod.driver = pkgs.libfprint-2-tod1-vfs0090; # (Marked as broken as of 2025/04/23!) driver for 2016 ThinkPads
+  # services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix-550a; # Goodix 550a driver (from Lenovo)
+
+  # however for focaltech 2808:a658, use fprintd with overidden package (without tod)
+  # services.fprintd.package = pkgs.fprintd.override {
+  #   libfprint = pkgs.libfprint-focaltech-2808-a658;
+  # };
+  security.pam.services.login.fprintAuth = false;
+  security.pam.services.gdm-fingerprint = lib.mkIf (config.services.fprintd.enable) {
+    text = ''
+      auth       required                    pam_shells.so
+      auth       requisite                   pam_nologin.so
+      auth       requisite                   pam_faillock.so      preauth
+      auth       required                    ${pkgs.fprintd}/lib/security/pam_fprintd.so
+      auth       optional                    pam_permit.so
+      auth       required                    pam_env.so
+      auth       [success=ok default=1]      ${pkgs.gdm}/lib/security/pam_gdm.so
+      auth       optional                    ${pkgs.gnome-keyring}/lib/security/pam_gnome_keyring.so
+
+      account    include                     login
+
+      password   required                    pam_deny.so
+
+      session    include                     login
+      session    optional                    ${pkgs.gnome-keyring}/lib/security/pam_gnome_keyring.so auto_start
+    '';
+  };
+  
+  # region nix config
 
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
