@@ -54,6 +54,7 @@ let
   };
 
   pythonEnv = python3.withPackages (p: with p; [
+    mcp
     rpyc
   ]);
   keygen = ./keygen-v2.py;
