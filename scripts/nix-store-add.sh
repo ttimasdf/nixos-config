@@ -2,17 +2,17 @@
 
 set -euo pipefail
 
-# File pattern for Binary Ninja archives
-FILE_PATTERN="binaryninja_linux*.7z"
+# File pattern for archives
+FILE_PATTERN="*.7z"
 
 usage() {
     cat <<EOF
 Usage: $0 [OPTIONS] [FILE...]
 
-Add Binary Ninja files to Nix store and generate Nix hash.
+Add files to Nix store and generate Nix hash.
 
 Arguments:
-  FILE...     Optional paths to Binary Ninja files (e.g., binaryninja_linux_commercial.5.2.8614-stable.7z)
+  FILE...     Optional paths to files (e.g., archive.7z)
               If no files are specified, automatically finds all $FILE_PATTERN files in current and subdirectories.
 
 Options:
@@ -20,7 +20,7 @@ Options:
 
 Examples:
   $0                                    # Process all $FILE_PATTERN files found
-  $0 binaryninja_linux_commercial.5.2.8614-stable.7z
+  $0 archive.7z
   $0 file1.7z file2.7z file3.7z
 EOF
 }
