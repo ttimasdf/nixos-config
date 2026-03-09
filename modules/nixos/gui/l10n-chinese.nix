@@ -12,16 +12,16 @@ in {
         sarasa-gothic         # Chinese font
         lxgw-wenkai
         maple-mono.NF-CN
-        #noto-fonts
-        nerd-fonts.noto
+        # noto-fonts
+        # nerd-fonts.noto
         noto-fonts-cjk-sans   # CJK font
         noto-fonts-color-emoji
         liberation_ttf        # include serif, sans serif, mono
         nerd-fonts.liberation
-        #fira-code
+        # fira-code
         nerd-fonts.fira-code
         fira-code-symbols
-        #mplus-outline-fonts.githubRelease  # Japanese font
+        # mplus-outline-fonts.githubRelease  # Japanese font
 
         # Microsoft Fonts
         # https://github.com/nix-community/nur-combined/blob/90a344dfa259d85ae0cd3d11398384d1bb5c1d16/repos/hexadecimalDinosaur/pkgs/ttf-ms-win11/lists.nix#L85-L90
