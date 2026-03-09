@@ -1,7 +1,8 @@
 {
   lib,
-  buildGoModule,
   fetchgit,
+  buildGoModule,
+  nix-update-script,
 }:
 
 buildGoModule rec {
@@ -9,7 +10,7 @@ buildGoModule rec {
   version = "0-unstable-2025-08-12";
 
   src = fetchgit {
-    url = "https://git.unlock-music.dev/um/cli.git";
+    url = "https://git.um-react.app/um/cli.git";
     rev = "589e573b55f4b2d9c50970ebe5f77f1b30ac1e05";
     hash = "sha256-pFzF3f4TDoKanHyG735pYq7gkVP3t+ahBeUhLxsjyrM=";
   };
@@ -28,9 +29,11 @@ buildGoModule rec {
       "-X main.AppVersion=${appVersion}"
     ];
 
+  passthru.updateScript = nix-update-script { };
+
   meta = with lib; {
     description = "Unlock Music CLI - Command line tool to unlock encrypted music files";
-    homepage = "https://git.unlock-music.dev/um/cli";
+    homepage = "https://git.um-react.app/um/cli";
     license = licenses.mit;
     maintainers = [ ];
     mainProgram = "um";
