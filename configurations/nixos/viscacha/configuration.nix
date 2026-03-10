@@ -451,6 +451,10 @@ in
 
   # region nix config
 
+  nixpkgs.config.permittedInsecurePackages = [
+    # required for unicom-cloud-desktop
+    lib.warn "Enabling insecure package qtwebengine-5.15.19 due to unicom-cloud-desktop dependency" "qtwebengine-5.15.19"
+  ];
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
   # accidentally delete configuration.nix.

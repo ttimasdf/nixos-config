@@ -47,6 +47,7 @@
     rustdesk-flutter
     virt-viewer
     sshpass
+    unicom-cloud-desktop
   ];
 
   # Add symlink for edge for Apps to work
