@@ -125,11 +125,22 @@ let
              Later elements in the list take precedence over earlier ones.
   */
   mergeAttrsList = list: lib.foldl lib.recursiveUpdate { } list;
+
+  /**
+    formatSshKeys: Format a list of SSH public keys into a URL-encoded newline-separated string.
+
+    Parameters:
+      keys: A list of SSH public key strings
+
+    Returns: A URL-encoded string of SSH public keys joined by newlines
+  */
+  formatSshKeys = keys: lib.escapeURL (lib.concatStringsSep "\n" keys);
+
 in
 {
   config.flake = {
     rabit-lib = {
-      inherit mapAttrsMaybe forAllNixFiles forAllNixFiles' flattenPkgs mapListToAttrs findPatches mergeAttrsList;
+      inherit mapAttrsMaybe forAllNixFiles forAllNixFiles' flattenPkgs mapListToAttrs findPatches mergeAttrsList formatSshKeys;
     };
   };
 }
