@@ -19,6 +19,13 @@
         # Force override SSH_AUTH_SOCK for nixos-rebuild (nix-copy-closure)
         export NIX_SSHOPTS="-o IdentityAgent=$SSH_AUTH_SOCK"
 
+        # Allow unfree packages for this devshell.
+        export NIXPKGS_ALLOW_UNFREE=1
+
+        # Allow insecure packages for this devshell (e.g., qt5.webengine).
+        # Use with `nix build --impure`
+        export NIXPKGS_ALLOW_INSECURE=1
+
         # FIXME: need to run `nix develop` manually for this function to work.
         # due to direnv bug:
         # https://github.com/direnv/direnv/issues/73
