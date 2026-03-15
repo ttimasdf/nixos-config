@@ -245,6 +245,12 @@ in
 
   services.flatpak.enable = true;
 
+  # services.ollama = {
+  #   enable = true;
+  #   package = pkgs.ollama-cuda;
+  # };
+
+
   # Tailscale
   services.tailscale.enable = true;
 
@@ -453,10 +459,20 @@ in
 
   # region nix config
 
-  nixpkgs.config.permittedInsecurePackages = [
-    # required for unicom-cloud-desktop
-    lib.warn "Enabling insecure package qtwebengine-5.15.19 due to unicom-cloud-desktop dependency" "qtwebengine-5.15.19"
-  ];
+  nixpkgs.config = {
+    # Allow unfree packages
+    allowUnfree = true;
+    # Enable CUDA support for PyTorch and related packages
+    # cudaSupport = true;
+    # Ada Lovelace support for LLM inference
+    # cudaCapabilities = [ "8.9" ];
+
+    permittedInsecurePackages = [
+      # required for unicom-cloud-desktop
+      lib.warn "Enabling insecure package qtwebengine-5.15.19 due to unicom-cloud-desktop dependency" "qtwebengine-5.15.19"
+    ];
+  };
+
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
   # accidentally delete configuration.nix.
