@@ -3,3 +3,4 @@ result
 .nixos-version-hint-skip
 /source
 private/
+.claude/
