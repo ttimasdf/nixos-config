@@ -27,6 +27,9 @@
   programs.tmate.enable = true; # Terminal sharing for collaboration
   programs.ripgrep.enable = true; # Fast text search tool
   programs.fd.enable = true;    # Simple and fast file finder
-  programs.yazi.enable = true;
-  programs.yazi.package = pkgs.yazi.override { _7zz = pkgs._7zz-nls; };
+  programs.yazi = {
+    enable = true;
+    package = pkgs.yazi.override { _7zz = pkgs._7zz-nls; };
+    shellWrapperName = "yy";
+  };
 }
