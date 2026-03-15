@@ -437,10 +437,12 @@ in
     checkReversePath = "loose";
 
     allowedTCPPorts = [
+      3006    # hapi
       22000   # syncthing
       53317   # localsend
     ];
     allowedUDPPorts = [
+      3006    # hapi
       22000   # syncthing
       53317   # localsend
     ];
