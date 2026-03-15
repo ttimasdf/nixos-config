@@ -344,7 +344,7 @@ in
 
   #region containers
 
-  # hardware.nvidia-container-toolkit.enable = true;
+  hardware.nvidia-container-toolkit.enable = true;
 
   # Enable common container config files in /etc/containers
   virtualisation.containers.enable = true;
