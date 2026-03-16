@@ -13,8 +13,8 @@
 
     # Development & Code Editors
     # vscode
-    antigravity
-    code-cursor
+    # antigravity
+    # code-cursor
 
     # Web Browsers & Download Tools
     # firefox  # enabled below
@@ -32,7 +32,7 @@
     # Password Management
     # keepassxc
     # git-credential-keepassxc
-    bitwarden-desktop
+    # bitwarden-desktop # electron-unwrapped-39.8.2 patch failed.
 
     # Screenshot & Recording
     # flameshot
