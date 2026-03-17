@@ -17,16 +17,16 @@
   libtiff-abi5,
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "unicom-cloud-desktop";
   version = "7.11.0-wuying";
 
   src = requireFile {
-    name = "wuying_uos_kylin_x86_64-${version}.deb";
+    name = "unicom-cloud-desktop-${finalAttrs.version}.deb";
     hash = "sha256-NdqvQVi9jq4YQFRQQQDU6s6rfVNrl9gYS2yJhnUzcxE=";
     message = ''
       Please download the Unicom Cloud Desktop (Wuying) installer and place it in the store:
-      $ nix-prefetch-url file:///path/to/wuying_uos_kylin_x86_64-${version}.deb
+      $ nix-prefetch-url file:///path/to/unicom-cloud-desktop-${finalAttrs.version}.deb
     '';
   };
 
@@ -75,4 +75,4 @@ stdenv.mkDerivation rec {
     platforms = [ "x86_64-linux" ];
     maintainers = [ ];
   };
-}
+})
