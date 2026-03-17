@@ -6,7 +6,7 @@ in
 {
   options.programs.astral = {
     enable = lib.mkEnableOption "astral";
-    package = lib.mkPackageOption pkgs "astral" { };
+    package = lib.mkPackageOption pkgs "astral-ng" { };
   };
 
   config = lib.mkIf cfg.enable {
