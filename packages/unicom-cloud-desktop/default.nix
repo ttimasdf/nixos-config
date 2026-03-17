@@ -2,9 +2,10 @@
   lib,
   stdenv,
   requireFile,
-  autoPatchelfHook,
+  buildFHSEnv,
+  appimageTools,
+  makeFontsConf,
   dpkg,
-  makeWrapper,
   qt5,
   gtk3,
   glib,
@@ -15,64 +16,92 @@
   libpulseaudio,
   libopus,
   libtiff-abi5,
+  libxcb,
 }:
 
-stdenv.mkDerivation rec {
+let
   pname = "unicom-cloud-desktop";
   version = "7.11.0-wuying";
 
   src = requireFile {
-    name = "wuying_uos_kylin_x86_64-${version}.deb";
+    name = "unicom-cloud-desktop-${version}.deb";
     hash = "sha256-NdqvQVi9jq4YQFRQQQDU6s6rfVNrl9gYS2yJhnUzcxE=";
     message = ''
       Please download the Unicom Cloud Desktop (Wuying) installer and place it in the store:
-      $ nix-prefetch-url file:///path/to/wuying_uos_kylin_x86_64-${version}.deb
+      $ nix-prefetch-url file:///path/to/unicom-cloud-desktop-${version}.deb
     '';
   };
 
-  nativeBuildInputs = [
-    autoPatchelfHook
-    dpkg
-    makeWrapper
-    qt5.wrapQtAppsHook
-  ];
+  unpacked = stdenv.mkDerivation {
+    pname = "${pname}-unpacked";
+    inherit version src;
 
-  buildInputs = [
+    nativeBuildInputs = [ dpkg ];
+
+    dontUnpack = true;
+    dontBuild = true;
+    dontStrip = true;
+
+    installPhase = ''
+      runHook preInstall
+
+      dpkg-deb -x "$src" "$out"
+
+      runHook postInstall
+    '';
+  };
+in
+buildFHSEnv (appimageTools.defaultFhsEnvArgs // {
+  inherit pname version;
+
+  executableName = "wuying";
+
+  targetPkgs = pkgs: (with pkgs; appimageTools.defaultFhsEnvArgs.targetPkgs pkgs ++ [
+    unpacked
+    qt5.qtbase
     qt5.qtwebengine
-    gtk3
-    glib
-    libusb1
-    zlib
+    # gtk3
+    # glib
+    # libusb1
+    # zlib
     libevdev
     libinput
-    libpulseaudio
+    # libpulseaudio
     libopus
     libtiff-abi5
-  ];
+    libxcb
+  ]);
 
-  unpackPhase = ''
-    dpkg-deb -x $src .
+  profile = ''
+    # unset QT_PLUGIN_PATH
+    # unset QML2_IMPORT_PATH
+    export LD_LIBRARY_PATH="/opt/wuying/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+    export FONTCONFIG_FILE=${makeFontsConf { fontDirectories = [ ]; }}
   '';
 
-  installPhase = ''
-    mkdir -p $out/opt $out/bin $out/share
-    cp -r opt/wuying $out/opt/
-    cp -r usr/share/applications $out/share/
-    cp -r usr/share/icons $out/share/
+  extraBwrapArgs = [ "--ro-bind ${unpacked}/opt /opt" ];
 
-    makeWrapper $out/opt/wuying/bin/wuying $out/bin/wuying \
-      --prefix LD_LIBRARY_PATH : "$out/opt/wuying/lib"
+  # runScript = "/opt/wuying/bin/wuying";
+  # debug FHS env running ./result/bin/wuying with bash
+  runScript = "bash";
+
+  extraInstallCommands = ''
+    cp -rT ${unpacked}/usr/share $out/share
 
     substituteInPlace $out/share/applications/wuying.desktop \
-      --replace "Exec=env LD_LIBRARY_PATH=/opt/wuying/lib /opt/wuying/bin/wuying" "Exec=$out/bin/wuying" \
-      --replace "Icon=cloudspace-logo" "Icon=$out/share/icons/hicolor/scalable/apps/cloudspace-logo.png"
+      --replace-fail "Exec=env LD_LIBRARY_PATH=/opt/wuying/lib /opt/wuying/bin/wuying" "Exec=wuying"
   '';
+
+  passthru = {
+    inherit unpacked;
+  };
 
   meta = with lib; {
     description = "Wuying Cloud Desktop - Alibaba Cloud productivity tool";
     homepage = "https://www.aliyun.com/product/wuying";
     license = licenses.unfree;
     platforms = [ "x86_64-linux" ];
+    mainProgram = "wuying";
     maintainers = [ ];
   };
-}
+})
