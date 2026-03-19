@@ -14,6 +14,7 @@
 
     openssl
     android-tools
+    gh
 
     # Code Editors
     # vscode  # enabled by programs.vscode.enable
