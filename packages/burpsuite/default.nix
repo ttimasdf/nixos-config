@@ -5,6 +5,7 @@
 {
   lib,
   stdenv,
+  systemd,
   fetchurl,
   jdk,
   runtimeShell,
@@ -21,7 +22,7 @@ let
       {
         productName = "pro";
         productDesktop = "Burp Suite Professional Edition";
-        hash = "sha256-IwseGPMpdaNVCqHg8BrQ+NHLle9ltCQNMUL1m+OTusA=";
+        hash = "sha256-ssJE14xLL/qsrDRlaQYFVuSojLEJVSVECuLHNkoZ4uY=";
       }
     else
       {
@@ -37,7 +38,7 @@ let
 in
 stdenv.mkDerivation rec {
   pname = "burpsuite";
-  version = "2025.11.6";
+  version = "2026.2.3";
 
   src = fetchurl {
     name = "burpsuite-${product.productName}-${version}.jar";
@@ -79,6 +80,7 @@ stdenv.mkDerivation rec {
 
     makeWrapper "${jdk}/bin/java" "$out/bin/${pname}" \
       --chdir "$out/share/burpsuite" \
+      --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath [ systemd ]}" \
       --set GDK_SCALE "${lib.toString gdkScale}" \
       --set GDK_DPI_SCALE "${lib.strings.floatToString (1.0 / gdkScale)}" \
       --add-flags "-jar $out/share/burpsuite/burploader.jar"
