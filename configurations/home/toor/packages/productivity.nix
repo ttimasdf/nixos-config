@@ -19,7 +19,8 @@
     # Web Browsers & Download Tools
     # firefox  # enabled below
     # microsoft-edge
-    tor-browser
+    # tor-browser
+    # agent-browser
     aria2
 
     # Office Suite
