@@ -467,6 +467,20 @@ in
       session    optional                    ${pkgs.gnome-keyring}/lib/security/pam_gnome_keyring.so auto_start
     '';
   };
+
+  nixpkgs.config = {
+    # Allow unfree packages
+    allowUnfree = true;
+    # Enable CUDA support for PyTorch and related packages
+    # cudaSupport = true;
+    # Ada Lovelace support for LLM inference
+    # cudaCapabilities = [ "8.9" ];
+
+    permittedInsecurePackages = [
+      # required for unicom-cloud-desktop
+      lib.warn "Enabling insecure package qtwebengine-5.15.19 due to unicom-cloud-desktop dependency" "qtwebengine-5.15.19"
+    ];
+  };
   
   # region nix config
 

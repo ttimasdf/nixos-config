@@ -13,7 +13,7 @@
 
     # Development & Code Editors
     # vscode
-    # antigravity
+    antigravity
     # code-cursor
 
     # Web Browsers & Download Tools
@@ -56,6 +56,7 @@
 
     # Remote Access
     # rustdesk-flutter
+    # wuying
     virt-viewer
     remmina
     winbox4
