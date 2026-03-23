@@ -19,7 +19,7 @@
     # Code Editors
     # vscode  # enabled by programs.vscode.enable
     antigravity
-
+    y-agent
   ];
   programs.vscode.enable = true;
 }
