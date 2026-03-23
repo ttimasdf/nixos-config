@@ -20,7 +20,7 @@ let
       export PATH="$HOME/.local/bin:$PATH"
     fi
     if [[ -d "$HOME/.bun/bin" ]]; then
-      export PATH="$HOME/.bun/bin:$HOME/.cache/.bun/bin:$PATH"
+      export PATH="$PATH:$HOME/.bun/bin:$HOME/.cache/.bun/bin"
     fi
   '';
 
