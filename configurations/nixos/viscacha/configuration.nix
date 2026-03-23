@@ -216,8 +216,13 @@ in
   programs.zsh.enable = true;
   programs.nix-ld.enable = true;
   programs.nix-ld.libraries = with pkgs; [
-    # Add any missing dynamic libraries for unpackaged programs
-    # here, NOT in environment.systemPackages
+    # provides libfuse.so.2 for the AppImage
+    fuse
+    # It's usually a good idea to add these common dependencies
+    # for whatever is *inside* the AppImage as well:
+    stdenv.cc.cc.lib
+    zlib
+    glib
   ];
 
   programs.vim.enable = true;
