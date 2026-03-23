@@ -56,7 +56,7 @@
 
     # Remote Access
     # rustdesk-flutter
-    # wuying
+    unicom-cloud-desktop
     virt-viewer
     remmina
     winbox4
