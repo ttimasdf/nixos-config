@@ -43,4 +43,5 @@
   programs.zoxide.enableZshIntegration = true;
   programs.yazi.enable = true;
   programs.yazi.package = pkgs.yazi.override { _7zz = pkgs._7zz-nls; };
+  programs.yazi.shellWrapperName = "y";
 }
