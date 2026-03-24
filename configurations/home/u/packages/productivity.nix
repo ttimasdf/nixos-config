@@ -7,6 +7,9 @@
     syncthingtray
     localsend
 
+    # Social & Communication
+    nur.repos.yakkhini.dingtalk
+
     # Note Taking & Documentation
     siyuan
     obsidian
