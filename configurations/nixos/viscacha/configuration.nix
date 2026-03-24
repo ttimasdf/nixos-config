@@ -39,13 +39,6 @@ in
     "spd5118"
   ];
 
-  specialisation.extra-fs.configuration = {
-    boot.supportedFilesystems.zfs = true;
-    # ZFS requires networking.hostId to be set
-    networking.hostId = "1858f3ed";
-    boot.supportedFilesystems.bcachefs = true;
-  };
-
   # endregion boot & kernel
 
   # region user settings
