@@ -27,8 +27,8 @@ rustPlatform.buildRustPackage (finalAttrs: {
   src = fetchFromGitHub {
     owner = "ttimasdf";
     repo = "y-agent";
-    rev = "41c86b2a081c6567ebca7380326f94b02ad60833";
-    sha256 = "sha256-XpwmtrEkVCi23vfr2EJxA3OC/xmqsBCpXsF+K0S9JtE=";
+    rev = "2b3456aecef352c04db1ecf3158ba36d7f48c7f9";
+    sha256 = "sha256-wZD4gJK8pSAQt2bkS4DiUr9HK0ukRhHPkNdWuHzV3Z8=";
     private = true;
   };
 
