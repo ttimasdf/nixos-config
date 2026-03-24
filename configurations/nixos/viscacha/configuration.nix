@@ -155,16 +155,27 @@ in
   # services.xserver.xkb.options = "eurosign:e,caps:escape";
 
   # Provided by:
-  # https://github.com/NixOS/nixos-hardware/blob/9ed85f8afebf2b7478f25db0a98d0e782c0ed903/common/gpu/nvidia/prime.nix#L7
-  hardware.nvidia.primeBatterySaverSpecialisation = false;
-  hardware.nvidia.prime = {
-    # Use NVIDIA GPU for rendering
-    sync.enable = true;
-    offload.enable = false;
-    # Use Intel GPU for rendering
-    reverseSync.enable = false;
-    # Enable if using an external GPU via Thunderbolt/USB4 enclosure
-    # allowExternalGpu = true;
+  # https://github.com/NixOS/nixos-hardware/blob/master/lenovo/legion/16irx9h/default.nix
+  # https://github.com/NixOS/nixos-hardware/blob/master/common/gpu/nvidia/prime.nix
+  # https://wiki.nixos.org/wiki/NVIDIA
+  hardware.nvidia = {
+    modesetting.enable = true;
+    # ==== PRIME Settings
+    # == Sync mode: dGPU to render, copy to iGPU
+    prime.sync.enable = true;
+    prime.offload.enable = false;
+    # optional: create a specialisation for disabling NVIDIA GPU
+    primeBatterySaverSpecialisation = false;
+
+    # == Offload: iGPU render, use dGPU only when launched via `nvidia-offload` cmd
+    # prime.offload.enable = true;
+    # prime.offload.enableOffloadCmd = true;
+
+    # == Reverse sync: dGPU render
+    # prime.reverseSync.enable = true;
+
+    # == Enable if using an external GPU via Thunderbolt/USB4 enclosure
+    # prime.allowExternalGpu = true;
   };
 
   hardware.bluetooth = {
