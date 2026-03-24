@@ -15,6 +15,7 @@
   openssl,
   webkitgtk_4_1,
   nodejs,
+  wrapGAppsHook4,
 }:
 
 rustPlatform.buildRustPackage (finalAttrs: {
@@ -38,6 +39,8 @@ rustPlatform.buildRustPackage (finalAttrs: {
     nodejs
     npmHooks.npmConfigHook
     pkg-config
+  ] ++ lib.optionals stdenv.hostPlatform.isLinux [
+    wrapGAppsHook4
   ];
 
   buildInputs = [
