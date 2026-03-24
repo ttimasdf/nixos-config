@@ -255,10 +255,6 @@ in
   #   package = pkgs.ollama-cuda;
   # };
 
-
-  # Tailscale
-  services.tailscale.enable = true;
-
   # ssh
   # https://wiki.nixos.org/wiki/SSH
   services.openssh = {
