@@ -399,7 +399,7 @@ in
     # Allow mihomo TUN mode to work with system stack
     trustedInterfaces = [ "mihomo0" ];
     checkReversePath = "loose";
-    
+
     allowedTCPPorts = [
       #22000   # syncthing
       53317   # localsend
@@ -477,11 +477,13 @@ in
     # cudaCapabilities = [ "8.9" ];
 
     permittedInsecurePackages = [
-      # required for unicom-cloud-desktop
-      lib.warn "Enabling insecure package qtwebengine-5.15.19 due to unicom-cloud-desktop dependency" "qtwebengine-5.15.19"
+      lib.warn "Enabling insecure package qtwebengine-5.15.19 due to unicom-cloud-desktop dependency"
+        "qtwebengine-5.15.19"
+      lib.warn "Enabling insecure package openssl-1.1.1w due to nur.repos.yakkhini.dingtalk dependency"
+        "openssl-1.1.1w"
     ];
   };
-  
+
   # region nix config
 
   # Copy the NixOS configuration file and link it from the resulting system

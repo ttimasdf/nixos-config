@@ -11,6 +11,9 @@
     typora
     # pandoc
 
+    # Social & Communication
+    nur.repos.yakkhini.dingtalk
+
     # Development & Code Editors
     # vscode
     antigravity
