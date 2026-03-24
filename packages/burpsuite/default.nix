@@ -5,7 +5,7 @@
 {
   lib,
   stdenv,
-  systemd,
+  systemdLibs,
   fetchurl,
   jdk,
   runtimeShell,
@@ -80,7 +80,7 @@ stdenv.mkDerivation rec {
 
     makeWrapper "${jdk}/bin/java" "$out/bin/${pname}" \
       --chdir "$out/share/burpsuite" \
-      --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath [ systemd ]}" \
+      --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath [ systemdLibs ]}" \
       --set GDK_SCALE "${lib.toString gdkScale}" \
       --set GDK_DPI_SCALE "${lib.strings.floatToString (1.0 / gdkScale)}" \
       --add-flags "-jar $out/share/burpsuite/burploader.jar"
