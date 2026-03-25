@@ -4,24 +4,22 @@
   flutter338,
   rustPlatform,
   fetchFromGitHub,
-  runCommand,
   makeDesktopItem,
   copyDesktopItems,
   writeText,
   libayatana-appindicator,
   protobuf,
-  gdkScale ? 2,
 }:
 
 let
   pname = "astral-ng";
-  version = "2-unstable-2026-03-17";
+  version = "2.8.0";
 
   src = fetchFromGitHub {
     owner = "ttimasdf";
     repo = "astral-ng";
-    rev = "41fd8b0798951bff76620eb85665bb54a7966eec";
-    hash = "sha256-yR9XGLzyPCjkcVjAaPVCDQLvQO0DqVyhvR3dTngpghc=";
+    rev = "v${version}";
+    hash = "sha256-3jazoMvxdmoo9tyONAbEQYB7Q5/Z6MAqjnWLJWI+9rk=";
     fetchSubmodules = true;
   };
 
@@ -88,7 +86,7 @@ flutter338.buildFlutterApplication {
 
   postInstall = ''
     mkdir -p $out/share/pixmaps
-    cp $out/app/${pname}/data/flutter_assets/assets/logo.png $out/share/pixmaps/astral.png
+    cp $out/app/${pname}/data/flutter_assets/assets/logo.png $out/share/pixmaps/astral-ng.png
   '';
 
   extraWrapProgramArgs = ''
@@ -97,11 +95,11 @@ flutter338.buildFlutterApplication {
 
   desktopItems = [
     (makeDesktopItem {
-      name = "astral";
-      desktopName = "Astral";
-      comment = "Astral is an Easytier desktop client";
+      name = "astral-ng";
+      desktopName = "Astral-NG";
+      comment = "Astral-NG is an Easytier desktop client";
       exec = "astral %u";
-      icon = "astral";
+      icon = "astral-ng";
       terminal = false;
       type = "Application";
       categories = [ "Network" ];
@@ -116,7 +114,7 @@ flutter338.buildFlutterApplication {
 
   meta = with lib; {
     description = "Astral desktop client";
-    homepage = "https://github.com/ldoubil/astral";
+    homepage = "https://github.com/ttimasdf/astral-ng";
     license = licenses.gpl3;
     maintainers = with maintainers; [ ];
     platforms = [ "x86_64-linux" ];
