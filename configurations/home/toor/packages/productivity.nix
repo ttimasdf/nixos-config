@@ -13,6 +13,7 @@
 
     # Social & Communication
     nur.repos.yakkhini.dingtalk
+    wemeet
 
     # Development & Code Editors
     # vscode
@@ -36,7 +37,7 @@
     # Password Management
     # keepassxc
     # git-credential-keepassxc
-    # bitwarden-desktop # electron-unwrapped-39.8.2 patch failed.
+    bitwarden-desktop
 
     # Screenshot & Recording
     # flameshot
