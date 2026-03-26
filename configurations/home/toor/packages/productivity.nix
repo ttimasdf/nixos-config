@@ -16,7 +16,7 @@
     wemeet
 
     # Development & Code Editors
-    # vscode
+    # vscode # enabled below
     antigravity
     # code-cursor
 
