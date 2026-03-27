@@ -291,12 +291,17 @@ in
   };
 
   # Configure the global HTTP proxy for the podman service.
-  systemd.services."podman".serviceConfig = lib.mkIf (config.rabit.nixos.http_proxy != null) {
-    Environment = [
-      "http_proxy=${config.rabit.nixos.http_proxy}"
-      "https_proxy=${config.rabit.nixos.http_proxy}"
-      "no_proxy=${config.rabit.nixos.no_proxy}"
-    ];
+  systemd.services."podman".environment = lib.mkIf (config.rabit.nixos.http_proxy != null) {
+    http_proxy = config.rabit.nixos.http_proxy;
+    https_proxy = config.rabit.nixos.http_proxy;
+    no_proxy = config.rabit.nixos.no_proxy;
+  };
+
+  # Configure the HTTP proxy for the podman user service.
+  systemd.user.services."podman".environment = lib.mkIf (config.rabit.nixos.http_proxy != null) {
+    http_proxy = config.rabit.nixos.http_proxy;
+    https_proxy = config.rabit.nixos.http_proxy;
+    no_proxy = config.rabit.nixos.no_proxy;
   };
 
 
