@@ -15,5 +15,7 @@
     rustup     # rust toolchains manager
     # cargo    # rust package manager
     # rustc    # rust compiler
+    yaml-language-server # yaml language server for kate
+    gh         # github cli tool
   ];
 }
