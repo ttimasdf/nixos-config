@@ -12,7 +12,7 @@
     # pandoc
 
     # Social & Communication
-    nur.repos.yakkhini.dingtalk
+    dingtalk
     wemeet
 
     # Development & Code Editors
