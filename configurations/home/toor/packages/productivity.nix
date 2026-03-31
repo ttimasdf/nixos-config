@@ -12,10 +12,11 @@
     # pandoc
 
     # Social & Communication
-    nur.repos.yakkhini.dingtalk
+    dingtalk
+    wemeet
 
     # Development & Code Editors
-    # vscode
+    # vscode # enabled below
     antigravity
     # code-cursor
 
@@ -36,7 +37,7 @@
     # Password Management
     # keepassxc
     # git-credential-keepassxc
-    # bitwarden-desktop # electron-unwrapped-39.8.2 patch failed.
+    bitwarden-desktop
 
     # Screenshot & Recording
     # flameshot
