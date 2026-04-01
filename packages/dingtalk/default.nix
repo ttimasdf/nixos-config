@@ -194,6 +194,7 @@ in
 
     # We will append QT wrapper args to our own wrapper
     dontWrapQtApps = true;
+    dontWrapGApps = true;
 
     unpackPhase = ''
       runHook preUnpack
@@ -253,6 +254,7 @@ in
       # Wrap the binary to set up environment variables and library paths
       wrapProgram $out/bin/dingtalk \
         "''${qtWrapperArgs[@]}" \
+        "''${gappsWrapperArgs[@]}" \
         --chdir $out/lib \
         --unset WAYLAND_DISPLAY \
         --set QT_QPA_PLATFORM "xcb" \
