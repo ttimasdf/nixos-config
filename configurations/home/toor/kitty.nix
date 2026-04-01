@@ -24,6 +24,8 @@
       "ctrl+c" = "copy_or_interrupt";  # default to copy_or_noop
       "ctrl+shift+enter" = "new_window_with_cwd";  # default to new_window
       "ctrl+alt+s" = "launch --stdin-source=@screen_scrollback --type=background sh -c 'cat > \"~/Documents/kitty-log/$(date +%Y-%m-%d-%H-%M-%S).log\"'"; # log current terminal buffer
+      "ctrl+f3" = "detach_window new-tab"; # moves the window into a new tab
+      "ctrl+f4" = "detach_window ask"; # asks which tab to move the window into
       "alt+shift+1" = "goto_tab 1";
       "alt+shift+2" = "goto_tab 2";
       "alt+shift+3" = "goto_tab 3";
