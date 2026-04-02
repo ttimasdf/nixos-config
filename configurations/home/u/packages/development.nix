@@ -20,6 +20,7 @@
     # vscode  # enabled by programs.vscode.enable
     antigravity
     y-agent
+    jetbrains.idea
   ];
   programs.vscode.enable = true;
 }

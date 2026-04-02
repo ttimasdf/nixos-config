@@ -8,7 +8,7 @@
     localsend
 
     # Social & Communication
-    nur.repos.yakkhini.dingtalk
+    dingtalk
 
     # Note Taking & Documentation
     siyuan
@@ -34,7 +34,6 @@
     flameshot
     # asciinema_3   # enabled by programs.asciinema.enable
     obs-studio
-    spectacle-ocr-screenshot
 
     # Media Players
     vlc
