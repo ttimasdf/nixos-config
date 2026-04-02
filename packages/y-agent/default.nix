@@ -20,17 +20,25 @@
 
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "y-agent";
-  version = "0-unstable-2026-03-23";
+  version = "0-unstable-2026-03-31";
 
   # Private fetchFromGitHub requires the nix building process (nix-daemon in multi user mode)
   # to have the NIX_GITHUB_PRIVATE_USERNAME and NIX_GITHUB_PRIVATE_PASSWORD env vars set.
   src = fetchFromGitHub {
     owner = "ttimasdf";
     repo = "y-agent";
-    rev = "2b3456aecef352c04db1ecf3158ba36d7f48c7f9";
-    sha256 = "sha256-wZD4gJK8pSAQt2bkS4DiUr9HK0ukRhHPkNdWuHzV3Z8=";
+    rev = "e058c959c0adcc757b9d8d9103f4db310789c4a3";
+    sha256 = "sha256-i34ct6zswlYXx9Zz9UcJ5Esx4y4wXQKghtrrHuk+n3M=";
     private = true;
   };
+
+  npmRoot = "./crates/y-gui";
+  npmDeps = fetchNpmDeps {
+    inherit (finalAttrs) pname version;
+    src = "${finalAttrs.src}/crates/y-gui";
+    hash = "sha256-W7Gtmt38cZLlQ9+RTGetG4BjWyH615mEJ4HafoFhNrw=";
+  };
+  npmFlags = [ "--legacy-peer-deps" ];
 
   cargoLock.lockFile = "${finalAttrs.src}/Cargo.lock";
 
@@ -69,12 +77,4 @@ rustPlatform.buildRustPackage (finalAttrs: {
     "--skip=hook_handler::tests::handler_tests::test_command_hook_timeout_killed"
   ];
 
-  npmRoot = "./crates/y-gui";
-  npmDeps = fetchNpmDeps {
-    inherit (finalAttrs) pname version;
-    src = "${finalAttrs.src}/crates/y-gui";
-    hash = "sha256-SYsSQopzDyvbdv1d4rkn2WwV2SIAD8BPv9zN5wf0Wgo=";
-  };
-
-  npmFlags = [ "--legacy-peer-deps" ];
 })
