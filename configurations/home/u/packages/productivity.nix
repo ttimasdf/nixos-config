@@ -61,6 +61,7 @@
   programs.chromium = {
     enable = true;
     package = pkgs.ungoogled-chromium;
+    # package = pkgs.ungoogled-chromium.override { enableWideVine = true; };
     # package = pkgs.google-chrome;
     nativeMessagingHosts = [ pkgs.kdePackages.plasma-browser-integration ];
     extensions = [
