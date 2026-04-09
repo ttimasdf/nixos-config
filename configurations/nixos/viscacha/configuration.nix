@@ -136,6 +136,7 @@ in
 
   rabitprivate.nixos.hosts.corpo.enable = true;
   rabitprivate.nixos.hosts.pentest.enable = true;
+  rabitprivate.nixos.hosts.intra.enable = true;
   # endregion network
 
   # region UI/UX
