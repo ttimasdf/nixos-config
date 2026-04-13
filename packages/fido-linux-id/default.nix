@@ -2,20 +2,21 @@
   lib,
   fetchFromGitHub,
   buildGoModule,
+  additionalSites ? [],
 }:
 
-buildGoModule {
+buildGoModule (finalAttrs: {
   pname = "fido-linux-id";
-  version = "0-unstable-2025-12-26";
+  version = "0.2.1";
 
   src = fetchFromGitHub {
     owner = "matejsmycka";
     repo = "linux-id";
-    rev = "c3d2d9e8dab8bc883af123c83a83c41b71d4fb7c";
-    hash = "sha256-LkT/WgkIXVrUf0eYLaTTrsBaUy4qg/t3ylDLw5sfccY=";
+    rev = "v${finalAttrs.version}";
+    hash = "sha256-GIeMqbTkSiVJdTbvmB9WDx00odlVXUIf0tm2RYcq1zU=";
   };
 
-  vendorHash = "sha256-Aublc4nPudtXO5oPtfBlyE/L0c3DniYHH3M4J1lfoBE=";
+  vendorHash = "sha256-HwLcsjzaFqc0aQrTCoSUdes6ZlnsNZJCdtjwucFyOQ4=";
 
   ldFlags = [
     "-s"
@@ -29,4 +30,4 @@ buildGoModule {
     maintainers = with lib.maintainers; [ matejsmycka ];
     mainProgram = "linux-id";
   };
-}
+})
