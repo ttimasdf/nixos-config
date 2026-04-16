@@ -21,7 +21,7 @@
 
     # Mappable actions - kitty https://sw.kovidgoyal.net/kitty/actions/
     keybindings = {
-      "ctrl+c" = "copy_or_interrupt";  # default to copy_or_noop
+      "ctrl+c" = "copy_and_clear_or_interrupt";  # default to copy_or_noop
       "ctrl+shift+enter" = "new_window_with_cwd";  # default to new_window
       "alt+shift+s" = "launch --stdin-source=@screen_scrollback --type=background sh -c 'cat > ~/Documents/kitty-log/$(date +%Y-%m-%d-%H-%M-%S).log'"; # log current terminal buffer
       "alt+shift+d" = "detach_window new-tab"; # moves the window into a new tab
