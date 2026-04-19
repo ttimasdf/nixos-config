@@ -19,6 +19,7 @@
     # vscode # enabled below
     antigravity
     # code-cursor
+    cc-switch
 
     # Web Browsers & Download Tools
     # firefox  # enabled below
