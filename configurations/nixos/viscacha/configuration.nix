@@ -2,16 +2,22 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ flake, config, lib, pkgs, ... }:
+{
+  flake,
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   inherit (flake.inputs) self;
 in
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+  ];
 
   # region boot & kernel
   boot.lanzaboote = {
@@ -42,7 +48,7 @@ in
   # endregion boot & kernel
 
   # region user settings
-  rabit.nixos.myusers = ["u"];
+  rabit.nixos.myusers = [ "u" ];
   # endregion user settings
 
   # region partitions
@@ -75,7 +81,7 @@ in
   networking.hostName = "viscacha"; # Define your hostname.
   # Pick only one of the below networking options.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-  networking.networkmanager.enable = true;  # Easiest to use and most distros use this by default.
+  networking.networkmanager.enable = true; # Easiest to use and most distros use this by default.
 
   # Define the NetworkManager dispatcher script
   networking.networkmanager.dispatcherScripts = [
@@ -125,7 +131,6 @@ in
       '';
     }
   ];
-
 
   # Set your time zone.
   time.timeZone = "Asia/Shanghai";
@@ -272,7 +277,6 @@ in
     };
   };
 
-
   # https://wiki.nixos.org/wiki/Fail2ban
   services.fail2ban = {
     enable = true;
@@ -305,7 +309,6 @@ in
     no_proxy = config.rabit.nixos.no_proxy;
   };
 
-
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
   environment.systemPackages = with pkgs; [
@@ -313,8 +316,8 @@ in
     git
 
     # sysadmin
-    inetutils   # ftp  hostname  ifconfig  telnet  tftp  traceroute  whois
-    net-tools   # netstat
+    inetutils # ftp  hostname  ifconfig  telnet  tftp  traceroute  whois
+    net-tools # netstat
     htop
     tcpdump
     dig.dnsutils
@@ -366,7 +369,6 @@ in
   # programs.ghidra.enable = true;
   # programs.ghidra.package = pkgs.ghidra-mod-with-extensions;
 
-
   #endregion software
 
   #region containers
@@ -387,10 +389,10 @@ in
       defaultNetwork.settings.dns_enabled = true;
     };
     containers.containersConf.settings = {
-      unqualified-search-registries = ["docker.io"];
+      unqualified-search-registries = [ "docker.io" ];
 
       engine = {
-        compose_providers = ["/run/current-system/sw/bin/podman-compose"];
+        compose_providers = [ "/run/current-system/sw/bin/podman-compose" ];
         compose_warning_logs = false;
       };
 
@@ -464,14 +466,14 @@ in
     checkReversePath = "loose";
 
     allowedTCPPorts = [
-      3006    # hapi
-      22000   # syncthing
-      53317   # localsend
+      3006 # hapi
+      22000 # syncthing
+      53317 # localsend
     ];
     allowedUDPPorts = [
-      3006    # hapi
-      22000   # syncthing
-      53317   # localsend
+      3006 # hapi
+      22000 # syncthing
+      53317 # localsend
     ];
   };
 
@@ -489,10 +491,12 @@ in
     # cudaCapabilities = [ "8.9" ];
 
     permittedInsecurePackages = [
-      lib.warn "Enabling insecure package qtwebengine-5.15.19 due to unicom-cloud-desktop dependency"
-        "qtwebengine-5.15.19"
-      lib.warn "Enabling insecure package openssl-1.1.1w due to nur.repos.yakkhini.dingtalk dependency"
-        "openssl-1.1.1w"
+      lib.warn
+      "Enabling insecure package qtwebengine-5.15.19 due to unicom-cloud-desktop dependency"
+      "qtwebengine-5.15.19"
+      lib.warn
+      "Enabling insecure package openssl-1.1.1w due to nur.repos.yakkhini.dingtalk dependency"
+      "openssl-1.1.1w"
     ];
   };
 
