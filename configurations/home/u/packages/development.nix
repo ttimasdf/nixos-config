@@ -14,12 +14,18 @@
 
     openssl
     android-tools
+
+    # Git Hosting CLI
     gh
+    glab
+    forgejo-cli
 
     # Code Editors
     # vscode  # enabled by programs.vscode.enable
     antigravity
-    y-agent
+    # opencode
+    # opencode-desktop
+    # y-agent
     jetbrains.idea
   ];
   programs.vscode.enable = true;
