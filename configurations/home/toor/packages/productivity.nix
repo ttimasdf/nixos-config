@@ -17,7 +17,7 @@
 
     # Development & Code Editors
     # vscode # enabled below
-    antigravity
+    # antigravity
     # code-cursor
     cc-switch
 
