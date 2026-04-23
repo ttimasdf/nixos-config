@@ -3,12 +3,12 @@
   # https://nix-community.github.io/home-manager/options.xhtml#opt-programs.kitty.enable
   programs.kitty = {
     enable = true;
-    # font.name = "Maple Mono NF CN";
+    font.name = "Maple Mono NF CN";
     enableGitIntegration = true;
 
     # kitty.conf - kitty https://sw.kovidgoyal.net/kitty/conf/
     settings = {
-      scrollback_lines = 10000;
+      scrollback_lines = 99999;
       # background_opacity = 0.85;
       cursor_trail = 1;
 
@@ -21,8 +21,11 @@
 
     # Mappable actions - kitty https://sw.kovidgoyal.net/kitty/actions/
     keybindings = {
-      # "ctrl+c" = "copy_or_interrupt";  # default to copy_or_noop
+      "ctrl+c" = "copy_or_interrupt";  # default to copy_or_noop
       "ctrl+shift+enter" = "new_window_with_cwd";  # default to new_window
+      "alt+shift+s" = "launch --stdin-source=@screen_scrollback --type=background sh -c 'cat > ~/Documents/kitty-log/$(date +%Y-%m-%d-%H-%M-%S).log'"; # log current terminal buffer
+      "alt+shift+d" = "detach_window new-tab"; # moves the window into a new tab
+      "alt+shift+f" = "detach_window ask"; # asks which tab to move the window into
       "alt+shift+1" = "goto_tab 1";
       "alt+shift+2" = "goto_tab 2";
       "alt+shift+3" = "goto_tab 3";
