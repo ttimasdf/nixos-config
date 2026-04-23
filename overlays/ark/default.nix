@@ -13,10 +13,10 @@ let
   inherit (flake.inputs.self) rabit-lib;
 in
 {
-  kdePackages = prev.kdePackages.overrideScope (kdeFinal: kdePrev: {
-    ark = kdePrev.ark.overrideAttrs (oldAttrs: {
-      # git -C source/ark format-patch -o ../../overlays/ark/patches 25.08.3..feat-cli7z
-      patches = (oldAttrs.patches or []) ++ (rabit-lib.findPatches ./patches);
-    });
-  });
+  # kdePackages = prev.kdePackages.overrideScope (kdeFinal: kdePrev: {
+  #   ark = kdePrev.ark.overrideAttrs (oldAttrs: {
+  #     # git -C source/ark format-patch -o ../../overlays/ark/patches 25.08.3..feat-cli7z
+  #     patches = (oldAttrs.patches or []) ++ (rabit-lib.findPatches ./patches);
+  #   });
+  # });
 }
