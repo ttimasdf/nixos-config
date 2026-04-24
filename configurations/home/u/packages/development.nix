@@ -27,6 +27,10 @@
     # opencode-desktop
     # y-agent
     jetbrains.idea
+
+    # Deployment tools
+    coder
+    terraform
   ];
   programs.vscode.enable = true;
 }
