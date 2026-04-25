@@ -24,6 +24,7 @@ in
 
   home.sessionPath = [
     "$HOME/.cargo/bin"
+    "$HOME/go/bin"
   ];
 
   home.stateVersion = "24.11";
