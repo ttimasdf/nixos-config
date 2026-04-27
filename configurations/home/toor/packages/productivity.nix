@@ -38,7 +38,7 @@
     # Password Management
     # keepassxc
     # git-credential-keepassxc
-    bitwarden-desktop
+    # bitwarden-desktop
 
     # Screenshot & Recording
     # flameshot
