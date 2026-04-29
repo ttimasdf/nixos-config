@@ -14,6 +14,7 @@
     # Social & Communication
     dingtalk
     wemeet
+    pebble
 
     # Development & Code Editors
     # vscode # enabled below
