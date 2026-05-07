@@ -6,11 +6,31 @@
   buildFHSEnv,
   appimageTools,
   writeShellScript,
+  libtiff-abi5 ? null,
+  stablePkgs ? null,
 }:
 
 let
   pname = "unicom-cloud-desktop";
   version = "7.11.0-wuying";
+  stableQt5 =
+    if stablePkgs != null then
+      stablePkgs.qt5
+    else
+      throw "unicom-cloud-desktop requires stablePkgs to provide qt5.qtwebengine";
+
+  libtiff = if libtiff-abi5 != null then libtiff-abi5 else
+    let
+      pkgs-libtiff-abi5 = import (fetchTarball {
+        name = "nixpkgs-libtiff-abi5";
+        url = "https://github.com/NixOS/nixpkgs/archive/ccef3ab7d8762c6e5c75688dfd2d0850d9469a33.tar.gz";
+        sha256 = "sha256:0b4npkdybcq2ihrya5rp6l3qdaa6s2w6v58cqa2l1ychr5z58vh1";
+      }) {
+        system = stdenv.hostPlatform.system;
+        config.allowUnfree = true;
+      };
+    in
+    pkgs-libtiff-abi5.libtiff;
 
   src = requireFile {
     name = "unicom-cloud-desktop-${version}.deb";
@@ -57,16 +77,18 @@ buildFHSEnv (
       pkgs:
       (appimageTools.defaultFhsEnvArgs.targetPkgs pkgs)
       ++ (with pkgs; [
-        qt5.qtbase
-        qt5.qtwebengine
+        stableQt5.qtbase
+        stableQt5.qtwebengine
         libusb1
         libevdev
         libinput
         libpulseaudio
         libopus
-        libtiff-abi5
+      ])
+      ++ [
+        libtiff
         unpacked
-      ]);
+      ];
 
     runScript = writeShellScript "wuying" ''
       export LD_LIBRARY_PATH="/opt/wuying/lib:$LD_LIBRARY_PATH"

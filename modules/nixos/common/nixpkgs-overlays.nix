@@ -1,4 +1,4 @@
-{ flake, lib, config, pkgs, ... }:
+{ flake, lib, ... }:
 let
   inherit (flake) self;
   inherit (self) rabit-lib;
@@ -9,8 +9,25 @@ let
   # Manually call packages, as using self.packages here would lead to infinite recursion
   packages =
     final: prev:
+    let
+      stablePkgs = import flake.inputs.nixpkgs-stable {
+        system = currentSystem;
+        config = {
+          allowUnfree = true;
+          permittedInsecurePackages = [ "qtwebengine-5.15.19" ];
+        };
+      };
+    in
       rabit-lib.forAllNixFiles "${self}/packages"
-        (fn: lib.callPackageWith final fn { });
+        (fn:
+          let
+            packageArgs =
+              if lib.hasSuffix "/packages/unicom-cloud-desktop" (toString fn) then
+                { inherit stablePkgs; }
+              else
+                { };
+          in
+          lib.callPackageWith final fn packageArgs);
   privatePackages = final: prev: private-module.packages."${currentSystem}";
   # llmagentsPackages = final: prev: llm-agents.packages."${currentSystem}";
 in
