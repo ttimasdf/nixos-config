@@ -2,9 +2,10 @@
 , stdenv
 , fetchFromGitHub
 , rustPlatform
-, pnpm_10
+, pnpmConfigHook
 , fetchPnpmDeps
-, nodejs_20
+, nodejs
+, pnpm
 , cargo
 , rustc
 , pkg-config
@@ -58,8 +59,9 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   nativeBuildInputs = [
-    nodejs_20
-    pnpm_10.configHook
+    nodejs
+    pnpm
+    pnpmConfigHook
     rustPlatform.cargoSetupHook
     cargo
     rustc
