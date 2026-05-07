@@ -19,7 +19,7 @@ in {
       };
       aggregated = pkgs.buildEnv {
         name = "system-fonts-and-icons";
-        nativeBuildInputs = [ pkgs.xorg.mkfontdir ];
+        nativeBuildInputs = [ pkgs.mkfontscale ];
         paths = config.fonts.packages ++ (with pkgs; [
           ## Add your cursor themes and icon packages here
           # bibata-cursors
@@ -28,7 +28,7 @@ in {
         pathsToLink = [ "/share/fonts" "/share/icons" ];
         ignoreCollisions = true;
         postBuild = ''
-          find "$out/share/fonts" -type d -exec ${pkgs.xorg.mkfontdir}/bin/mkfontdir {} \;
+          find "$out/share/fonts" -type d -exec ${pkgs.mkfontscale}/bin/mkfontdir {} \;
         '';
       };
     in {
