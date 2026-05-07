@@ -2,7 +2,7 @@
 let
   inherit (flake) self;
   inherit (self) rabit-lib;
-  inherit (flake.inputs) private-module llm-agents;
+  inherit (flake.inputs) private-module;
 
   currentSystem = lib.trace "FIXME: currentSystem pinned to x86_64-linux" "x86_64-linux";
 
@@ -12,13 +12,13 @@ let
       rabit-lib.forAllNixFiles "${self}/packages"
         (fn: lib.callPackageWith final fn { });
   privatePackages = final: prev: private-module.packages."${currentSystem}";
-  llmagentsPackages = final: prev: llm-agents.packages."${currentSystem}";
+  # llmagentsPackages = final: prev: llm-agents.packages."${currentSystem}";
 in
 {
   # Map the list of file paths to a list of overlay functions
   nixpkgs.overlays =
     (builtins.attrValues self.overlays)
     ++ (builtins.attrValues private-module.overlays)
-    ++ (builtins.attrValues llm-agents.overlays)
-    ++ [ packages privatePackages llmagentsPackages ];
+    # ++ (builtins.attrValues llm-agents.overlays)
+    ++ [ packages privatePackages ];
 }
