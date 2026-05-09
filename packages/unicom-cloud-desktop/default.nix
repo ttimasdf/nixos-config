@@ -57,8 +57,8 @@ buildFHSEnv (
       pkgs:
       (appimageTools.defaultFhsEnvArgs.targetPkgs pkgs)
       ++ (with pkgs; [
-        qt5.qtbase
-        qt5.qtwebengine
+        qt5w.qtbase
+        qt5w.qtwebengine
         libusb1
         libevdev
         libinput
