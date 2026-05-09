@@ -4,6 +4,7 @@
     python3
     uv
     pnpm
+    nodejs    # nodejs is included in pnpm closure, adding it does not add size
     # bun     # bun is installed from prebuilt binary.
 
     # build tools
