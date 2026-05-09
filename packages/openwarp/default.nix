@@ -21,6 +21,8 @@
   libX11,
   libXcursor,
   libXi,
+  # Options
+  waylandSupport ? true,
 }:
 
 let
@@ -84,25 +86,33 @@ in
       mkdir -p $out/share/icons
       cp -r usr/share/icons/hicolor $out/share/icons/
 
-      # Wrapper with WARP_ENABLE_WAYLAND=1 for native Wayland support
+      # Rename icons to match the actual app_id (openwarp, not warp)
+      for dir in $out/share/icons/hicolor/*/apps; do
+        for f in "$dir"/dev.warp.OpenWarp.png; do
+          # if this step fails in future version, we'll remove this workaround completely
+          mv "$f" "$dir/dev.openwarp.OpenWarp.png"
+        done
+      done
+
+      # Wrapper with WARP_ENABLE_WAYLAND for native Wayland support
       makeWrapper $out/opt/warpdotdev/warp-terminal-oss/warp-oss $out/bin/warp-oss \
-        --set WARP_ENABLE_WAYLAND 1
+        ${lib.optionalString waylandSupport "--set WARP_ENABLE_WAYLAND 1"}
 
       runHook postInstall
     '';
 
     desktopItems = [
       (makeDesktopItem {
-        name = "dev.warp.OpenWarp";
+        name = "dev.openwarp.OpenWarp";
         desktopName = "OpenWarp";
         genericName = "TerminalEmulator";
         exec = "warp-oss %U";
-        icon = "dev.warp.OpenWarp";
+        icon = "dev.openwarp.OpenWarp";
         comment = "Warp Terminal - OSS Edition";
         categories = [ "System" "TerminalEmulator" ];
         keywords = [ "shell" "prompt" "command" "commandline" "cmd" ];
         mimeTypes = [ "x-scheme-handler/openwarp" ];
-        startupWMClass = "dev.warp.OpenWarp";
+        startupWMClass = "dev.openwarp.OpenWarp";
       })
     ];
 
