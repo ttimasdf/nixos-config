@@ -29,6 +29,8 @@
     # y-agent
     jetbrains.idea
 
+    openwarp
+
     # Deployment tools
     coder
     terraform
