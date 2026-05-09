@@ -48,12 +48,14 @@ let
           proxy_url="http://$1"
         fi
         export http_proxy="$proxy_url" https_proxy="$proxy_url" all_proxy="$proxy_url"
+        export HTTP_PROXY="$proxy_url" HTTPS_PROXY="$proxy_url" ALL_PROXY="$proxy_url"
         echo -e "[proxy] \e[32menabled\e[0m, set to $http_proxy"
       elif [ -z "$http_proxy" ]; then
         export http_proxy="${oscfg.http_proxy}" https_proxy="${oscfg.http_proxy}" all_proxy="${oscfg.http_proxy}"
+        export HTTP_PROXY="${oscfg.http_proxy}" HTTPS_PROXY="${oscfg.http_proxy}" ALL_PROXY="${oscfg.http_proxy}"
         echo -e "[proxy] \e[32menabled\e[0m, set to $http_proxy"
       else
-        unset http_proxy https_proxy all_proxy
+        unset http_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY
         echo -e "[proxy] \e[31mdisabled\e[0m"
       fi
     }

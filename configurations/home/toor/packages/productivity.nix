@@ -14,11 +14,13 @@
     # Social & Communication
     dingtalk
     wemeet
+    pebble
 
     # Development & Code Editors
     # vscode # enabled below
-    antigravity
+    # antigravity
     # code-cursor
+    cc-switch
 
     # Web Browsers & Download Tools
     # firefox  # enabled below
@@ -37,7 +39,7 @@
     # Password Management
     # keepassxc
     # git-credential-keepassxc
-    bitwarden-desktop
+    # bitwarden-desktop
 
     # Screenshot & Recording
     # flameshot

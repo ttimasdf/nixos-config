@@ -257,6 +257,9 @@ in
     inxi
     lm_sensors
 
+    # Password Management
+    bitwarden-desktop
+
     # Disk Encryption
     #cryptsetup
     exfatprogs
@@ -447,6 +450,7 @@ in
   # services.fprintd.package = pkgs.fprintd.override {
   #   libfprint = pkgs.libfprint-focaltech-2808-a658;
   # };
+  security.polkit.enable = true;
   security.pam.services.login.fprintAuth = false;
   security.pam.services.gdm-fingerprint = lib.mkIf (config.services.fprintd.enable) {
     text = ''

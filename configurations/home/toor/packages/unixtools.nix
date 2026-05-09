@@ -44,4 +44,6 @@
   programs.yazi.enable = true;
   programs.yazi.package = pkgs.yazi.override { _7zz = pkgs._7zz-nls; };
   programs.yazi.shellWrapperName = "y";
+  # programs.yazi.plugins = pkgs.yaziPlugins.compress;
+  # programs.yazi.settings.keymap = {mgr = {prepend_keymap = [{ on = ["c" "a" "a"]; run = "plugin compress"; desc = "plugin compress"; }];};};
 }
