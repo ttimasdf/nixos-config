@@ -7,7 +7,7 @@
   extraGroups = [
     "wheel"       # Enable ‘sudo’ for the user.
     "wireshark"   # for programs.wireshark
-    "input"       # for services.espanso
+    # "input"       # for services.espanso
     "libvirtd"    # for virtualisation.libvirtd
     "tss"         # tss group has access to TPM devices
     "uhid"        # uhid is essencial for tpm-fido & linux-id
