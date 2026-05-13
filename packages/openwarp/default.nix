@@ -15,7 +15,9 @@
   libglvnd,
   libxcb,
   libxkbcommon,
+  vulkan-loader,
   wayland,
+  xdg-utils,
   xz,
   zlib,
   libX11,
@@ -54,18 +56,27 @@ in
     ];
 
     runtimeDependencies = [
+      fontconfig.lib
+      stdenv.cc.libc
       libdrm
       libglvnd
       libxcb
       libxkbcommon
-
-      ## wayland support
-      wayland
+      vulkan-loader
+      xdg-utils
 
       ## X11 support
       libX11
       libXcursor
       libXi
+    ] ++ lib.optionals waylandSupport [
+      wayland
+    ];
+
+    # Force-link libfontconfig so Warp can discover system fonts
+    # https://github.com/warpdotdev/Warp/issues/5793
+    patchelfFlags = lib.concatMap (lib: [ "--add-needed" lib ]) [
+      "libfontconfig.so.1"
     ];
 
     unpackPhase = ''
