@@ -22,16 +22,16 @@
   libXcursor,
   libXi,
   # Options
-  waylandSupport ? true,
+  waylandSupport ? false,
 }:
 
 let
   pname = "openwarp";
-  version = "2026.05.08.preview";
+  version = "0.2026.05.13.1008";
 
   src = fetchurl {
     url = "https://github.com/zerx-lab/warp/releases/download/v${version}/warp-terminal-oss_${version}_amd64.deb";
-    hash = "sha256-7FSiKewjhS2e41WNzJF8DHA0C6U4Kc+9nWMSyYmn4P0=";
+    hash = "sha256-Gqeg+vKYUvtm+h8LP9nGJHqnHfj4O3krRYSkWGVVAG0=";
   };
 in
   stdenv.mkDerivation (finalAttrs: {
