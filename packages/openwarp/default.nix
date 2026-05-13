@@ -125,6 +125,17 @@ in
         mimeTypes = [ "x-scheme-handler/openwarp" ];
         startupWMClass = "dev.openwarp.OpenWarp";
       })
+      (makeDesktopItem {
+        name = "dev.openwarp.OpenWarp.NewTab";
+        desktopName = "OpenWarp File Handler";
+        exec = "warp-oss \"openwarp://action/new_tab?path=%f\"";
+        icon = "dev.openwarp.OpenWarp";
+        comment = "Open a new OpenWarp tab in the specified directory";
+        categories = [ "System" "TerminalEmulator" ];
+        noDisplay = true;
+        mimeTypes = [ "inode/directory" ];
+        startupWMClass = "dev.openwarp.OpenWarp";
+      })
     ];
 
     meta = with lib; {
