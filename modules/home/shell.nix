@@ -102,6 +102,7 @@ in
     g = "git";
     lg = "lazygit";
     clip = "wl-copy";
+    open = "xdg-open";
   };
 
   home.shell = {
