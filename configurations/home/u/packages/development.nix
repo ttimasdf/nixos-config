@@ -31,6 +31,7 @@
 
     openwarp
     qoder-cn
+    bubblewrap
 
     # Deployment tools
     coder

@@ -9,6 +9,7 @@
   alsa-lib,
   at-spi2-atk,
   at-spi2-core,
+  bubblewrap,
   cairo,
   cups,
   curl,
@@ -51,6 +52,7 @@ let
     alsa-lib
     at-spi2-atk
     at-spi2-core
+    bubblewrap
     cairo
     cups
     curl
