@@ -1,0 +1,41 @@
+{
+  "skill_name": "nix-overlay-writer",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "In my nixos-config repo, override the existing nixpkgs package podman-compose to a specific upstream commit because I need a merged PR that is not in unstable yet. Put the change in overlays/ and use a fake hash if you cannot know the real one.",
+      "expected_output": "Creates or updates an overlay that uses the repository-specific flake-aware signature, overrideAttrs, fetchFromGitHub, and lib.fakeHash for the source hash.",
+      "files": [],
+      "expectations": [
+        "The overlay uses `{ flake, ... }:` before `final: prev:`.",
+        "The overlay modifies an existing package with `prev.<pkg>.overrideAttrs` instead of creating a new package under packages/.",
+        "The changed source uses `lib.fakeHash` when the real hash is unknown.",
+        "The response mentions a build/evaluation command to obtain and verify the real hash."
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "I have three local patches for cockpit-zfs and want an overlay directory that applies everything under patches/. Please follow the conventions in this repo rather than listing every patch manually.",
+      "expected_output": "Creates an overlays/<name>/default.nix style overlay that imports rabit-lib from flake.inputs.self and appends rabit-lib.findPatches ./patches to existing patches.",
+      "files": [],
+      "expectations": [
+        "The solution uses an overlay directory with `default.nix` for patch assets.",
+        "The overlay inherits `rabit-lib` from `flake.inputs.self`.",
+        "The overlay appends `(rabit-lib.findPatches ./patches)` to `(oldAttrs.patches or [])`.",
+        "The solution does not edit flake.nix to register the overlay manually."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Patch a KDE package inside kdePackages and add a wrapper to one binary. I do not want a new top-level package; it should affect pkgs.kdePackages.<name> in this repo.",
+      "expected_output": "Uses a scoped override for kdePackages with clearly named inner final/prev variables, preserves old attributes when appending inputs or hook text, and uses makeWrapper correctly.",
+      "files": [],
+      "expectations": [
+        "The solution overrides `prev.kdePackages` with `overrideScope` rather than exposing only a new top-level package.",
+        "The inner package-set arguments are named distinctly from top-level `final` and `prev`.",
+        "The wrapper adds `makeWrapper` to `(oldAttrs.nativeBuildInputs or [])`.",
+        "The hook text preserves existing hook content when appending behavior."
+      ]
+    }
+  ]
+}
