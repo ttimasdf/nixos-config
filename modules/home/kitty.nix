@@ -219,6 +219,7 @@ let
             X-TerminalArgDir = "--working-directory";
             X-TerminalArgHold = "--hold";
         };
+        noDisplay = true;
       };
     in
     pkgs.symlinkJoin {
