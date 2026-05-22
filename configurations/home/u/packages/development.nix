@@ -30,6 +30,7 @@
     jetbrains.idea
 
     openwarp
+    qoder-cn
 
     # Deployment tools
     coder
