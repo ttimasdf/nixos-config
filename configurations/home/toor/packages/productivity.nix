@@ -15,6 +15,7 @@
     dingtalk
     wemeet
     # pebble
+    discord
 
     # Development & Code Editors
     # vscode # enabled below
