@@ -1,0 +1,44 @@
+{
+  "skill_name": "nix-package-writer",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "In /home/u/Documents/nixos-config, draft a package for the GitHub Rust CLI trumank/wormhole-cli version 0.1.0 under packages/. It should be exposed as pkgs.wormhole-cli and use normal repo conventions. Save only the proposed package files or notes in the requested output directory; do not modify the real repo.",
+      "expected_output": "A repo-appropriate Rust package definition using a direct packages/wormhole-cli/default.nix or packages/wormhole-cli.nix entry, finalAttrs where needed, fetchFromGitHub, rustPlatform.buildRustPackage, cargo hash handling, metadata, and validation notes.",
+      "files": [],
+      "expectations": [
+        "Keeps the package as a direct child of packages/ and does not edit flake.nix",
+        "Uses finalAttrs or otherwise avoids rec for self-reference",
+        "Includes source and cargo hash workflow using lib.fakeHash when real hashes are unknown",
+        "Includes useful meta fields including description, homepage, license, maintainers, and mainProgram or platforms where relevant",
+        "Lists a targeted validation command such as nix build .#wormhole-cli"
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "In /home/u/Documents/nixos-config, create a package sketch for a proprietary Linux GUI tool distributed as ExampleTool-2.4.1-x86_64.AppImage. It needs desktop integration and should be available as pkgs.example-tool. Save only the proposed output files or notes in the requested output directory; do not modify the real repo.",
+      "expected_output": "An AppImage package definition using appimageTools.extractType2 and wrapType2, installing desktop file and icons where possible, marking binary source provenance, using lib.fakeHash for the AppImage hash, and explaining validation.",
+      "files": [],
+      "expectations": [
+        "Uses the AppImage extractType2 plus wrapType2 pattern",
+        "Installs or patches desktop file/icon integration in extraInstallCommands when available",
+        "Marks binaryNativeCode source provenance",
+        "Uses lib.fakeHash for the unknown release artifact hash",
+        "Does not suggest an overlay or nested package path"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "In /home/u/Documents/nixos-config, package a Tauri 2 app from GitHub owner/acme-mail version 1.2.3. Upstream uses pnpm and Rust, and its normal tauri build tries to download bundler resources. Draft the package in the repo style and save only outputs in the requested output directory; do not modify the real repo.",
+      "expected_output": "A Tauri-oriented package sketch that splits frontend build from cargo build, uses fetchPnpmDeps/pnpm config hook and rustPlatform cargo setup/importCargoLock, explains offline build constraints, includes GUI dependencies and metadata, and gives validation commands.",
+      "files": [],
+      "expectations": [
+        "Recognizes that Tauri bundler/network behavior should be avoided in the Nix sandbox",
+        "Uses pnpm dependency fetching/config hook for pnpm projects",
+        "Uses rustPlatform cargo setup or importCargoLock for Rust dependencies",
+        "Includes runHook pre/post calls in custom phases",
+        "Explains fake hash replacement and build validation"
+      ]
+    }
+  ]
+}
