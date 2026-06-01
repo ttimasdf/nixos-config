@@ -32,6 +32,7 @@ in
         filelight
         spacebar
         kdeconnect-kde
+        qttools
         # k3b # waiting for PR#475899
 
         wayland-utils
