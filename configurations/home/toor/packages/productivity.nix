@@ -22,6 +22,7 @@
     # antigravity
     # code-cursor
     cc-switch
+    qoder-cn
 
     # Web Browsers & Download Tools
     # firefox  # enabled below
