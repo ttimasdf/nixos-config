@@ -305,6 +305,15 @@ in
 
   #region containers
 
+  # Enable Waydroid
+  virtualisation.waydroid.enable = true;
+  # Useful on newer kernels / nftables setups if Waydroid networking fails.
+  # Some nixpkgs versions select this automatically when networking.nftables.enable = true.
+  virtualisation.waydroid.package = pkgs.waydroid-nftables;
+
+  # Optional: clipboard sharing
+  # environment.systemPackages = [ pkgs.wl-clipboard ];
+
   # Enable common container config files in /etc/containers
   virtualisation.containers.enable = true;
   virtualisation = {
