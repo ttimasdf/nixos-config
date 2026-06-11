@@ -488,6 +488,7 @@ in
         "qtwebengine-5.15.19"
       lib.warn "Enabling insecure package openssl-1.1.1w due to nur.repos.yakkhini.dingtalk dependency"
         "openssl-1.1.1w"
+        "electron-39.8.10"
     ];
   };
 
