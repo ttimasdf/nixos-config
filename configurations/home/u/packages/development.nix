@@ -23,11 +23,14 @@
 
     # Code Editors
     # vscode  # enabled by programs.vscode.enable
+    jetbrains.idea
+
+    # AI Agentic Coding Tools
     antigravity
     # opencode
     # opencode-desktop
     # y-agent
-    jetbrains.idea
+    cc-switch
 
     openwarp
     qoder-cn
