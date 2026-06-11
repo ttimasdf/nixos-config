@@ -42,21 +42,20 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "cc-switch";
-  version = "3.13.0";
+  version = "3.16.2";
 
   src = fetchFromGitHub {
     owner = "farion1231";
     repo = "cc-switch";
     rev = "v${finalAttrs.version}";
     # 第一次 build 会报错并给出真实 hash，粘回来即可。
-    hash = "sha256-JSjAJ/wrs5nxnRZvbwbLEgIGpghTMYgqBzNclgrrwCk=";
+    hash = "sha256-qwOJpaC/qhNzhQ1/XwBhlnMrp2caHlAubk6U+Ly/x5w=";
   };
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     fetcherVersion = 2;
-    # 同上，第一次 build 会给出真实 hash。
-    hash = "sha256-G8Qw2Gs57FNoK+Jr5Yeq6K9XFH0+DrRNiliNPu966pk=";
+    hash = "sha256-2mC1EBLTA3/dUp3F6sBO8ykbwngUmm8oVfuEsJsMDqw=";
   };
 
   cargoDeps = rustPlatform.importCargoLock {
