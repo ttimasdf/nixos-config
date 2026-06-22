@@ -1,27 +1,28 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, rustPlatform
-, pnpm_10
-, fetchPnpmDeps
-, nodejs_20
-, cargo
-, rustc
-, pkg-config
-, wrapGAppsHook3
-, at-spi2-atk
-, atkmm
-, cairo
-, gdk-pixbuf
-, glib
-, gtk3
-, harfbuzz
-, librsvg
-, libsoup_3
-, pango
-, webkitgtk_4_1
-, openssl
-, libayatana-appindicator
+{
+  lib,
+  stdenv,
+  fetchFromGitHub,
+  rustPlatform,
+  pnpm,
+  fetchPnpmDeps,
+  nodejs,
+  cargo,
+  rustc,
+  pkg-config,
+  wrapGAppsHook3,
+  at-spi2-atk,
+  atkmm,
+  cairo,
+  gdk-pixbuf,
+  glib,
+  gtk3,
+  harfbuzz,
+  librsvg,
+  libsoup_3,
+  pango,
+  webkitgtk_4_1,
+  openssl,
+  libayatana-appindicator,
 }:
 
 # cc-switch —— Tauri 2 + pnpm + Rust 的桌面应用。
@@ -54,8 +55,8 @@ stdenv.mkDerivation (finalAttrs: {
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
-    fetcherVersion = 2;
-    hash = "sha256-2mC1EBLTA3/dUp3F6sBO8ykbwngUmm8oVfuEsJsMDqw=";
+    fetcherVersion = 3;
+    hash = "sha256-DJBPxI+bNyOJIeIPuYKjm9/OMUCKLO/YSGdZZ/8P9CI=";
   };
 
   cargoDeps = rustPlatform.importCargoLock {
@@ -65,8 +66,8 @@ stdenv.mkDerivation (finalAttrs: {
   cargoRoot = "src-tauri";
 
   nativeBuildInputs = [
-    nodejs_20
-    pnpm_10.configHook
+    nodejs
+    pnpm.configHook
     rustPlatform.cargoSetupHook
     cargo
     rustc
