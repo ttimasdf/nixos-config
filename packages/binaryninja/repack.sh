@@ -57,10 +57,11 @@ for zip_file in "${files_to_process[@]}"; do
     extracted_part=""
     edition=""
     os_type=""
-    if [[ "$filename_no_ext" =~ ^bn-(.*)\ (commercial|personal|ultimate|free)-(linux|win64|macosx)$ ]]; then
+    if [[ "$filename_no_ext" =~ ^bn-(.*)\ (commercial|personal|ultimate|free)-(linux(-arm)?|win64|macosx)$ ]]; then
         extracted_part="${BASH_REMATCH[1]}"
         edition="${BASH_REMATCH[2]}"
         os_type="${BASH_REMATCH[3]}"
+        echo "file: $filename edition: $edition os_type: $os_type version: $extracted_part"
     else
         echo "Could not parse filename for version/edition, edition, and OS: $filename"
         continue

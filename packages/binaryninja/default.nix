@@ -198,6 +198,8 @@ let
           "''${sanitizedLauncherArgs[@]}" \
           "''${qtWrapperArgs[@]}"
 
+        makeWrapper $out/opt/${pname}/bnpython3 $out/bin/bnpython3
+
         # Install icon
         mkdir -p $out/share/pixmaps
         install -Dm644 ${desktopIcon} $out/share/pixmaps/binaryninja.png
@@ -232,7 +234,7 @@ let
           categories = [ "Utility" ];
           terminal = false;
           # get WMClass from `qdbus org.kde.KWin /KWin queryWindowInfo | grep -i class`
-          startupWMClass = "Binary Ninja";
+          startupWMClass = "binaryninja";
         })
       ];
 
