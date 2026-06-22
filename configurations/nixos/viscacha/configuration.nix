@@ -139,7 +139,7 @@ in
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
-  rabitprivate.nixos.hosts.corpo.enable = true;
+  rabitprivate.nixos.hosts.corpo.enable = false;
   rabitprivate.nixos.hosts.pentest.enable = true;
   rabitprivate.nixos.hosts.intra.enable = true;
   # endregion network
@@ -168,20 +168,26 @@ in
     modesetting.enable = true;
     # ==== PRIME Settings
     # == Sync mode: use dGPU to render, copy buffer to iGPU
-    # prime.sync.enable = true;
-    # prime.offload.enable = false;
-    # # optional: create a specialisation for disabling NVIDIA GPU
-    # primeBatterySaverSpecialisation = false;
+    prime.sync.enable = true;
+    prime.offload.enable = false;
+    # optional: create a specialisation for disabling NVIDIA GPU
+    primeBatterySaverSpecialisation = false;
 
     # == Offload: iGPU render, use dGPU only when launched via `nvidia-offload` cmd
     # prime.offload.enable = true;
     # prime.offload.enableOffloadCmd = true;
 
     # == Reverse sync: dGPU only, disable iGPU.
-    prime.reverseSync.enable = true;
+    # prime.reverseSync.enable = true;
 
     # == Enable if using an external GPU via Thunderbolt/USB4 enclosure
     # prime.allowExternalGpu = true;
+  };
+
+  hardware.graphics = {
+    enable = true;
+    # for wine
+    enable32Bit = true;
   };
 
   hardware.bluetooth = {
@@ -284,12 +290,6 @@ in
 
   # Enable ddccontrol for controlling DDC/CI monitors
   services.ddccontrol.enable = true;
-
-  # Add 'newuidmap' and 'sh' to the PATH for users' Systemd units.
-  # Required for Rootless podman.
-  systemd.user.extraConfig = ''
-    DefaultEnvironment="PATH=/run/current-system/sw/bin:/run/wrappers/bin:${lib.makeBinPath [ pkgs.bash ]}"
-  '';
 
   systemd.services."user@".serviceConfig = {
     TimeoutStopSec = "30s";
