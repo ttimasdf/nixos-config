@@ -124,6 +124,8 @@ stdenv.mkDerivation (finalAttrs: {
     makeWrapper $out/share/qoder-cn/bin/qoder-cn-tunnel $out/bin/qoder-cn-tunnel \
       --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath runtimeDependencies}
 
+    makeWrapper $out/share/qoder-cn/resources/app/resources/bin/x86_64_linux/qodercncli $out/bin/qodercncli
+
     runHook postInstall
   '';
 
