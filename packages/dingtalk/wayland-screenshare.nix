@@ -54,6 +54,23 @@ in
 
     dontWrapQtApps = true;
 
+    # The hook resolves upstream X11 / OpenCV symbols via dlopen() using
+    # unversioned library names (e.g. "libXdamage.so"). Nix only ships the
+    # versioned SONAMEs, so rewrite the names to absolute Nix store paths that
+    # are guaranteed to exist at build time. This silences the noisy
+    # "Failed to open library libXdamage.so" runtime messages and, more
+    # importantly, makes the screen-share hook actually resolve the symbols.
+    postPatch = let
+      soname = drv: name: "${drv}/lib/${name}";
+    in ''
+      substituteInPlace hook.hpp \
+        --replace-fail '"libXext.so"' '"${soname libxext "libXext.so.6"}"' \
+        --replace-fail '"libXdamage.so"' '"${soname libxdamage "libXdamage.so.1"}"'
+      substituteInPlace hook_opencv.hpp \
+        --replace-fail '"libopencv_core.so"' '"${soname opencv "libopencv_core.so"}"' \
+        --replace-fail '"libopencv_imgproc.so"' '"${soname opencv "libopencv_imgproc.so"}"'
+    '';
+
     installPhase = ''
       runHook preInstall
 
