@@ -8,7 +8,7 @@
     localsend
 
     # Social & Communication
-    dingtalk
+    # dingtalk
 
     # Note Taking & Documentation
     siyuan
@@ -49,7 +49,7 @@
     rustdesk-flutter
     virt-viewer
     sshpass
-    unicom-cloud-desktop
+    jumpserver-client-3
   ];
 
   # Add symlink for edge for Apps to work
