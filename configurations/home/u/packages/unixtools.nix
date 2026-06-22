@@ -12,6 +12,7 @@
     ncdu     # Disk usage analyzer with ncurses interface
     nix-tree # Interactive Nix package browser
     nvtopPackages.nvidia-intel  # NVIDIA GPU monitoring tool
+    # nvtopPackages.nvidia  # NVIDIA GPU monitoring tool
 
     # Miscellaneous utilities
     ascii    # ASCII table and character reference

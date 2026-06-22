@@ -34,11 +34,11 @@
 
     openwarp
     qoder-cn
-    bubblewrap
+    bubblewrap  # needed by codex
 
     # Deployment tools
-    coder
-    terraform
+    # coder
+    # terraform
   ];
   programs.vscode.enable = true;
 }
