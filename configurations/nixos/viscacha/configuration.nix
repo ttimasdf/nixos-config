@@ -140,6 +140,8 @@ in
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   rabitprivate.nixos.hosts.corpo.enable = false;
+  rabitprivate.nixos.cacerts.csteam.enable = true;
+  rabitprivate.nixos.cacerts.csteam2.enable = true;
   rabitprivate.nixos.hosts.pentest.enable = true;
   rabitprivate.nixos.hosts.intra.enable = true;
   # endregion network
