@@ -32,7 +32,7 @@
     # y-agent
     cc-switch
 
-    openwarp
+    zap
     qoder-cn
     bubblewrap  # needed by codex
 
