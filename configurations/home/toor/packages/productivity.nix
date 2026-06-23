@@ -84,6 +84,6 @@
 
   programs.asciinema = {
     enable = true;
-    package = pkgs.asciinema_3;
+    package = pkgs.asciinema;
   };
 }
