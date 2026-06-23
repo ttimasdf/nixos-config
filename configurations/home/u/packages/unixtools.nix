@@ -18,6 +18,8 @@
     ascii    # ASCII table and character reference
     kdiff3   # Diff and merge tool for files and directories
     lnav     # log file viewer for the terminal
+    sops
+    age
   ];
 
   # Programs natively supported by home-manager.

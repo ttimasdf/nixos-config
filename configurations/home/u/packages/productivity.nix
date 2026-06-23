@@ -49,7 +49,6 @@
     rustdesk-flutter
     virt-viewer
     sshpass
-    jumpserver-client-3
   ];
 
   # Add symlink for edge for Apps to work

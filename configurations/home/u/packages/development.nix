@@ -37,8 +37,9 @@
     bubblewrap  # needed by codex
 
     # Deployment tools
-    # coder
-    # terraform
+    kubectl
+    k9s
+    argocd
   ];
   programs.vscode.enable = true;
 }
