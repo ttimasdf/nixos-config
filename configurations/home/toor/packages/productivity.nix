@@ -61,6 +61,7 @@
     v2rayn
     tail-tray
     clash-verge-rev
+    clash-party
 
     # Remote Access
     # rustdesk-flutter
