@@ -106,8 +106,9 @@ in
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  rabitprivate.nixos.hosts.corpo.enable = true;
+  rabitprivate.nixos.cacerts.csteam.enable = true;
+  rabitprivate.nixos.cacerts.csteam2.enable = true;
+  rabitprivate.nixos.hosts.corpo.enable = false;
   rabitprivate.nixos.hosts.pentest.enable = true;
   # endregion network
 
