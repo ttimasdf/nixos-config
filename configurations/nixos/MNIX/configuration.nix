@@ -223,9 +223,9 @@ in
 
   # Add 'newuidmap' and 'sh' to the PATH for users' Systemd units.
   # Required for Rootless podman.
-  systemd.user.extraConfig = ''
-    DefaultEnvironment="PATH=/run/current-system/sw/bin:/run/wrappers/bin:${lib.makeBinPath [ pkgs.bash ]}"
-  '';
+  # systemd.user.extraConfig = ''
+  #   DefaultEnvironment="PATH=/run/current-system/sw/bin:/run/wrappers/bin:${lib.makeBinPath [ pkgs.bash ]}"
+  # '';
 
   systemd.services."user@".serviceConfig = {
     TimeoutStopSec = "30s";
