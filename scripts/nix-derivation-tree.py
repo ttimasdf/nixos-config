@@ -24,7 +24,6 @@ from pathlib import Path
 from typing import Optional
 
 URL_SIZE_TIMEOUT_SECONDS = 20
-NARINFO_TIMEOUT_SECONDS = 20
 
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
@@ -189,12 +188,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   }}
   .tree-row:hover {{ background: var(--overlay); }}
   .tree-row.selected {{ background: var(--overlay); border-left: 2px solid var(--blue); }}
-  .tree-row.ignored {{ opacity: 0.45; }}
-  .tree-row.ignored .name,
-  .tree-row.ignored .badge,
-  .tree-row.ignored .summary-plus,
-  .tree-row.ignored .summary-size,
-  .tree-row.ignored .size {{ text-decoration: line-through; }}
   .tree-row .toggle {{
     width: 18px;
     height: 18px;
@@ -224,19 +217,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .badge.cache-hit {{ background: rgba(249,226,175,0.15); color: var(--yellow); }}
   .badge.pending {{ background: rgba(243,139,168,0.15); color: var(--red); }}
   .badge.source {{ background: rgba(137,180,250,0.15); color: var(--blue); }}
-  .summary-badges {{ display: flex; gap: 4px; align-items: center; margin-left: 0; flex: 0 1 auto; min-width: 0; overflow: hidden; }}
-  .summary-plus {{
-    align-items: center;
-    align-self: center;
-    color: var(--subtext);
-    display: inline-flex;
-    flex-shrink: 0;
-    font-size: 0.85em;
-    height: 1.4em;
-    justify-content: center;
-    line-height: 1;
-    margin-left: 6px;
-  }}
+  .summary-badges {{ display: flex; gap: 4px; align-items: center; margin-left: 6px; flex: 0 1 auto; min-width: 0; overflow: hidden; }}
   .summary-badges .badge {{ flex-shrink: 0; }}
   .summary-size {{ color: var(--subtext); flex-shrink: 0; font-size: 0.8em; margin-left: 4px; white-space: nowrap; }}
   .ref-link, .node-link {{
@@ -400,11 +381,10 @@ function buildTree(node, forceExpand = false) {{
   const hasChildren = node.children && node.children.length > 0;
   const expanded = forceExpand && hasChildren;
   let html = `<div class="tree-node" data-id="${{esc(node.id)}}">`;
-  html += `<div class="tree-row ${{node.ignoredInParentSummary ? 'ignored' : ''}}" data-node-id="${{esc(node.id)}}">`;
+  html += `<div class="tree-row" data-node-id="${{esc(node.id)}}">`;
   html += `<span class="toggle ${{hasChildren ? '' : 'leaf'}}">${{hasChildren ? (expanded ? '▼' : '▶') : '·'}}</span>`;
   html += `<span class="name">${{esc(node.name)}}</span>`;
-  html += badge(node.state);
-  if (hasChildren) html += `<span class="summary-plus">+</span>` + summaryBadges(node);
+  html += hasChildren ? summaryBadges(node) : badge(node.state);
   html += `<span class="size">${{fmtSize(node.size)}}</span>`;
   html += `</div>`;
   if (hasChildren) {{
@@ -440,7 +420,6 @@ function selectNode(id, rowEl) {{
       <h3>${{esc(node.name)}}</h3>
       <div class="field"><span class="field-label">Derivation</span><span class="field-value">${{esc(node.id)}}</span></div>
       <div class="field"><span class="field-label">State</span><span class="field-value">${{badge(node.state)}} ${{esc(node.state)}}</span></div>
-      <div class="field"><span class="field-label">Ignored</span><span class="field-value">${{node.ignoredInParentSummary ? 'yes — excluded from parent summaries' : 'no'}}</span></div>
       <div class="field"><span class="field-label">Size</span><span class="field-value">${{fmtSize(node.size)}}</span></div>
       <div class="field"><span class="field-label">File Size</span><span class="field-value">${{fmtSize(node.fileSize)}}</span></div>
       <div class="field"><span class="field-label">NAR Size</span><span class="field-value">${{fmtSize(node.narSize)}}</span></div>
@@ -814,8 +793,6 @@ def get_substituter_infos(paths: list[str], max_workers: int = 50) -> dict[str, 
     Uses parallel HTTP requests for speed.
     Returns {path: info} for paths found on the substituter.
     """
-    import socket
-    import urllib.error
     import urllib.request
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -836,25 +813,13 @@ def get_substituter_infos(paths: list[str], max_workers: int = 50) -> dict[str, 
 
     infos: dict[str, dict] = {}
 
-    def describe_error(err: Exception) -> str:
-        if isinstance(err, urllib.error.HTTPError):
-            return f"HTTP {err.code} {err.reason}"
-        if isinstance(err, urllib.error.URLError):
-            reason = err.reason
-            if isinstance(reason, (TimeoutError, socket.timeout)):
-                return f"timeout after {NARINFO_TIMEOUT_SECONDS}s"
-            return str(reason)
-        if isinstance(err, (TimeoutError, socket.timeout)):
-            return f"timeout after {NARINFO_TIMEOUT_SECONDS}s"
-        return str(err) or err.__class__.__name__
-
-    def fetch_narinfo(store_path: str) -> tuple[str, Optional[dict], Optional[str]]:
+    def fetch_narinfo(store_path: str) -> tuple[str, Optional[dict]]:
         """Fetch narinfo metadata for a single store path from the substituter."""
         hash_part = store_path.split("/")[-1][:32]
         url = f"{sub_url}/{hash_part}.narinfo"
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "nix-derivation-tree/1.0"})
-            with urllib.request.urlopen(req, timeout=NARINFO_TIMEOUT_SECONDS) as resp:
+            with urllib.request.urlopen(req, timeout=3) as resp:
                 content = resp.read().decode()
                 info: dict[str, object] = {
                     "_cacheHit": True,
@@ -871,28 +836,24 @@ def get_substituter_infos(paths: list[str], max_workers: int = 50) -> dict[str, 
                         info["narHash"] = line.split(":", 1)[1].strip()
                     if line.startswith("URL:"):
                         info["url"] = line.split(":", 1)[1].strip()
-                return store_path, info, None
-        except Exception as err:
-            return store_path, None, f"{url}: {describe_error(err)}"
+                return store_path, info
+        except Exception:
+            pass
+        return store_path, None
 
     # Parallel fetch with progress
-    warnings = []
     done_count = 0
     total = len(paths)
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {executor.submit(fetch_narinfo, p): p for p in paths}
         for future in as_completed(futures):
-            path, info, warning = future.result()
+            path, info = future.result()
             done_count += 1
             if info is not None:
                 infos[path] = info
-            if warning:
-                warnings.append(f"   warning: failed to fetch narinfo for {path}: {warning}")
             if done_count % 50 == 0 or done_count == total:
                 print(f"\r   Fetched {done_count}/{total} ({len(infos)} with narinfo)", end="", file=sys.stderr)
     print(file=sys.stderr)
-    for warning in warnings:
-        print(warning, file=sys.stderr)
 
     return infos
 
@@ -1048,16 +1009,9 @@ def summarize_outputs(outputs: dict, path_info_cache: dict) -> dict:
     }
 
 
-def summarize_children(children: list[dict], parent_state: str) -> dict:
+def summarize_children(children: list[dict]) -> dict:
     """Summarize descendant state counts and total size for tree rows."""
     summary = {"done": 0, "cache": 0, "build": 0, "size": 0}
-
-    def should_ignore_child(current_parent_state: str, child: dict) -> bool:
-        if current_parent_state == "completed":
-            return child.get("state") in ["download-source", "pending-build"]
-        if current_parent_state == "nar-cache-hit":
-            return child.get("state") in ["download-source", "pending-build"]
-        return False
 
     def visit(node: dict):
         if node["state"] == "completed":
@@ -1068,13 +1022,9 @@ def summarize_children(children: list[dict], parent_state: str) -> dict:
             summary["build"] += 1
         summary["size"] += node.get("size") or 0
         for child in node.get("children", []):
-            if should_ignore_child(node["state"], child):
-                continue
             visit(child)
 
     for child in children:
-        if should_ignore_child(parent_state, child):
-            continue
         visit(child)
     return summary
 
@@ -1183,23 +1133,18 @@ def build_tree(
     for child_key in input_drv_keys:
         child_node = build_tree(drv_data, path_info_cache, url_size_cache, child_key, reverse_deps, visited)
         if child_node:
-            child_node["ignoredInParentSummary"] = (
-                (state == "completed" and child_node.get("state") == "download-source")
-                or (state == "nar-cache-hit" and child_node.get("state") in ["download-source", "pending-build"])
-            )
             children.append(child_node)
 
     # Sort children by name
     children.sort(key=lambda c: c["name"])
 
-    child_summary = summarize_children(children, state)
+    child_summary = summarize_children(children)
     total_size = (size or 0) + child_summary["size"]
 
     node = {
         "id": root_drv_key,
         "name": name,
         "state": state,
-        "ignoredInParentSummary": False,
         "size": size,
         "narSize": output_summary["narSize"],
         "fileSize": output_summary["fileSize"],
