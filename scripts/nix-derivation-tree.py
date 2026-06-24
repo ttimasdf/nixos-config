@@ -23,6 +23,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Optional
 
+URL_SIZE_TIMEOUT_SECONDS = 20
+
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -88,12 +90,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .tab.active {{ color: var(--blue); border-bottom-color: var(--blue); }}
 
   /* Main layout */
-  .main {{ display: flex; height: calc(100vh - 90px); }}
-  .panel {{ flex: 1; overflow-y: auto; }}
+  .main {{ display: flex; height: calc(100vh - 90px); min-width: 0; }}
+  .panel {{ flex: 1 1 0; min-width: 0; overflow-y: auto; }}
 
   /* Tree panel (left) */
   .tree-panel {{
-    flex: 1;
+    flex: 0 0 50%;
+    max-width: 50%;
+    min-width: 0;
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
@@ -103,8 +107,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     border-bottom: 1px solid var(--border);
     background: var(--surface);
   }}
+  .search-row {{ display: flex; gap: 8px; align-items: center; min-width: 0; }}
   .search-bar input {{
     width: 100%;
+    min-width: 0;
     padding: 6px 12px;
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -114,11 +120,30 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     outline: none;
   }}
   .search-bar input:focus {{ border-color: var(--blue); }}
-  .tree-content {{ flex: 1; overflow-y: auto; padding: 8px 0; }}
+  .search-hint {{ color: var(--subtext); font-size: 0.75em; margin-top: 6px; }}
+  .quick-filters {{ display: flex; gap: 4px; flex-shrink: 0; }}
+  .filter-btn {{
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.75em;
+    min-width: 48px;
+    padding: 6px 8px;
+  }}
+  .filter-btn.build {{ background: rgba(243,139,168,0.15); color: var(--red); }}
+  .filter-btn.cache {{ background: rgba(249,226,175,0.15); color: var(--yellow); }}
+  .filter-btn.done {{ background: rgba(166,227,161,0.15); color: var(--green); }}
+  .filter-btn:hover {{ filter: brightness(1.15); }}
+  .filter-btn.build.active {{ border-color: var(--red); }}
+  .filter-btn.cache.active {{ border-color: var(--yellow); }}
+  .filter-btn.done.active {{ border-color: var(--green); }}
+  .tree-content {{ flex: 1 1 0; min-width: 0; overflow-y: auto; padding: 8px 0; }}
 
   /* Detail panel (right) */
   .detail-panel {{
-    flex: 1;
+    flex: 0 0 50%;
+    max-width: 50%;
+    min-width: 0;
     padding: 20px;
     overflow-y: auto;
     display: flex;
@@ -154,6 +179,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .tree-row {{
     display: flex;
     align-items: center;
+    min-width: 0;
     padding: 3px 8px;
     cursor: pointer;
     border-radius: 4px;
@@ -173,8 +199,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     flex-shrink: 0;
   }}
   .tree-row .toggle.leaf {{ visibility: hidden; }}
-  .tree-row .name {{ margin-left: 4px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
-  .tree-row .size {{ color: var(--subtext); margin-left: 8px; font-size: 0.8em; white-space: nowrap; }}
+  .tree-row .name {{ margin-left: 4px; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
+  .tree-row .size {{ color: var(--subtext); flex-shrink: 0; margin-left: 8px; font-size: 0.8em; white-space: nowrap; }}
   .tree-children {{ margin-left: 18px; }}
   .tree-children.collapsed {{ display: none; }}
 
@@ -191,9 +217,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .badge.cache-hit {{ background: rgba(249,226,175,0.15); color: var(--yellow); }}
   .badge.pending {{ background: rgba(243,139,168,0.15); color: var(--red); }}
   .badge.source {{ background: rgba(137,180,250,0.15); color: var(--blue); }}
+  .summary-badges {{ display: flex; gap: 4px; align-items: center; margin-left: 6px; flex: 0 1 auto; min-width: 0; overflow: hidden; }}
+  .summary-badges .badge {{ flex-shrink: 0; }}
+  .summary-size {{ color: var(--subtext); flex-shrink: 0; font-size: 0.8em; margin-left: 4px; white-space: nowrap; }}
+  .ref-link, .node-link {{
+    border: 0;
+    background: transparent;
+    color: var(--blue);
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+    font: inherit;
+  }}
+  .ref-link:hover, .node-link:hover {{ text-decoration: underline; }}
 
   /* Duplicates table */
-  .dup-panel {{ padding: 16px; overflow-y: auto; }}
+  .dup-panel {{ flex: 1 1 0; min-width: 0; padding: 16px; overflow-y: auto; }}
   .dup-table {{ width: 100%; border-collapse: collapse; font-size: 0.85em; }}
   .dup-table th {{
     text-align: left;
@@ -205,6 +244,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     top: 0;
     background: var(--bg);
   }}
+  .sort-header {{
+    border: 0;
+    background: transparent;
+    color: var(--subtext);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 600;
+    padding: 0;
+    text-align: left;
+    white-space: nowrap;
+  }}
+  .sort-header:hover {{ color: var(--blue); }}
+  .sort-indicator {{ color: var(--blue); margin-left: 4px; }}
   .dup-table td {{ padding: 6px 12px; border-bottom: 1px solid var(--overlay); }}
   .dup-table tr:hover td {{ background: var(--surface); }}
   .dup-table .pkg-name {{ color: var(--blue); cursor: pointer; }}
@@ -243,28 +295,44 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <div class="main">
   <div class="tree-panel" id="tree-panel">
     <div class="search-bar">
-      <input type="text" id="search" placeholder="🔍 Filter tree nodes..." oninput="filterTree()">
+      <div class="search-row">
+        <input type="text" id="search" placeholder="Filter tree nodes" oninput="filterTree()">
+        <div class="quick-filters">
+          <button class="filter-btn build" data-state-filter="pending-build" onclick="toggleStateFilter('pending-build')">build</button>
+          <button class="filter-btn cache" data-state-filter="nar-cache-hit" onclick="toggleStateFilter('nar-cache-hit')">cache</button>
+          <button class="filter-btn done" data-state-filter="completed" onclick="toggleStateFilter('completed')">done</button>
+        </div>
+      </div>
+      <div class="search-hint">Syntax: text terms, <code>state:done</code>, <code>state:cache</code>, <code>state:build</code>, <code>ref:name</code>, <code>/regex/</code>.</div>
     </div>
     <div class="tree-content" id="tree-content"></div>
   </div>
   <div class="detail-panel" id="detail-panel">
     <div class="detail-empty">Click a node to see details</div>
   </div>
+  <div class="dup-panel" id="dup-panel" style="display:none;"></div>
 </div>
-<div class="dup-panel" id="dup-panel" style="display:none;"></div>
 
 <script>
 const DATA = {data_json};
 
 let activeTab = 'tree';
+let activeStateFilters = new Set();
 
 function switchTab(tab) {{
   activeTab = tab;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelector(`.tab:nth-child(${{tab === 'tree' ? 1 : 2}})`).classList.add('active');
+  document.querySelectorAll('.tab').forEach((t, index) => {{
+    t.classList.toggle('active', index === (tab === 'tree' ? 0 : 1));
+  }});
   document.getElementById('tree-panel').style.display = tab === 'tree' ? '' : 'none';
   document.getElementById('detail-panel').style.display = tab === 'tree' ? '' : 'none';
-  document.getElementById('dup-panel').style.display = tab === 'duplicates' ? '' : 'none';
+  document.getElementById('dup-panel').style.display = tab === 'duplicates' ? 'block' : 'none';
+}}
+
+function esc(value) {{
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({{
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }})[ch]);
 }}
 
 function fmtSize(bytes) {{
@@ -285,22 +353,43 @@ function badge(state) {{
   return `<span class="badge ${{cls}}">${{label}}</span>`;
 }}
 
-function buildTree(node, depth = 0) {{
+function summaryBadges(node) {{
+  const summary = node.childSummary || {{done: 0, cache: 0, build: 0, size: 0}};
+  const badges = [];
+  if (summary.build) badges.push(`<span class="badge pending">${{summary.build}} build</span>`);
+  if (summary.cache) badges.push(`<span class="badge cache-hit">${{summary.cache}} cache</span>`);
+  if (summary.done) badges.push(`<span class="badge completed">${{summary.done}} done</span>`);
+  badges.push(`<span class="summary-size">(${{fmtSize(summary.size)}})</span>`);
+  return `<span class="summary-badges">${{badges.join('')}}</span>`;
+}}
+
+function renderRefs(refs, limit = 20) {{
+  if (!refs || refs.length === 0) return '—';
+  const shown = refs.slice(0, limit).map(ref =>
+    `<button class="ref-link" data-jump-id="${{esc(ref.id)}}">${{esc(ref.name)}}</button>`
+  );
+  if (refs.length > limit) shown.push(`... and ${{refs.length - limit}} more`);
+  return shown.join('<br>');
+}}
+
+function renderList(values) {{
+  return values && values.length ? values.map(esc).join('<br>') : '—';
+}}
+
+function buildTree(node, forceExpand = false) {{
   if (node == null) return '';
   const hasChildren = node.children && node.children.length > 0;
-  const id = node.id.replace(/[^a-zA-Z0-9]/g, '_');
-  let html = `<div class="tree-node" data-name="${{node.name.toLowerCase()}}" data-id="${{node.id}}">`;
-  html += `<div class="tree-row" onclick="selectNode('${{node.id.replace(/'/g, "\\'")}}', this)" data-node-id="${{node.id.replace(/'/g, "\\'")}}">`;
-  html += `<span class="toggle ${{hasChildren ? '' : 'leaf'}}" onclick="event.stopPropagation();toggleChildren(this)">${{hasChildren ? '▶' : '·'}}</span>`;
-  html += `<span class="name">${{node.name}}</span>`;
-  html += badge(node.state);
+  const expanded = forceExpand && hasChildren;
+  let html = `<div class="tree-node" data-id="${{esc(node.id)}}">`;
+  html += `<div class="tree-row" data-node-id="${{esc(node.id)}}">`;
+  html += `<span class="toggle ${{hasChildren ? '' : 'leaf'}}">${{hasChildren ? (expanded ? '▼' : '▶') : '·'}}</span>`;
+  html += `<span class="name">${{esc(node.name)}}</span>`;
+  html += hasChildren ? summaryBadges(node) : badge(node.state);
   html += `<span class="size">${{fmtSize(node.size)}}</span>`;
   html += `</div>`;
   if (hasChildren) {{
-    html += `<div class="tree-children collapsed">`;
-    for (const child of node.children) {{
-      html += buildTree(child, depth + 1);
-    }}
+    html += `<div class="tree-children ${{expanded ? '' : 'collapsed'}}">`;
+    for (const child of node.children) html += buildTree(child, forceExpand);
     html += `</div>`;
   }}
   html += `</div>`;
@@ -310,7 +399,7 @@ function buildTree(node, depth = 0) {{
 function toggleChildren(toggle) {{
   const row = toggle.parentElement;
   const container = row.parentElement;
-  const children = container.querySelector('.tree-children');
+  const children = container.querySelector(':scope > .tree-children');
   if (children) {{
     children.classList.toggle('collapsed');
     toggle.textContent = children.classList.contains('collapsed') ? '▶' : '▼';
@@ -328,15 +417,19 @@ function selectNode(id, rowEl) {{
   const refs = node.referencedBy || [];
   panel.innerHTML = `
     <div class="detail-card">
-      <h3>${{node.name}}</h3>
-      <div class="field"><span class="field-label">Derivation</span><span class="field-value">${{node.id}}</span></div>
-      <div class="field"><span class="field-label">State</span><span class="field-value">${{badge(node.state)}} ${{node.state}}</span></div>
+      <h3>${{esc(node.name)}}</h3>
+      <div class="field"><span class="field-label">Derivation</span><span class="field-value">${{esc(node.id)}}</span></div>
+      <div class="field"><span class="field-label">State</span><span class="field-value">${{badge(node.state)}} ${{esc(node.state)}}</span></div>
       <div class="field"><span class="field-label">Size</span><span class="field-value">${{fmtSize(node.size)}}</span></div>
-      <div class="field"><span class="field-label">System</span><span class="field-value">${{node.system || '—'}}</span></div>
-      <div class="field"><span class="field-label">Outputs</span><span class="field-value">${{(node.outputs || []).join('<br>') || '—'}}</span></div>
+      <div class="field"><span class="field-label">File Size</span><span class="field-value">${{fmtSize(node.fileSize)}}</span></div>
+      <div class="field"><span class="field-label">NAR Size</span><span class="field-value">${{fmtSize(node.narSize)}}</span></div>
+      <div class="field"><span class="field-label">Total Size</span><span class="field-value">${{fmtSize(node.totalSize)}}</span></div>
+      <div class="field"><span class="field-label">System</span><span class="field-value">${{esc(node.system || '—')}}</span></div>
+      <div class="field"><span class="field-label">Outputs</span><span class="field-value">${{renderList(node.outputs)}}</span></div>
+      <div class="field"><span class="field-label">Source URLs</span><span class="field-value">${{renderList(node.sourceUrls)}}</span></div>
       <div class="field"><span class="field-label">Input Drvs</span><span class="field-value">${{node.inputDrvCount || 0}}</span></div>
       <div class="field"><span class="field-label">Input Srcs</span><span class="field-value">${{node.inputSrcCount || 0}}</span></div>
-      <div class="field"><span class="field-label">Referenced By</span><span class="field-value">${{refs.length > 0 ? refs.slice(0,10).join('<br>') + (refs.length > 10 ? '<br>... and ' + (refs.length-10) + ' more' : '') : '—'}}</span></div>
+      <div class="field"><span class="field-label">Referenced By</span><span class="field-value">${{renderRefs(refs)}}</span></div>
     </div>
   `;
 }}
@@ -344,79 +437,281 @@ function selectNode(id, rowEl) {{
 function findNode(tree, id) {{
   if (!tree) return null;
   if (tree.id === id) return tree;
-  if (tree.children) {{
-    for (const child of tree.children) {{
-      const found = findNode(child, id);
-      if (found) return found;
-    }}
+  for (const child of tree.children || []) {{
+    const found = findNode(child, id);
+    if (found) return found;
   }}
   return null;
 }}
 
-function filterTree() {{
-  const q = document.getElementById('search').value.toLowerCase();
-  document.querySelectorAll('.tree-node').forEach(node => {{
-    const name = node.getAttribute('data-name');
-    if (!q || name.includes(q)) {{
-      node.style.display = '';
+function findNodePath(tree, id, path = []) {{
+  if (!tree) return null;
+  const nextPath = [...path, tree.id];
+  if (tree.id === id) return nextPath;
+  for (const child of tree.children || []) {{
+    const found = findNodePath(child, id, nextPath);
+    if (found) return found;
+  }}
+  return null;
+}}
+
+function nodeText(node) {{
+  return [
+    node.name, node.id,
+    ...(node.outputs || []),
+    ...(node.sourceUrls || []),
+    ...(node.referencedBy || []).map(ref => `${{ref.name}} ${{ref.id}}`),
+  ].join(' ').toLowerCase();
+}}
+
+function stateMatches(node, state) {{
+  if (state === 'pending-build') return node.state === 'pending-build' || node.state === 'download-source';
+  return node.state === state;
+}}
+
+function parseQuery(query) {{
+  const parsed = {{terms: [], regexes: [], states: [], refs: []}};
+  const tokens = query.match(/\\/(?:\\\\\\/|[^/])+\\/|\\S+/g) || [];
+  for (const raw of tokens) {{
+    const token = raw.trim();
+    if (!token) continue;
+    if (token.startsWith('/') && token.endsWith('/') && token.length > 2) {{
+      try {{ parsed.regexes.push(new RegExp(token.slice(1, -1), 'i')); }} catch (_err) {{}}
+    }} else if (token.startsWith('state:')) {{
+      const value = token.slice(6).toLowerCase();
+      if (value === 'done') parsed.states.push('completed');
+      else if (value === 'cache') parsed.states.push('nar-cache-hit');
+      else if (value === 'build') parsed.states.push('pending-build');
+    }} else if (token.startsWith('ref:')) {{
+      parsed.refs.push(token.slice(4).toLowerCase());
     }} else {{
-      node.style.display = 'none';
+      parsed.terms.push(token.toLowerCase());
     }}
+  }}
+  return parsed;
+}}
+
+function nodeMatchesQuery(node, parsed) {{
+  const text = nodeText(node);
+  if (parsed.terms.some(term => !text.includes(term))) return false;
+  if (parsed.regexes.some(regex => !regex.test(text))) return false;
+  if (parsed.states.length && !parsed.states.some(state => stateMatches(node, state))) return false;
+  if (parsed.refs.length) {{
+    const refs = (node.referencedBy || []).map(ref => `${{ref.name}} ${{ref.id}}`.toLowerCase()).join(' ');
+    if (parsed.refs.some(ref => !refs.includes(ref))) return false;
+  }}
+  if (activeStateFilters.size && !Array.from(activeStateFilters).some(state => stateMatches(node, state))) return false;
+  return true;
+}}
+
+function filterNode(node, parsed) {{
+  const childMatches = (node.children || []).map(child => filterNode(child, parsed)).filter(Boolean);
+  if (nodeMatchesQuery(node, parsed) || childMatches.length) {{
+    return {{...node, children: childMatches}};
+  }}
+  return null;
+}}
+
+function renderTree() {{
+  const query = document.getElementById('search').value.trim();
+  const isFiltering = Boolean(query || activeStateFilters.size);
+  const tree = isFiltering ? filterNode(DATA.tree, parseQuery(query)) : DATA.tree;
+  document.getElementById('tree-content').innerHTML = tree ? buildTree(tree, isFiltering) : '<div class="detail-empty">No matching derivations</div>';
+}}
+
+function filterTree() {{
+  renderTree();
+}}
+
+function toggleStateFilter(state) {{
+  if (activeStateFilters.has(state)) activeStateFilters.delete(state);
+  else activeStateFilters.add(state);
+  document.querySelectorAll('.filter-btn').forEach(btn => {{
+    btn.classList.toggle('active', activeStateFilters.has(btn.dataset.stateFilter));
   }});
+  renderTree();
+}}
+
+function rowForNode(id) {{
+  return Array.from(document.querySelectorAll('.tree-row')).find(row => row.dataset.nodeId === id);
+}}
+
+function jumpToNode(id) {{
+  switchTab('tree');
+  document.getElementById('search').value = '';
+  activeStateFilters.clear();
+  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+  renderTree();
+
+  const path = findNodePath(DATA.tree, id) || [];
+  for (const ancestorId of path.slice(0, -1)) {{
+    const row = rowForNode(ancestorId);
+    if (!row) continue;
+    const toggle = row.querySelector('.toggle');
+    const children = row.parentElement.querySelector(':scope > .tree-children');
+    if (toggle && children) {{
+      children.classList.remove('collapsed');
+      toggle.textContent = '▼';
+    }}
+  }}
+
+  const row = rowForNode(id);
+  if (row) {{
+    selectNode(id, row);
+    row.scrollIntoView({{block: 'center'}});
+  }}
 }}
 
 // Duplicates view
 const DUPS = DATA.duplicates || [];
 let expandedDup = null;
+let dupSort = {{key: 'totalRefs', dir: 'desc'}};
+let versionSorts = {{}};
+
+function sortIndicator(sortState, key) {{
+  if (sortState.key !== key) return '';
+  return `<span class="sort-indicator">${{sortState.dir === 'asc' ? '▲' : '▼'}}</span>`;
+}}
+
+function compareValues(a, b) {{
+  const aMissing = a == null;
+  const bMissing = b == null;
+  if (aMissing && bMissing) return 0;
+  if (aMissing) return -1;
+  if (bMissing) return 1;
+  if (typeof a === 'number' && typeof b === 'number') return a - b;
+  return String(a).localeCompare(String(b), undefined, {{numeric: true, sensitivity: 'base'}});
+}}
+
+function applySort(rows, sortState, valueFn) {{
+  return rows.slice().sort((a, b) => {{
+    const result = compareValues(valueFn(a, sortState.key), valueFn(b, sortState.key));
+    return sortState.dir === 'asc' ? result : -result;
+  }});
+}}
+
+function dupSortValue(row, key) {{
+  const dup = row.dup;
+  if (key === 'name') return dup.name;
+  if (key === 'versions') return dup.versions.length;
+  if (key === 'totalSize') return dup.totalSize || 0;
+  if (key === 'totalRefs') return dup.totalRefs || 0;
+  return dup.name;
+}}
+
+function versionSortValue(version, key) {{
+  if (key === 'name') return version.name;
+  if (key === 'size') return version.size || 0;
+  if (key === 'narSize') return version.narSize || 0;
+  if (key === 'state') return version.state;
+  if (key === 'refs') return (version.referencedBy || []).length;
+  return version.name;
+}}
+
+function dupHeader(label, key) {{
+  return `<button class="sort-header" onclick="sortDuplicates('${{key}}')">${{label}}${{sortIndicator(dupSort, key)}}</button>`;
+}}
+
+function versionHeader(label, key, dupIndex) {{
+  const sortState = versionSorts[dupIndex] || {{key: 'name', dir: 'asc'}};
+  return `<button class="sort-header" onclick="sortVersions(${{dupIndex}}, '${{key}}')">${{label}}${{sortIndicator(sortState, key)}}</button>`;
+}}
 
 function buildDupTable() {{
+  const rows = applySort(DUPS.map((dup, index) => ({{dup, index}})), dupSort, dupSortValue);
   let html = `<table class="dup-table">
     <thead><tr>
-      <th>Package</th>
-      <th>Versions</th>
-      <th>Total Size</th>
-      <th>Referenced By</th>
+      <th>${{dupHeader('Package', 'name')}}</th>
+      <th>${{dupHeader('Versions', 'versions')}}</th>
+      <th>${{dupHeader('Total Size', 'totalSize')}}</th>
+      <th>${{dupHeader('Referenced By', 'totalRefs')}}</th>
     </tr></thead><tbody>`;
-  for (const dup of DUPS) {{
-    const pkgId = dup.name.replace(/[^a-zA-Z0-9]/g, '_');
+  rows.forEach(row => {{
+    const dup = row.dup;
+    const index = row.index;
+    const pkgId = `dup-${{index}}`;
+    const versionSort = versionSorts[index] || {{key: 'name', dir: 'asc'}};
+    const versions = applySort(dup.versions || [], versionSort, versionSortValue);
     html += `<tr>
-      <td><span class="pkg-name" onclick="toggleDupDetail('${{pkgId}}')">${{dup.name}}</span></td>
+      <td><span class="pkg-name" onclick="toggleDupDetail('${{pkgId}}')">${{esc(dup.name)}}</span></td>
       <td>${{dup.versions.length}}</td>
       <td>${{fmtSize(dup.totalSize)}}</td>
       <td>${{dup.totalRefs}}</td>
     </tr>`;
     html += `<tr class="dup-expand-row"><td colspan="4">
-      <div class="dup-expand" id="dup-${{pkgId}}">
+      <div class="dup-expand ${{expandedDup === pkgId ? 'visible' : ''}}" id="${{pkgId}}">
         <table>
-          <thead><tr><th>Derivation</th><th>Size</th><th>State</th><th>Refs</th></tr></thead>
+          <thead><tr>
+            <th>${{versionHeader('Derivation', 'name', index)}}</th>
+            <th>${{versionHeader('Size', 'size', index)}}</th>
+            <th>${{versionHeader('NAR Size', 'narSize', index)}}</th>
+            <th>${{versionHeader('State', 'state', index)}}</th>
+            <th>${{versionHeader('Refs', 'refs', index)}}</th>
+          </tr></thead>
           <tbody>`;
-    for (const v of dup.versions) {{
+    for (const v of versions) {{
       html += `<tr>
-        <td>${{v.name}}</td>
+        <td><button class="node-link" data-jump-id="${{esc(v.drvKey)}}">${{esc(v.name)}}</button></td>
         <td>${{fmtSize(v.size)}}</td>
+        <td>${{fmtSize(v.narSize)}}</td>
         <td>${{badge(v.state)}}</td>
-        <td><span class="referenced-by">${{(v.referencedBy || []).slice(0,5).join(', ')}}${{(v.referencedBy||[]).length > 5 ? '...' : ''}}</span></td>
+        <td><span class="referenced-by">${{renderRefs(v.referencedBy || [], 5)}}</span></td>
       </tr>`;
     }}
     html += `</tbody></table></div></td></tr>`;
-  }}
+  }});
   html += `</tbody></table>`;
   return html;
 }}
 
-function toggleDupDetail(pkgId) {{
-  const el = document.getElementById('dup-' + pkgId);
-  if (!el) return;
-  if (expandedDup && expandedDup !== el) {{
-    expandedDup.classList.remove('visible');
-  }}
-  el.classList.toggle('visible');
-  expandedDup = el.classList.contains('visible') ? el : null;
+function renderDupTable() {{
+  document.getElementById('dup-panel').innerHTML = buildDupTable();
 }}
 
+function sortDuplicates(key) {{
+  if (dupSort.key === key) dupSort.dir = dupSort.dir === 'asc' ? 'desc' : 'asc';
+  else dupSort = {{key, dir: 'asc'}};
+  renderDupTable();
+}}
+
+function sortVersions(dupIndex, key) {{
+  const current = versionSorts[dupIndex] || {{key: 'name', dir: 'asc'}};
+  if (current.key === key) versionSorts[dupIndex] = {{key, dir: current.dir === 'asc' ? 'desc' : 'asc'}};
+  else versionSorts[dupIndex] = {{key, dir: 'asc'}};
+  expandedDup = `dup-${{dupIndex}}`;
+  renderDupTable();
+}}
+
+function toggleDupDetail(pkgId) {{
+  const el = document.getElementById(pkgId);
+  if (!el) return;
+  if (expandedDup && expandedDup !== pkgId) {{
+    const prev = document.getElementById(expandedDup);
+    if (prev) prev.classList.remove('visible');
+  }}
+  el.classList.toggle('visible');
+  expandedDup = el.classList.contains('visible') ? pkgId : null;
+}}
+
+document.getElementById('tree-content').addEventListener('click', event => {{
+  const toggle = event.target.closest('.toggle');
+  if (toggle && !toggle.classList.contains('leaf')) {{
+    event.stopPropagation();
+    toggleChildren(toggle);
+    return;
+  }}
+  const row = event.target.closest('.tree-row');
+  if (row) selectNode(row.dataset.nodeId, row);
+}});
+
+document.addEventListener('click', event => {{
+  const jump = event.target.closest('[data-jump-id]');
+  if (jump) jumpToNode(jump.dataset.jumpId);
+}});
+
 // Initialize
-document.getElementById('tree-content').innerHTML = buildTree(DATA.tree);
-document.getElementById('dup-panel').innerHTML = buildDupTable();
+renderTree();
+renderDupTable();
 </script>
 </body>
 </html>"""
@@ -491,12 +786,12 @@ def get_path_infos(paths: list[str]) -> dict[str, Optional[dict]]:
     return info
 
 
-def get_substituter_sizes(paths: list[str], max_workers: int = 50) -> dict[str, Optional[int]]:
+def get_substituter_infos(paths: list[str], max_workers: int = 50) -> dict[str, dict]:
     """
     For paths that are nar-cache-hit (substitutable but not local),
-    fetch .narinfo files from configured substituters to get narSize.
+    fetch .narinfo files from configured substituters to get FileSize and NarSize.
     Uses parallel HTTP requests for speed.
-    Returns {path: narSize} for paths found on the substituter.
+    Returns {path: info} for paths found on the substituter.
     """
     import urllib.request
     from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -514,21 +809,34 @@ def get_substituter_sizes(paths: list[str], max_workers: int = 50) -> dict[str, 
     if not substituters:
         substituters = ["https://cache.nixos.org"]
 
-    sub_url = substituters[0]  # Use first configured substituter
+    sub_url = substituters[0].rstrip("/")  # Use first configured substituter
 
-    sizes: dict[str, Optional[int]] = {}
+    infos: dict[str, dict] = {}
 
-    def fetch_narinfo(store_path: str) -> tuple[str, Optional[int]]:
-        """Fetch narSize for a single store path from the substituter."""
+    def fetch_narinfo(store_path: str) -> tuple[str, Optional[dict]]:
+        """Fetch narinfo metadata for a single store path from the substituter."""
         hash_part = store_path.split("/")[-1][:32]
         url = f"{sub_url}/{hash_part}.narinfo"
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "nix-derivation-tree/1.0"})
             with urllib.request.urlopen(req, timeout=3) as resp:
                 content = resp.read().decode()
+                info: dict[str, object] = {
+                    "_cacheHit": True,
+                    "narinfoUrl": url,
+                    "fileSize": None,
+                    "narSize": None,
+                }
                 for line in content.splitlines():
+                    if line.startswith("FileSize:"):
+                        info["fileSize"] = int(line.split(":", 1)[1].strip())
                     if line.startswith("NarSize:"):
-                        return store_path, int(line.split(":", 1)[1].strip())
+                        info["narSize"] = int(line.split(":", 1)[1].strip())
+                    if line.startswith("NarHash:"):
+                        info["narHash"] = line.split(":", 1)[1].strip()
+                    if line.startswith("URL:"):
+                        info["url"] = line.split(":", 1)[1].strip()
+                return store_path, info
         except Exception:
             pass
         return store_path, None
@@ -539,15 +847,186 @@ def get_substituter_sizes(paths: list[str], max_workers: int = 50) -> dict[str, 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {executor.submit(fetch_narinfo, p): p for p in paths}
         for future in as_completed(futures):
-            path, sz = future.result()
+            path, info = future.result()
             done_count += 1
-            if sz is not None:
-                sizes[path] = sz
+            if info is not None:
+                infos[path] = info
             if done_count % 50 == 0 or done_count == total:
-                print(f"\r   Fetched {done_count}/{total} ({len(sizes)} with sizes)", end="", file=sys.stderr)
+                print(f"\r   Fetched {done_count}/{total} ({len(infos)} with narinfo)", end="", file=sys.stderr)
     print(file=sys.stderr)
 
+    return infos
+
+
+def extract_urls_from_drv(drv: dict) -> list[str]:
+    """Extract source/download URLs from a derivation environment."""
+    env = drv.get("env", {})
+    if not isinstance(env, dict):
+        return []
+
+    urls = []
+    url_re = re.compile(r"(?:https?|ftp)://[^\s'\"<>]+")
+    for key, value in env.items():
+        if not isinstance(value, str):
+            continue
+        if "url" not in key.lower() and not url_re.search(value):
+            continue
+        urls.extend(url_re.findall(value))
+
+    seen = set()
+    unique = []
+    for url in urls:
+        if url not in seen:
+            seen.add(url)
+            unique.append(url)
+    return unique
+
+
+def get_url_sizes(urls: list[str], max_workers: int = 20) -> dict[str, int]:
+    """Return remote Content-Length values for URLs, falling back to 0."""
+    import socket
+    import urllib.error
+    import urllib.request
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    unique_urls = list(dict.fromkeys(urls))
+    if not unique_urls:
+        return {}
+
+    class RedirectHandler(urllib.request.HTTPRedirectHandler):
+        http_error_308 = urllib.request.HTTPRedirectHandler.http_error_301
+
+    opener = urllib.request.build_opener(RedirectHandler())
+
+    def describe_error(err: Exception) -> str:
+        if isinstance(err, urllib.error.HTTPError):
+            return f"HTTP {err.code} {err.reason}"
+        if isinstance(err, urllib.error.URLError):
+            reason = err.reason
+            if isinstance(reason, (TimeoutError, socket.timeout)):
+                return f"timeout after {URL_SIZE_TIMEOUT_SECONDS}s"
+            return str(reason)
+        if isinstance(err, (TimeoutError, socket.timeout)):
+            return f"timeout after {URL_SIZE_TIMEOUT_SECONDS}s"
+        return str(err) or err.__class__.__name__
+
+    def fetch_size(url: str) -> tuple[str, int, Optional[str]]:
+        headers = {"User-Agent": "nix-derivation-tree/1.0"}
+        errors = []
+        try:
+            req = urllib.request.Request(url, headers=headers, method="HEAD")
+            with opener.open(req, timeout=URL_SIZE_TIMEOUT_SECONDS) as resp:
+                length = resp.headers.get("Content-Length")
+                if length and length.isdigit():
+                    return url, int(length), None
+                errors.append("HEAD response did not include Content-Length")
+        except Exception as err:
+            errors.append(f"HEAD failed: {describe_error(err)}")
+
+        try:
+            range_headers = {**headers, "Range": "bytes=0-0"}
+            req = urllib.request.Request(url, headers=range_headers)
+            with opener.open(req, timeout=URL_SIZE_TIMEOUT_SECONDS) as resp:
+                content_range = resp.headers.get("Content-Range", "")
+                match = re.search(r"/(\d+)$", content_range)
+                if match:
+                    return url, int(match.group(1)), None
+                length = resp.headers.get("Content-Length")
+                if length and length.isdigit():
+                    return url, int(length), None
+                errors.append("range GET response did not include Content-Length or Content-Range")
+        except Exception as err:
+            errors.append(f"range GET failed: {describe_error(err)}")
+
+        return url, 0, "; ".join(errors)
+
+    sizes: dict[str, int] = {}
+    warnings = []
+    done_count = 0
+    total = len(unique_urls)
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(fetch_size, u): u for u in unique_urls}
+        for future in as_completed(futures):
+            url, size, warning = future.result()
+            done_count += 1
+            sizes[url] = size
+            if warning:
+                warnings.append(f"   warning: failed to get URL size for {url}: {warning}")
+            if done_count % 20 == 0 or done_count == total:
+                print(f"\r   URL HEAD: {done_count}/{total}", end="", file=sys.stderr)
+    print(file=sys.stderr)
+    for warning in warnings:
+        print(warning, file=sys.stderr)
     return sizes
+
+
+def summarize_outputs(outputs: dict, path_info_cache: dict) -> dict:
+    """Classify derivation outputs and compute display/download sizes."""
+    output_paths = []
+    completed_size = 0
+    cache_file_size = 0
+    cache_nar_size = 0
+    has_completed = False
+    has_cache = False
+
+    for _out_name, out_info in outputs.items():
+        path_hash = out_info.get("path", "")
+        if not path_hash:
+            continue
+
+        full_path = f"/nix/store/{path_hash}"
+        output_paths.append(full_path)
+        if full_path not in path_info_cache:
+            continue
+
+        pinfo = path_info_cache[full_path]
+        if isinstance(pinfo, dict) and pinfo.get("_cacheHit"):
+            has_cache = True
+            cache_file_size += pinfo.get("fileSize") or 0
+            cache_nar_size += pinfo.get("narSize") or 0
+        elif isinstance(pinfo, dict):
+            has_completed = True
+            completed_size += pinfo.get("narSize", 0) or 0
+        else:
+            has_cache = True
+
+    if has_completed and not has_cache:
+        state = "completed"
+        size = completed_size
+    elif has_cache:
+        state = "nar-cache-hit"
+        size = cache_file_size
+    else:
+        state = "pending-build"
+        size = 0
+
+    return {
+        "state": state,
+        "size": size,
+        "narSize": cache_nar_size if has_cache else completed_size,
+        "fileSize": cache_file_size if has_cache else None,
+        "outputs": output_paths,
+    }
+
+
+def summarize_children(children: list[dict]) -> dict:
+    """Summarize descendant state counts and total size for tree rows."""
+    summary = {"done": 0, "cache": 0, "build": 0, "size": 0}
+
+    def visit(node: dict):
+        if node["state"] == "completed":
+            summary["done"] += 1
+        elif node["state"] == "nar-cache-hit":
+            summary["cache"] += 1
+        else:
+            summary["build"] += 1
+        summary["size"] += node.get("size") or 0
+        for child in node.get("children", []):
+            visit(child)
+
+    for child in children:
+        visit(child)
+    return summary
 
 
 def parse_nar_size_from_stderr(stderr: str) -> Optional[int]:
@@ -599,8 +1078,9 @@ def parse_pkg_name(drv_name: str) -> tuple[str, Optional[str]]:
 def build_tree(
     drv_data: dict,
     path_info_cache: dict,
+    url_size_cache: dict[str, int],
     root_drv_key: str,
-    reverse_deps: dict[str, list[str]],
+    reverse_deps: dict[str, list[dict]],
     visited: Optional[set] = None,
 ) -> Optional[dict]:
     """Build a recursive tree structure from the derivation graph."""
@@ -618,40 +1098,18 @@ def build_tree(
     name = drv.get("name", root_drv_key)
     system = drv.get("system", "")
     outputs = drv.get("outputs", {})
+    output_summary = summarize_outputs(outputs, path_info_cache)
+    state = output_summary["state"]
+    size = output_summary["size"]
+    source_urls = extract_urls_from_drv(drv)
+    source_size = 0
 
-    # Determine state and size
-    state = "pending-build"
-    size = None
+    # If a non-substitutable derivation has a URL source, use HEAD/Range size.
+    if state == "pending-build" and source_urls:
+        source_size = max((url_size_cache.get(url, 0) for url in source_urls), default=0)
+        size = source_size
 
-    # Check output paths
-    output_paths = []
-    for out_name, out_info in outputs.items():
-        path_hash = out_info.get("path", "")
-        if path_hash:
-            full_path = f"/nix/store/{path_hash}"
-            output_paths.append(full_path)
-
-    # Determine state from output paths
-    if output_paths:
-        for op in output_paths:
-            if op in path_info_cache:
-                pinfo = path_info_cache[op]
-                if isinstance(pinfo, dict):
-                    # Path exists locally
-                    state = "completed"
-                    sz = pinfo.get("narSize", 0)
-                    if size is None:
-                        size = sz
-                    else:
-                        size += sz
-                else:
-                    # pinfo is None → substitutable but not local (nix path-info returned null)
-                    if state == "pending-build":
-                        state = "nar-cache-hit"
-            # else: op not in cache at all → not substitutable → stays pending-build
-
-    # If it's a source derivation (builtin:fetchurl, etc.), mark as download-source
-    # Check by derivation name (e.g., hello-2.12.3.tar.gz) and by outputs being content-addressed
+    # If it's a source derivation (builtin:fetchurl, etc.), mark it separately.
     is_source = any(
         hint in name
         for hint in [".tar", ".zip", ".patch", "-source"]
@@ -673,24 +1131,29 @@ def build_tree(
     # Build children
     children = []
     for child_key in input_drv_keys:
-        child_node = build_tree(drv_data, path_info_cache, child_key, reverse_deps, visited)
+        child_node = build_tree(drv_data, path_info_cache, url_size_cache, child_key, reverse_deps, visited)
         if child_node:
             children.append(child_node)
 
     # Sort children by name
     children.sort(key=lambda c: c["name"])
 
-    # Determine total size (recursive)
-    total_size = (size or 0) + sum(c.get("totalSize", c.get("size") or 0) for c in children)
+    child_summary = summarize_children(children)
+    total_size = (size or 0) + child_summary["size"]
 
     node = {
         "id": root_drv_key,
         "name": name,
         "state": state,
         "size": size,
+        "narSize": output_summary["narSize"],
+        "fileSize": output_summary["fileSize"],
+        "sourceSize": source_size,
+        "sourceUrls": source_urls,
         "totalSize": total_size,
+        "childSummary": child_summary,
         "system": system,
-        "outputs": output_paths,
+        "outputs": output_summary["outputs"],
         "inputDrvCount": len(input_drv_keys),
         "inputSrcCount": len(input_srcs),
         "referencedBy": reverse_deps.get(root_drv_key, []),
@@ -700,23 +1163,20 @@ def build_tree(
     return node
 
 
-def find_duplicates(drv_data: dict, reverse_deps: dict[str, list[str]], path_info_cache: dict) -> list[dict]:
+def find_duplicates(drv_data: dict, reverse_deps: dict[str, list[dict]], path_info_cache: dict) -> list[dict]:
     """
     Find packages that appear with multiple versions.
     Groups derivations by base name, returns only groups with >1 version.
     Deduplicates identical full names (multiple .drv files for same package).
     """
-    # First pass: collect all unique (name, drv_key) pairs with state/size info
-    raw_entries: dict[str, dict] = {}  # full_name -> entry
+    raw_entries: dict[str, dict] = {}
     for drv_key, drv in drv_data.items():
         name = drv.get("name", drv_key)
-        base, version = parse_pkg_name(name)
+        _base, version = parse_pkg_name(name)
 
-        # Skip derivations without a detectable version (bootstrap, stdenv, etc.)
         if not version:
             continue
 
-        # Skip source fetch derivations (tarballs, patches, etc.)
         is_source = any(
             hint in name
             for hint in [".tar", ".zip", ".patch", "-source"]
@@ -724,66 +1184,44 @@ def find_duplicates(drv_data: dict, reverse_deps: dict[str, list[str]], path_inf
         if is_source:
             continue
 
+        output_summary = summarize_outputs(drv.get("outputs", {}), path_info_cache)
         refs = reverse_deps.get(drv_key, [])
 
-        # Determine state/size from outputs
-        outputs = drv.get("outputs", {})
-        state = "pending-build"
-        size = None
-        for out_name, out_info in outputs.items():
-            path_hash = out_info.get("path", "")
-            if path_hash:
-                full_path = f"/nix/store/{path_hash}"
-                if full_path in path_info_cache:
-                    pinfo = path_info_cache[full_path]
-                    if isinstance(pinfo, dict):
-                        state = "completed"
-                        sz = pinfo.get("narSize", 0)
-                        size = (size or 0) + sz
-                    else:
-                        if state == "pending-build":
-                            state = "nar-cache-hit"
-
-        # Deduplicate by full name: merge refs from multiple .drv files
         if name in raw_entries:
             existing = raw_entries[name]
-            # Merge referencedBy, deduplicating
-            merged_refs = list(set(existing["referencedBy"] + refs))
-            existing["referencedBy"] = merged_refs
+            merged_refs = {ref["id"]: ref for ref in existing["referencedBy"]}
+            merged_refs.update({ref["id"]: ref for ref in refs})
+            existing["referencedBy"] = sorted(merged_refs.values(), key=lambda ref: ref["name"])
         else:
             raw_entries[name] = {
                 "drvKey": drv_key,
                 "name": name,
                 "version": version,
-                "state": state,
-                "size": size,
-                "referencedBy": list(set(refs)),
+                "state": output_summary["state"],
+                "size": output_summary["size"],
+                "narSize": output_summary["narSize"],
+                "fileSize": output_summary["fileSize"],
+                "referencedBy": sorted(refs, key=lambda ref: ref["name"]),
             }
 
-    # Group by base name (stripping version)
     groups: dict[str, list[dict]] = defaultdict(list)
     for entry in raw_entries.values():
         base, _ = parse_pkg_name(entry["name"])
         groups[base].append(entry)
 
-    # Filter to duplicates only
     duplicates = []
     for base_name, versions in sorted(groups.items()):
         if len(versions) <= 1:
             continue
 
-        # Sort versions by name
         versions.sort(key=lambda v: v["name"])
-
-        dup = {
+        duplicates.append({
             "name": base_name,
             "versions": versions,
-            "totalSize": 0,
+            "totalSize": sum(v.get("size") or 0 for v in versions),
             "totalRefs": sum(len(v["referencedBy"]) for v in versions),
-        }
-        duplicates.append(dup)
+        })
 
-    # Sort by totalRefs descending (most impactful first)
     duplicates.sort(key=lambda d: d["totalRefs"], reverse=True)
     return duplicates
 
@@ -809,7 +1247,12 @@ def main():
     parser.add_argument(
         "--fetch-sizes",
         action="store_true",
-        help="Fetch narSize from substituters for cache-hit paths (slow, uses network)",
+        help="Compatibility no-op: cache-hit narinfo sizes are fetched by default",
+    )
+    parser.add_argument(
+        "--no-fetch-sizes",
+        action="store_true",
+        help="Skip remote narinfo and URL HEAD size requests",
     )
     args = parser.parse_args()
 
@@ -857,12 +1300,15 @@ def main():
     print(f"   Root derivation: {root_name}", file=sys.stderr)
 
     # Step 3: Build reverse dependency map
-    reverse_deps: dict[str, list[str]] = defaultdict(list)
+    reverse_deps: dict[str, list[dict]] = defaultdict(list)
     for drv_key, drv in drv_data.items():
         inputs = drv.get("inputDrvs", drv.get("inputs", {}).get("drvs", {}))
         if isinstance(inputs, dict):
             for inp_key in inputs:
-                reverse_deps[inp_key].append(drv.get("name", drv_key))
+                reverse_deps[inp_key].append({"id": drv_key, "name": drv.get("name", drv_key)})
+
+    for refs in reverse_deps.values():
+        refs.sort(key=lambda ref: ref["name"])
 
     # Step 4: Collect all output paths and query path-info
     all_output_paths = []
@@ -891,24 +1337,40 @@ def main():
     drv_info = get_path_infos(drv_store_paths)
     path_info_cache.update(drv_info)
 
-    # Step 4b: For nar-cache-hit paths, optionally query substituters to get narSize
+    # Step 4b: For nar-cache-hit paths, query substituters for FileSize/NarSize.
     cache_hit_paths = [
         p for p in all_output_paths
         if p in path_info_cache and path_info_cache[p] is None
     ]
-    if cache_hit_paths and args.fetch_sizes:
-        print(f"   Querying substituters for {len(cache_hit_paths)} cache-hit sizes...", file=sys.stderr)
-        sub_sizes = get_substituter_sizes(cache_hit_paths)
-        for p, sz in sub_sizes.items():
-            # Update path_info_cache: replace None with dict containing narSize
-            path_info_cache[p] = {"narSize": sz}
-        print(f"   Got sizes for {len(sub_sizes)}/{len(cache_hit_paths)} paths from substituters", file=sys.stderr)
+    if cache_hit_paths and not args.no_fetch_sizes:
+        print(f"   Querying substituters for {len(cache_hit_paths)} cache-hit narinfos...", file=sys.stderr)
+        sub_infos = get_substituter_infos(cache_hit_paths)
+        for p in cache_hit_paths:
+            path_info_cache[p] = sub_infos.get(p, {
+                "_cacheHit": True,
+                "fileSize": 0,
+                "narSize": 0,
+            })
+        print(f"   Got narinfo for {len(sub_infos)}/{len(cache_hit_paths)} paths from substituters", file=sys.stderr)
     elif cache_hit_paths:
-        print(f"   {len(cache_hit_paths)} paths are cache-hit (sizes unknown, use --fetch-sizes to query)", file=sys.stderr)
+        print(f"   {len(cache_hit_paths)} paths are cache-hit (remote size fetch skipped)", file=sys.stderr)
+
+    # Step 4c: For pending URL-backed derivations, use HEAD/Range size as source size.
+    url_size_cache: dict[str, int] = {}
+    if not args.no_fetch_sizes:
+        pending_urls = []
+        for drv in drv_data.values():
+            output_summary = summarize_outputs(drv.get("outputs", {}), path_info_cache)
+            if output_summary["state"] == "pending-build":
+                pending_urls.extend(extract_urls_from_drv(drv))
+        if pending_urls:
+            unique_pending_urls = list(dict.fromkeys(pending_urls))
+            print(f"   Querying source URL sizes for {len(unique_pending_urls)} pending URLs...", file=sys.stderr)
+            url_size_cache = get_url_sizes(unique_pending_urls)
 
     # Step 5: Build the tree
     print(f"   Building tree...", file=sys.stderr)
-    tree = build_tree(drv_data, path_info_cache, root_key, reverse_deps)
+    tree = build_tree(drv_data, path_info_cache, url_size_cache, root_key, reverse_deps)
 
     # Step 6: Find duplicates
     duplicates = find_duplicates(drv_data, reverse_deps, path_info_cache)
