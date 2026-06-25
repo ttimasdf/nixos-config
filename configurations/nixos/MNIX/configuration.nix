@@ -28,6 +28,7 @@ in
     "x86_64-windows"
   ];
   boot.kernelPackages = pkgs.linuxPackages_zen;
+  boot.kernelParams = [ "pci=noaer" ];
   boot.kernel.sysctl = {
     "net.ipv4.ip_forward" = 1;
     "net.ipv4.ip_unprivileged_port_start" = 80;
