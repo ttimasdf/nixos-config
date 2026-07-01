@@ -1,7 +1,18 @@
+# nix build output
 result
+
+# direnv cache
 .direnv
+
+# flag file for scripts/pre-commit-nixos-version-hint.sh
 .nixos-version-hint-skip
+
+# temp folder
 /source
+
+# private module
 private/
-.claude/
-.sisyphus/
+
+# output for scripts/nix-derivation-tree.py
+/*.html
+*.pyc
