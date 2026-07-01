@@ -1,1 +1,1 @@
-nvidia-sync
+nvidia-fix

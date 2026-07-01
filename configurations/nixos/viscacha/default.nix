@@ -8,7 +8,12 @@ in
 {
   imports = [
     nur.modules.nixos.default
-    nixos-hardware.nixosModules.lenovo-legion-16irx9h
+    nixos-hardware.nixosModules.common-cpu-intel
+    nixos-hardware.nixosModules.common-pc-laptop
+    nixos-hardware.nixosModules.common-pc-ssd
+    # common-gpu-nvidia imports https://github.com/NixOS/nixos-hardware/blob/master/common/gpu/nvidia/prime.nix
+    nixos-hardware.nixosModules.common-gpu-nvidia
+    nixos-hardware.nixosModules.common-hidpi
     self.nixosModules.common
     private-module.nixosModules.all
     self.nixosModules.programs

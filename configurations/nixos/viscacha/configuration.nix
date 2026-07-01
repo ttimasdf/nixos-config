@@ -2,12 +2,11 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{
-  flake,
-  config,
-  lib,
-  pkgs,
-  ...
+{ flake
+, config
+, lib
+, pkgs
+, ...
 }:
 
 let
@@ -37,8 +36,11 @@ in
   boot.loader.efi.canTouchEfiVariables = true;
 
   boot.kernelPackages = pkgs.linuxPackages_zen;
+  # boot.kernelPackages = pkgs.linuxPackages; # FIXME: nvidia diagnose
   boot.kernel.sysctl = {
     "net.ipv4.ip_forward" = 1;
+    # https://wiki.nixos.org/wiki/Linux_kernel#Enable_SysRq
+    "kernel.sysrq" = 1;
   };
   # https://bugzilla.kernel.org/show_bug.cgi?id=219721
   boot.blacklistedKernelModules = lib.trace "FIXME: blacklist spd5118 due to kernel bug #219721" [
@@ -166,16 +168,30 @@ in
   # https://github.com/NixOS/nixos-hardware/blob/master/lenovo/legion/16irx9h/default.nix
   # https://github.com/NixOS/nixos-hardware/blob/master/common/gpu/nvidia/prime.nix
   # https://wiki.nixos.org/wiki/NVIDIA
+  # NOTE: This host is ThinkBook 16p G5 IRX, not Legion 16IRX9H. Keep the
+  # generic nixos-hardware imports in default.nix and set NVIDIA details here.
+
+  # boot.kernelParams = [
+  #   "nvidia.NVreg_EnableGpuFirmware=0" # FIXME: nvidia diagnose
+  # ];
   hardware.nvidia = {
-    modesetting.enable = true;
+    open = true;
+    # open = lib.mkForce false; # FIXME: nvidia diagnose
+
+    prime.intelBusId = "PCI:00:02:0";
+    prime.nvidiaBusId = "PCI:01:00:0";
+
+    # modesetting.enable = true;
+    powerManagement.enable = true;
     # ==== PRIME Settings
     # == Sync mode: use dGPU to render, copy buffer to iGPU
-    prime.sync.enable = true;
-    prime.offload.enable = false;
-    # optional: create a specialisation for disabling NVIDIA GPU
-    primeBatterySaverSpecialisation = false;
+    # prime.sync.enable = true;
+    # prime.offload.enable = false;
+    # # optional: create a specialisation for disabling NVIDIA GPU
+    # primeBatterySaverSpecialisation = true;
 
-    # == Offload: iGPU render, use dGPU only when launched via `nvidia-offload` cmd
+    # # == Offload: iGPU render, use dGPU only when launched via `nvidia-offload` cmd
+    # prime.sync.enable = lib.mkForce false;
     # prime.offload.enable = true;
     # prime.offload.enableOffloadCmd = true;
 
