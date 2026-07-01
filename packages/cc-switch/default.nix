@@ -56,7 +56,7 @@ stdenv.mkDerivation (finalAttrs: {
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     fetcherVersion = 3;
-    hash = "sha256-DJBPxI+bNyOJIeIPuYKjm9/OMUCKLO/YSGdZZ/8P9CI=";
+    hash = "sha256-c0V143NSSjHkH6uDK0ya3kMARx7jgQafG3n8nB46Sj8=";
   };
 
   cargoDeps = rustPlatform.importCargoLock {
