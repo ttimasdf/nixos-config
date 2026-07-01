@@ -1052,11 +1052,12 @@ def summarize_children(children: list[dict], parent_state: str) -> dict:
     """Summarize descendant state counts and total size for tree rows."""
     summary = {"done": 0, "cache": 0, "build": 0, "size": 0}
 
-    def should_ignore_child_source(current_parent_state: str, child: dict) -> bool:
-        return (
-            current_parent_state in ["completed", "nar-cache-hit"]
-            and child.get("state") == "download-source"
-        )
+    def should_ignore_child(current_parent_state: str, child: dict) -> bool:
+        if current_parent_state == "completed":
+            return child.get("state") in ["download-source", "pending-build"]
+        if current_parent_state == "nar-cache-hit":
+            return child.get("state") in ["download-source", "pending-build"]
+        return False
 
     def visit(node: dict):
         if node["state"] == "completed":
@@ -1067,12 +1068,12 @@ def summarize_children(children: list[dict], parent_state: str) -> dict:
             summary["build"] += 1
         summary["size"] += node.get("size") or 0
         for child in node.get("children", []):
-            if should_ignore_child_source(node["state"], child):
+            if should_ignore_child(node["state"], child):
                 continue
             visit(child)
 
     for child in children:
-        if should_ignore_child_source(parent_state, child):
+        if should_ignore_child(parent_state, child):
             continue
         visit(child)
     return summary
@@ -1183,8 +1184,8 @@ def build_tree(
         child_node = build_tree(drv_data, path_info_cache, url_size_cache, child_key, reverse_deps, visited)
         if child_node:
             child_node["ignoredInParentSummary"] = (
-                state in ["completed", "nar-cache-hit"]
-                and child_node.get("state") == "download-source"
+                (state == "completed" and child_node.get("state") == "download-source")
+                or (state == "nar-cache-hit" and child_node.get("state") in ["download-source", "pending-build"])
             )
             children.append(child_node)
 
