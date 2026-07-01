@@ -5,6 +5,7 @@
     uv
     pnpm
     nodejs    # nodejs is included in pnpm closure, adding it does not add size
+    go
     # bun     # bun is installed from prebuilt binary.
 
     # build tools
@@ -40,6 +41,9 @@
     kubectl
     k9s
     argocd
+    kubernetes-helm
+    kustomize
+    kubeseal
   ];
   programs.vscode.enable = true;
 }
