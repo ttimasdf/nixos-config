@@ -195,10 +195,6 @@ in
 
   services.fail2ban.enable = true;
 
-  systemd.user.extraConfig = ''
-    DefaultEnvironment="PATH=/run/current-system/sw/bin:/run/wrappers/bin:${lib.makeBinPath [ pkgs.bash ]}"
-  '';
-
   environment.systemPackages = with pkgs; [
     # Basic packages for editing nix config
     git
