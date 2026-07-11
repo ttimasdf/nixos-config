@@ -107,7 +107,7 @@ nix develop .#nixosConfigurations.<host>.pkgs.<package>
 
 ## NOTES
 
-- `currentSystem` is hard-pinned to `x86_64-linux` (FIXME in nixpkgs-overlays.nix:7)
+- `currentSystem` is derived from `config.nixpkgs.hostPlatform.system` in `nixpkgs-overlays.nix`
 - Home Manager configs exposed as `legacyPackages.${system}.homeConfigurations` (not `homeConfigurations`) due to pkgs dependency
 - `.clinerules/writing-nix-config.md` has the canonical package/overlay authoring guide
 - `overlays/overlay-template.md` has advanced overlay examples (pinned nixpkgs, scoped overrides, Python package overrides)
