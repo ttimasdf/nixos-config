@@ -11,6 +11,18 @@
         gh
         nixfmt
         nix-update
+        (writeShellScriptBin "nixos-eval-config" ''
+          if [ "$#" -lt 2 ]; then
+            echo "usage: nixos-eval-config <host> <option> [nix-eval-options]..." >&2
+            exit 1
+          fi
+
+          host="$1"
+          shift
+          option="$1"
+          shift
+          nix eval "$NH_FLAKE#nixosConfigurations.$host.config.$option" "$@"
+        '')
       ];
 
       # Set NH_FLAKE environment variable to the current flake's path
@@ -25,24 +37,6 @@
         # Allow insecure packages for this devshell (e.g., qt5.webengine).
         # Use with `nix build --impure`
         export NIXPKGS_ALLOW_INSECURE=1
-
-        # FIXME: need to run `nix develop` manually for this function to work.
-        # due to direnv bug:
-        # https://github.com/direnv/direnv/issues/73
-        if [ "$DIRENV_IN_ENVRC" != "1" ]; then
-          # Function to get nixosConfigurations value from a specific host.
-          function nixos-eval-config() {
-            [ "$#" -lt 2 ] && echo "usage: nixos-eval-config <host> <option> [nix-eval-options]..." && return 1
-            host="$1"
-            shift
-            option="$1"
-            shift
-            nix eval "''${NH_FLAKE}#nixosConfigurations.$host.config.$option" $@
-          }
-          export -f nixos-eval-config
-        else
-          echo "[!] nixos-eval-config not available in direnv, run "nix develop" manually" >&2
-        fi
       '';
     };
   };
