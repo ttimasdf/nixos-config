@@ -28,5 +28,8 @@ in
     OMO_SEND_ANONYMOUS_TELEMETRY = "0";
   };
 
+  # Adopt the Home Manager 26.05 XDG Firefox profile path.
+  programs.firefox.configPath = "${config.xdg.configHome}/mozilla/firefox";
+
   home.stateVersion = "24.11";
 }
