@@ -18,7 +18,12 @@
   libxkbcommon,
   libxml2,
   wayland,
-  xorg,
+  libxi,
+  libxrender,
+  libxcb-image,
+  libxcb-keysyms,
+  libxcb-render-util,
+  libxcb-wm,
   qt6Packages,
   python312,
   qt68Packages ? null,
@@ -102,12 +107,12 @@ let
         libxkbcommon
         libxml2
         wayland
-        xorg.libXi
-        xorg.libXrender
-        xorg.xcbutilimage
-        xorg.xcbutilkeysyms
-        xorg.xcbutilrenderutil
-        xorg.xcbutilwm
+        libxi
+        libxrender
+        libxcb-image
+        libxcb-keysyms
+        libxcb-render-util
+        libxcb-wm
         qt6Packages'.qtbase
         qt6Packages'.qtdeclarative
         qt6Packages'.qtwayland
