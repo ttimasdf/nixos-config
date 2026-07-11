@@ -4,7 +4,7 @@ let
 in
 {
   environment.systemPackages = [
-    winapps.packages."${pkgs.system}".winapps
-    winapps.packages."${pkgs.system}".winapps-launcher # optional
+    winapps.packages."${pkgs.stdenv.hostPlatform.system}".winapps
+    winapps.packages."${pkgs.stdenv.hostPlatform.system}".winapps-launcher # optional
   ];
 }

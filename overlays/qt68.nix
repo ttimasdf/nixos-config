@@ -8,7 +8,7 @@ let
     url = "https://github.com/NixOS/nixpkgs/archive/c220a1a8f85179b584a1a66432dc77a802cd5148.tar.gz";
     sha256 = "sha256-G6mOGGVIcVhuXwQJHM+UukLpgvbeh2mfEUqSTmUnsYw=";
   }) {
-    system = prev.system;
+    system = prev.stdenv.hostPlatform.system;
     config.allowUnfree = true;
   };
   # Python Packages Overlay for pyside6 and shiboken6

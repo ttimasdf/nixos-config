@@ -10,7 +10,7 @@ let
     url = "https://github.com/NixOS/nixpkgs/archive/7124eb5c3e1fe1512fcdbe3d87a71724807d2660.tar.gz";
     sha256 = "sha256:1prb8p4f8x4an3ym4v4rjd2mqnzbwkdimrwiprcfk4hdbj86yf3v";
   }) {
-    system = prev.system;
+    system = prev.stdenv.hostPlatform.system;
     config.allowUnfree = true;
     config.permittedInsecurePackages = [
       final.lib.warn "Enabling insecure package qtwebengine-5.15.19 due to unicom-cloud-desktop dependency"

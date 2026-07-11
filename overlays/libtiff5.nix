@@ -11,7 +11,7 @@ let
     url = "https://github.com/NixOS/nixpkgs/archive/ccef3ab7d8762c6e5c75688dfd2d0850d9469a33.tar.gz";
     sha256 = "sha256:0b4npkdybcq2ihrya5rp6l3qdaa6s2w6v58cqa2l1ychr5z58vh1";
   }) {
-    system = prev.system;
+    system = prev.stdenv.hostPlatform.system;
     config.allowUnfree = true;
   };
 in
