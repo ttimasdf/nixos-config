@@ -78,9 +78,5 @@
   };
   # programs.obsidian.enable = true;
   programs.pandoc.enable = true;
-
-  programs.asciinema = {
-    enable = true;
-    package = pkgs.asciinema_3;
-  };
+  programs.asciinema.enable = true;
 }
