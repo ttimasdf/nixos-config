@@ -30,7 +30,6 @@ let
 
     sourceRoot = "${src.name}/rust";
 
-    useFetchCargoVendor = true;
     cargoHash = "sha256-FaqxEsu/+9TjnebWNNShcSbX5l4ebBQljz0jjrV+nUw=";
 
     nativeBuildInputs = [
