@@ -4,15 +4,25 @@ let
   inherit (self) rabit-lib;
   inherit (flake.inputs) private-module;
 
-  currentSystem = lib.trace "FIXME: currentSystem pinned to x86_64-linux" "x86_64-linux";
+  currentSystem = config.nixpkgs.hostPlatform.system;
+
+  packagesForCurrentSystem =
+    inputName:
+    let
+      input = flake.inputs.${inputName};
+    in
+      if builtins.hasAttr currentSystem input.packages then
+        input.packages.${currentSystem}
+      else
+        throw "${inputName}.packages is missing system '${currentSystem}'";
 
   # Manually call packages, as using self.packages here would lead to infinite recursion
   packages =
     final: prev:
       rabit-lib.forAllNixFiles "${self}/packages"
         (fn: lib.callPackageWith final fn { });
-  privatePackages = final: prev: private-module.packages."${currentSystem}";
-  # llmagentsPackages = final: prev: llm-agents.packages."${currentSystem}";
+  privatePackages = final: prev: packagesForCurrentSystem "private-module";
+  # llmagentsPackages = final: prev: packagesForCurrentSystem "llm-agents";
 in
 {
   # Map the list of file paths to a list of overlay functions
