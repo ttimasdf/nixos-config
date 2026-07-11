@@ -4,6 +4,7 @@
   fetchFromGitHub,
   rustPlatform,
   pnpm,
+  pnpmConfigHook,
   fetchPnpmDeps,
   nodejs,
   cargo,
@@ -43,14 +44,14 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "cc-switch";
-  version = "3.16.2";
+  version = "3.16.5";
 
   src = fetchFromGitHub {
     owner = "farion1231";
     repo = "cc-switch";
     rev = "v${finalAttrs.version}";
     # 第一次 build 会报错并给出真实 hash，粘回来即可。
-    hash = "sha256-qwOJpaC/qhNzhQ1/XwBhlnMrp2caHlAubk6U+Ly/x5w=";
+    hash = "sha256-CrUoTfGAy+gi3gdcSlNyjwM2Rm4nahqDWdM6I9OQgPc=";
   };
 
   pnpmDeps = fetchPnpmDeps {
@@ -67,7 +68,8 @@ stdenv.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [
     nodejs
-    pnpm.configHook
+    pnpm
+    pnpmConfigHook
     rustPlatform.cargoSetupHook
     cargo
     rustc
