@@ -36,17 +36,17 @@ in
   boot.loader.efi.canTouchEfiVariables = true;
 
   boot.kernelPackages = pkgs.linuxPackages_zen;
+  # Backport SPD write-protection handling as an out-of-tree module so
+  # kernel updates do not require rebuilding the entire kernel derivation.
+  boot.extraModulePackages = [
+    (pkgs.spd5118-module.override { kernel = config.boot.kernelPackages.kernel; })
+  ];
   # boot.kernelPackages = pkgs.linuxPackages; # FIXME: nvidia diagnose
   boot.kernel.sysctl = {
     "net.ipv4.ip_forward" = 1;
     # https://wiki.nixos.org/wiki/Linux_kernel#Enable_SysRq
     "kernel.sysrq" = 1;
   };
-  # https://bugzilla.kernel.org/show_bug.cgi?id=219721
-  boot.blacklistedKernelModules = lib.trace "FIXME: blacklist spd5118 due to kernel bug #219721" [
-    "spd5118"
-  ];
-
   # endregion boot & kernel
 
   # region user settings

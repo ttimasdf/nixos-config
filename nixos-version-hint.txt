@@ -1,1 +1,1 @@
-nvidia-fix
+spd5118-fix

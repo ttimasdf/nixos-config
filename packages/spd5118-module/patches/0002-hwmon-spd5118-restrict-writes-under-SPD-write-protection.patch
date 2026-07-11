@@ -1,0 +1,150 @@
+From f105919ac27c26ef64c30d63625b10562e6fb245 Mon Sep 17 00:00:00 2001
+From: "Yo-Jung (Leo) Lin" <leo.lin@canonical.com>
+Date: Wed, 16 Apr 2025 00:00:00 +0000
+Subject: [PATCH 2/2] hwmon: (spd5118) restrict writes under SPD write
+ protection
+
+On some platforms, SPD Write Protection for the SMBus controller may be
+enabled. For the i801 family, this forbids writes to devices at addresses
+0x50 through 0x57. This may lead to the following issues:
+
+  1) Writes to the sensor hwmon sysfs attributes always fail with ENXIO.
+
+  2) System-wide resume encounters errors during regcache sync back,
+     resulting in messages such as:
+
+     spd5118 1-0050: Failed to write b = 0: -6
+     spd5118 1-0050: PM: dpm_run_callback(): spd5118_resume [spd5118] returns -6
+     spd5118 1-0050: PM: failed to resume async: error -6
+
+Check whether the sensor can be written at probe time. If writing is not
+possible, expose write-capable hwmon attributes as read-only, disable regmap
+caching for the device, and skip suspend/resume writes that would otherwise
+fail under SPD write protection.
+
+Backported for linux-zen 7.1.2 as used by the viscacha NixOS host.
+
+Link: https://patchew.org/linux/20250416-for-upstream-spd5118-spd-write-prot-detect-v1-2-8b3bcafe9dad@canonical.com/
+Signed-off-by: Yo-Jung (Leo) Lin <leo.lin@canonical.com>
+[Known Rabbit: adapt context for linux-zen 7.1.2 split regmap config]
+Signed-off-by: Known Rabbit <opensource@rabit.pw>
+---
+ drivers/hwmon/spd5118.c | 39 +++++++++++++++++++++++++++++++++++----
+ 1 file changed, 35 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/hwmon/spd5118.c b/drivers/hwmon/spd5118.c
+index 99596538b65969e82bf3c6f1ab0c8134f7f8b753..14b5313d266f715d9fe853615d216080c755df0a 100644
+--- a/drivers/hwmon/spd5118.c
++++ b/drivers/hwmon/spd5118.c
+@@ -79,6 +79,7 @@ struct spd5118_data {
+ 	struct regmap *regmap;
+ 	struct mutex nvmem_lock;
+ 	bool is_16bit;
++	bool write_protected;
+ };
+ 
+ /* hwmon */
+@@ -288,7 +289,7 @@ static umode_t spd5118_is_visible(const void *_data, enum hwmon_sensor_types typ
+ 	case hwmon_temp_lcrit:
+ 	case hwmon_temp_crit:
+ 	case hwmon_temp_enable:
+-		return 0644;
++		return data->write_protected ? 0444 : 0644;
+ 	case hwmon_temp_min_alarm:
+ 	case hwmon_temp_max_alarm:
+ 	case hwmon_temp_crit_alarm:
+@@ -493,6 +494,9 @@ static int spd5118_suspend(struct device *dev)
+ 	u32 regval;
+ 	int err;
+ 
++	if (data->write_protected)
++		return 0;
++
+ 	/*
+ 	 * Make sure the configuration register in the regmap cache is current
+ 	 * before bypassing it.
+@@ -517,6 +521,9 @@ static int spd5118_resume(struct device *dev)
+ 	struct spd5118_data *data = dev_get_drvdata(dev);
+ 	struct regmap *regmap = data->regmap;
+ 
++	if (data->write_protected)
++		return 0;
++
+ 	regcache_cache_only(regmap, false);
+ 	return regcache_sync(regmap);
+ }
+@@ -524,7 +531,7 @@ static int spd5118_resume(struct device *dev)
+ static DEFINE_SIMPLE_DEV_PM_OPS(spd5118_pm_ops, spd5118_suspend, spd5118_resume);
+ 
+ static int spd5118_common_probe(struct device *dev, struct regmap *regmap,
+-				bool is_16bit)
++				bool is_16bit, bool write_protected)
+ {
+ 	unsigned int capability, revision, vendor, bank;
+ 	struct spd5118_data *data;
+@@ -542,6 +549,7 @@ static int spd5118_common_probe(struct device *dev, struct regmap *regmap,
+ 		return -ENODEV;
+ 
+ 	data->is_16bit = is_16bit;
++	data->write_protected = write_protected;
+ 
+ 	err = regmap_read(regmap, SPD5118_REG_REVISION, &revision);
+ 	if (err)
+@@ -684,6 +692,21 @@ static int spd5118_i2c_init(struct i2c_client *client)
+ 	return 0;
+ }
+ 
++static bool spd5118_write_protected(struct i2c_client *client)
++{
++	struct device *dev = &client->dev;
++	int mode;
++	int err;
++
++	mode = i2c_smbus_read_byte_data(client, SPD5118_REG_I2C_LEGACY_MODE);
++	if (mode < 0)
++		dev_warn(dev, "failed to read MR11: %d\n", mode);
++
++	err = i2c_smbus_write_byte_data(client, SPD5118_REG_I2C_LEGACY_MODE, mode);
++
++	return err < 0;
++}
++
+ /*
+  * 16-bit addressing note:
+  *
+@@ -714,10 +737,11 @@ static int spd5118_i2c_init(struct i2c_client *client)
+ static int spd5118_i2c_probe(struct i2c_client *client)
+ {
+ 	const struct regmap_config *config;
++	struct regmap_config regmap_config;
+ 	struct device *dev = &client->dev;
+ 	struct regmap *regmap;
+ 	int err, mode;
+-	bool is_16bit;
++	bool is_16bit, write_protected;
+ 
+ 	err = spd5118_i2c_init(client);
+ 	if (err)
+@@ -742,11 +766,18 @@ static int spd5118_i2c_probe(struct i2c_client *client)
+ 		config = &spd5118_regmap8_config;
+ 	}
+ 
++	write_protected = spd5118_write_protected(client);
++	if (write_protected) {
++		regmap_config = *config;
++		regmap_config.cache_type = REGCACHE_NONE;
++		config = &regmap_config;
++	}
++
+ 	regmap = devm_regmap_init_i2c(client, config);
+ 	if (IS_ERR(regmap))
+ 		return dev_err_probe(dev, PTR_ERR(regmap), "regmap init failed\n");
+ 
+-	return spd5118_common_probe(dev, regmap, is_16bit);
++	return spd5118_common_probe(dev, regmap, is_16bit, write_protected);
+ }
+ 
+ static const struct i2c_device_id spd5118_i2c_id[] = {
+-- 
+2.54.0
+
