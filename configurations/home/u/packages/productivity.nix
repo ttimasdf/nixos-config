@@ -1,4 +1,9 @@
-{ pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   home.packages = with pkgs; [
     # File Management & Search
@@ -20,6 +25,7 @@
     # firefox       # enabled by programs.firefox.enable
     microsoft-edge
     # chromium      # enabled by programs.chromium.enable
+    ddgr
     aria2
     wormhole-cli
 
@@ -32,7 +38,7 @@
 
     # Screenshot & Recording
     flameshot
-    # asciinema_3   # enabled by programs.asciinema.enable
+    # asciinema     # enabled by programs.asciinema.enable
     obs-studio
 
     # Media Players
@@ -55,6 +61,20 @@
   home.file = {
     ".local/bin/microsoft-edge-stable".source = "${pkgs.microsoft-edge}/bin/microsoft-edge";
   };
+
+  # Make Puppeteer use the Home Manager-managed Chromium build instead of
+  # downloading browser binaries into the user's profile/cache.
+  home.sessionVariables =
+    lib.optionalAttrs config.programs.chromium.enable {
+      PUPPETEER_EXECUTABLE_PATH = "${config.programs.chromium.package}/bin/chromium";
+    }
+    // {
+      # Skip Puppeteer's bundled browser downloads when the corresponding
+      # browser is already provided by this Home Manager profile.
+      PUPPETEER_SKIP_DOWNLOAD = lib.boolToString config.programs.chromium.enable;
+      PUPPETEER_FIREFOX_SKIP_DOWNLOAD = lib.boolToString config.programs.firefox.enable;
+      PUPPETEER_CHROME_SKIP_DOWNLOAD = lib.boolToString config.programs.chromium.enable;
+    };
 
   programs.firefox.enable = true;
   programs.chromium = {
