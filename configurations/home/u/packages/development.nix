@@ -38,6 +38,8 @@
     bubblewrap  # needed by codex
 
     # Deployment tools
+    terraform
+    coder
     kubectl
     k9s
     argocd
