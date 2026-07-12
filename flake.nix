@@ -35,7 +35,7 @@
     # nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.05";
     nix-darwin = { url = "github:LnL7/nix-darwin"; inputs.nixpkgs.follows = "nixpkgs"; };
     home-manager = { url = "github:nix-community/home-manager"; inputs.nixpkgs.follows = "nixpkgs"; };
-    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+    nixos-hardware = { url = "github:NixOS/nixos-hardware/master"; inputs.nixpkgs.follows = "nixpkgs"; };
 
     # Software inputs
     lanzaboote = {
