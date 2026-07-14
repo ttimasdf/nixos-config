@@ -19,6 +19,7 @@
     # rustc    # rust compiler
     yaml-language-server # yaml language server for kate
     gh         # github cli tool
+    glab       # gitlab cli tool
     crane      # container registry client for managing OCI artifacts
   ];
 }
