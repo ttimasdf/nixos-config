@@ -183,17 +183,22 @@ in
 
     # modesetting.enable = true;
     powerManagement.enable = true;
+    powerManagement.finegrained = true;
+
     # ==== PRIME Settings
     # == Sync mode: use dGPU to render, copy buffer to iGPU
     # prime.sync.enable = true;
     # prime.offload.enable = false;
-    # # optional: create a specialisation for disabling NVIDIA GPU
+    # = optional: create a specialisation for disabling NVIDIA GPU
     # primeBatterySaverSpecialisation = true;
 
-    # # == Offload: iGPU render, use dGPU only when launched via `nvidia-offload` cmd
+    # == Offload: iGPU render, use dGPU only when launched via `nvidia-offload` cmd
+    # = prime offload is enabled by nixos-hardware.nixosModules.common-gpu-nvidia prime
     # prime.sync.enable = lib.mkForce false;
     # prime.offload.enable = true;
     # prime.offload.enableOffloadCmd = true;
+    # = optional: create a specialisation for disabling NVIDIA GPU
+    primeBatterySaverSpecialisation = true;
 
     # == Reverse sync: dGPU only, disable iGPU.
     # prime.reverseSync.enable = true;
@@ -391,6 +396,7 @@ in
 
   #region containers
 
+  # enables systemd service: nvidia-container-toolkit-cdi-generator.service
   hardware.nvidia-container-toolkit.enable = true;
 
   # Enable common container config files in /etc/containers
