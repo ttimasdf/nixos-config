@@ -47,6 +47,20 @@ in
     # https://wiki.nixos.org/wiki/Linux_kernel#Enable_SysRq
     "kernel.sysrq" = 1;
   };
+
+  # https://wiki.nixos.org/wiki/Swap
+  # Resume from the decrypted swap device.
+  boot.resumeDevice = "/dev/mapper/cryptswap";
+
+  # Compressed cache in front of disk swap. Do not enable zramSwap at the same time.
+  boot.zswap = {
+    enable = true;
+    compressor = "zstd";
+    zpool = "zsmalloc";
+    maxPoolPercent = 20;
+    acceptThresholdPercent = 90;
+    shrinkerEnabled = true;
+  };
   # endregion boot & kernel
 
   # region user settings
@@ -66,17 +80,8 @@ in
     '';
   };
 
-  fileSystems."/mnt/code" = {
-    device = "/dev/mapper/crypt-code";
-    fsType = "ntfs3";
-    options = [ "defaults,rw,nofail,discard,nosuid,uid=1000,dmask=022,fmask=133" ];
-  };
-  fileSystems."/mnt/windows" = {
-    device = "/dev/mapper/crypt-windows";
-    fsType = "ntfs3";
-    options = [ "defaults,rw,nofail,discard,nosuid,uid=1000,dmask=022,fmask=133" ];
-  };
-
+  # Already enabled by nixos-hardware common-pc-ssd, but explicit is fine:
+  services.fstrim.enable = true;
   # endregion partitions
 
   # region network

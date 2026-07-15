@@ -19,7 +19,15 @@
       options = [ "subvol=root,compress=zstd" ];
     };
 
-  boot.initrd.luks.devices."nixos-root".device = "/dev/disk/by-uuid/92342466-5063-489e-ab2c-b79ca70ea7a8";
+  boot.initrd.luks.devices."nixos-root" = {
+    device = "/dev/disk/by-uuid/92342466-5063-489e-ab2c-b79ca70ea7a8";
+    allowDiscards = true;
+  };
+
+  boot.initrd.luks.devices."cryptswap" = {
+    device = "/dev/disk/by-partuuid/3803896b-2c11-4c7b-b13a-e6d783a89918";
+    # allowDiscards = true;
+  };
 
   fileSystems."/home" =
     { device = "/dev/mapper/nixos-root";
@@ -39,7 +47,23 @@
       options = [ "fmask=0077" "dmask=0077" ];
     };
 
-  swapDevices = [ ];
+  fileSystems."/mnt/code" = {
+    device = "/dev/mapper/crypt-code";
+    fsType = "ntfs3";
+    options = [ "defaults,rw,nofail,discard,nosuid,uid=1000,dmask=022,fmask=133" ];
+  };
+  fileSystems."/mnt/windows" = {
+    device = "/dev/mapper/crypt-windows";
+    fsType = "ntfs3";
+    options = [ "defaults,rw,nofail,discard,nosuid,uid=1000,dmask=022,fmask=133" ];
+  };
+
+  swapDevices = [
+    {
+      device = "/dev/mapper/cryptswap";
+      # discardPolicy = "once";
+    }
+  ];
 
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
   # (the default) this is the recommended approach. When using systemd-networkd it's
