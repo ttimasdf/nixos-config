@@ -18,7 +18,7 @@
     android-tools
 
     # Git Hosting CLI
-    gh
+    # gh      # enabled by programs.gh.enable
     glab
     forgejo-cli
 
@@ -48,4 +48,5 @@
     kubeseal
   ];
   programs.vscode.enable = true;
+  programs.gh.enable = true;
 }
