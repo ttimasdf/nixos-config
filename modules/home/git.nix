@@ -22,7 +22,7 @@ in
   # https://nixos.asia/en/git
   programs = {
     git = {
-      enable = true;
+      enable = lib.mkDefault true;
       settings = lib.mkMerge [
         {
           user.name = cfg.fullname;
