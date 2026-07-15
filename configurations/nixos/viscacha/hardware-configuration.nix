@@ -26,7 +26,7 @@
 
   boot.initrd.luks.devices."cryptswap" = {
     device = "/dev/disk/by-partuuid/3803896b-2c11-4c7b-b13a-e6d783a89918";
-    # allowDiscards = true;
+    allowDiscards = true;
   };
 
   fileSystems."/home" =
@@ -61,7 +61,7 @@
   swapDevices = [
     {
       device = "/dev/mapper/cryptswap";
-      # discardPolicy = "once";
+      discardPolicy = "once";
     }
   ];
 
