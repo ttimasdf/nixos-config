@@ -51,4 +51,5 @@
   };
 
   rabit.home.kitty.kitty-new-tab.enable = true;
+  # rabit.home.kitty.kitty-new-tab.debug_log.enable = lib.trace "kitty-new-tab.debug_log enabled" true;
 }
