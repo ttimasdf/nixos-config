@@ -50,5 +50,5 @@
     themeFile = "Catppuccin-Latte";
   };
 
-  rabit.home.kitty.kitty-in-tab.enable = true;
+  rabit.home.kitty.kitty-new-tab.enable = true;
 }

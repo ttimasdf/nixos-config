@@ -1,1 +1,1 @@
-hibernation-zswap
+kitty-script
