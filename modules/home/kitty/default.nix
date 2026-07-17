@@ -58,6 +58,15 @@ let
           X-TerminalArgHold = "--hold";
         };
         noDisplay = true;
+        mimeTypes = [
+          "MimeType=image/*"
+          "application/x-sh"
+          "application/x-shellscript"
+          "inode/directory"
+          "text/*"
+          "x-scheme-handler/kitty"
+          "x-scheme-handler/ssh"
+        ];
       };
     in
     pkgs.symlinkJoin {
