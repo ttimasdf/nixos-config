@@ -14,13 +14,17 @@ let
       export UV_CACHE_DIR="$_fs_root/.cache/uv"
     fi
     unset _fs_root
+
+    if [[ -d "$HOME/.bun/bin" ]]; then
+      export PATH="$PATH:$HOME/.bun/bin:$HOME/.cache/.bun/bin"
+    fi
+    if [[ -d "$HOME/.local/share/pnpm/bin" ]]; then
+      export PATH="$PATH:$HOME/.local/share/pnpm/bin"
+    fi
   '' + lib.optionalString config.programs.distrobox.enable ''
     # Set environment variables inside distrobox
     if [[ -n "$DISTROBOX_ENTER_PATH" ]]; then
       export PATH="$HOME/.local/bin:$PATH"
-    fi
-    if [[ -d "$HOME/.bun/bin" ]]; then
-      export PATH="$PATH:$HOME/.bun/bin:$HOME/.cache/.bun/bin"
     fi
   '';
 
