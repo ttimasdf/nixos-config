@@ -11,7 +11,7 @@
     uv         # python runtime environment
     go         # golang runtime environment
     php        # php runtime environment
-    bun        # node runtime environment
+    # bun        # node runtime environment
     nodejs     # node runtime environment, nodejs is included in pnpm closure, adding it does not add size
     pnpm       # node package manager
     rustup     # rust toolchains manager
