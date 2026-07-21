@@ -64,7 +64,7 @@
     clash-party
 
     # Remote Access
-    # rustdesk-flutter
+    rustdesk-flutter
     # unicom-cloud-desktop
     virt-viewer
     remmina
