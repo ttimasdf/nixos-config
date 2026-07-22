@@ -41,11 +41,11 @@
 
 let
   pname = "qoder-cn";
-  version = "1.0.0";
+  version = "1.5.0";
 
   src = fetchurl {
     url = "https://ide.qoder.com.cn/qoder/release/${version}/qoder-cn_amd64.deb";
-    hash = "sha256-BvvHpxUSmoXS3StcPZ8t6XSbJS/GrTm119umN/Ode7g=";
+    hash = "sha256-2VsTfzYztLlZIiHDuDVnJn3+08HVeJ8mn+GpHdjDMlw=";
   };
 
   runtimeDependencies = [
@@ -124,14 +124,14 @@ stdenv.mkDerivation (finalAttrs: {
     makeWrapper $out/share/qoder-cn/bin/qoder-cn-tunnel $out/bin/qoder-cn-tunnel \
       --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath runtimeDependencies}
 
-    makeWrapper $out/share/qoder-cn/resources/app/resources/bin/x86_64_linux/qodercncli $out/bin/qodercncli
+    makeWrapper $out/share/qoder-cn/resources/app/resources/bin/x86_64_linux/QoderCN $out/bin/qoder-cn-cli
 
     runHook postInstall
   '';
 
   meta = {
     description = "Agentic coding platform designed for real software development";
-    homepage = "https://qoder.com";
+    homepage = "https://qoder.cn";
     license = lib.licenses.unfree;
     platforms = [ "x86_64-linux" ];
     sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
