@@ -41,11 +41,11 @@
 
 let
   pname = "qoder-cn";
-  version = "1.5.0";
+  version = "1.8.0";
 
   src = fetchurl {
     url = "https://ide.qoder.com.cn/qoder/release/${version}/qoder-cn_amd64.deb";
-    hash = "sha256-2VsTfzYztLlZIiHDuDVnJn3+08HVeJ8mn+GpHdjDMlw=";
+    hash = "sha256-Rw/e8nx7IfgxXnn3ZIoDgbn8czZ/4CcquedjxVWoBC0=";
   };
 
   runtimeDependencies = [
