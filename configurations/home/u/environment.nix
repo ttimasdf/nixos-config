@@ -1,8 +1,7 @@
 { flake, osConfig, lib, pkgs, isDarwin, ... }:
 {
   home.sessionVariables = {
-    # disable telemetry for oh-my-openagent
-    OMO_SEND_ANONYMOUS_TELEMETRY = "0";
+    DO_NOT_TRACK = "1";
   };
 
   # Prefer NVIDIA (card1) over Intel (card2) for KWin compositing/scan-out.

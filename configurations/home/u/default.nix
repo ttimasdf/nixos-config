@@ -23,11 +23,6 @@ in
     git.sshSigningKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHbP5VCRKV5Q9AawX3C7CcIwXgnd9m8wvcrzrrpobrje Git commit signing for ttimasdf";
   };
 
-  home.sessionVariables = {
-    # disable telemetry for oh-my-openagent
-    OMO_SEND_ANONYMOUS_TELEMETRY = "0";
-  };
-
   # Adopt the Home Manager 26.05 XDG Firefox profile path.
   programs.firefox.configPath = "${config.xdg.configHome}/mozilla/firefox";
 
