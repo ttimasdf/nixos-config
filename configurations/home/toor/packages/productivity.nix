@@ -16,6 +16,7 @@
     wemeet
     # pebble
     discord
+    bizconf-vc
 
     # Development & Code Editors
     # vscode # enabled below
