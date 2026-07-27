@@ -43,7 +43,7 @@ let
     description = "BizConf Cloud video conferencing client";
     homepage = "https://meetingnext.bizvideo.cn/userportal/download?sitesign=bvmeetingnext";
     license = licenses.unfree;
-    mainProgram = "BizconfVC";
+    mainProgram = pname;
     platforms = [ "x86_64-linux" ];
     maintainers = [ ];
   };
@@ -80,7 +80,11 @@ buildFHSEnv (
       cp -r ${unpacked}/share/icons "$out/share/"
 
       substituteInPlace "$out/share/applications/BizconfVC.desktop" \
-        --replace-fail "Exec=BizconfVC %u" "Exec=$out/bin/BizconfVC %u"
+        --replace-fail "Exec=BizconfVC %u" "Exec=$out/bin/${pname} %u" \
+        --replace-fail "Categories=Application;" "Categories=Network;VideoConference;" \
+        --replace-fail "Encoding=UTF-8" ""
+
+      printf '\nStartupWMClass=BizconfVC\n' >> "$out/share/applications/BizconfVC.desktop"
     '';
   }
 )
