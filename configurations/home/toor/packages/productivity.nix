@@ -13,7 +13,7 @@
 
     # Social & Communication
     dingtalk
-    wemeet
+    # wemeet # 有点问题，先用flatpak吧
     # pebble
     discord
     bizconf-vc
