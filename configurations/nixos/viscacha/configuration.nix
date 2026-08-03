@@ -340,9 +340,6 @@ in
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
   environment.systemPackages = with pkgs; [
-    # Basic packages for editing nix config
-    git
-
     # sysadmin
     inetutils # ftp  hostname  ifconfig  telnet  tftp  traceroute  whois
     net-tools # netstat
@@ -375,6 +372,10 @@ in
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
+  programs.git = {
+    enable = true;
+    lfs.enable = true;
+  };
 
   programs.traceroute.enable = true;
   programs.mtr.enable = true;
