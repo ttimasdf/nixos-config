@@ -1,34 +1,45 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.rabit.nixos.gui.kde;
-in {
+in
+{
   options.rabit.nixos.gui.kde.enable = lib.mkEnableOption "Desktop Environment: KDE";
   config = lib.mkIf cfg.enable {
     services.xserver.enable = true;
     services.displayManager.sddm.enable = true;
     services.desktopManager.plasma6.enable = true;
 
-    environment.systemPackages = with pkgs; [
-      kdePackages.partitionmanager
-      kdePackages.ksystemlog
-      kdePackages.plasma-systemmonitor
-      kdePackages.sddm-kcm
+    environment.systemPackages =
+      with pkgs;
+      with kdePackages;
+      [
+        partitionmanager
+        ksystemlog
+        plasma-systemmonitor
+        sddm-kcm
+        ksshaskpass
 
-      kdePackages.discover
-      kdePackages.kcalc
-      kdePackages.kclock
+        discover
+        kcalc
+        kclock
 
-      kdePackages.filelight
-      kdePackages.spacebar
-      kdePackages.kdeconnect-kde
-      # kdePackages.k3b # waiting for PR#475899
+        filelight
+        spacebar
+        kdeconnect-kde
+        # k3b # waiting for PR#475899
 
-      wayland-utils
-      wl-clipboard
-      xclip
-    ] ++ lib.optionals (config.services.flatpak.enable) [
-      kdePackages.flatpak-kcm
-    ];
+        wayland-utils
+        wl-clipboard
+        xclip
+      ]
+      ++ lib.optionals (config.services.flatpak.enable) [
+        flatpak-kcm
+      ];
   };
 }
