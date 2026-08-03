@@ -41,7 +41,10 @@
     terraform
     coder
     kubectl
+    kubectl-cnpg
+    kubectl-ktop
     k9s
+    k3d
     argocd
     kubernetes-helm
     kustomize
