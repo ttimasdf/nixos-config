@@ -6,7 +6,8 @@
     pnpm
     nodejs    # nodejs is included in pnpm closure, adding it does not add size
     go
-    # bun     # bun is installed from prebuilt binary.
+    # bun     # enabled by programs.bun.enable
+    shellcheck
 
     # build tools
     gnumake
@@ -52,4 +53,5 @@
   ];
   programs.vscode.enable = true;
   programs.gh.enable = true;
+  programs.bun.enable = true;
 }
