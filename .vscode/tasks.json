@@ -12,7 +12,7 @@
         {
             "label": "Build NixOS system",
             "type": "shell",
-            "command": ["xc", "build"],
+            "command": ["xc", "build", "--", "-k", "-K"],
             "group": {
                 "kind": "build",
                 "isDefault": true
