@@ -19,7 +19,7 @@ let
     owner = "ttimasdf";
     repo = "astral-ng";
     rev = "v${version}";
-    hash = "sha256-5RumMelaMywE61sFFBEBMjKp4P5zklO8hEJ0zk1hnxE=";
+    hash = "sha256-7v1rzZhrgGMLbq7jXT7W47KhVzua0HXxfdakXdbsUus=";
     fetchSubmodules = true;
   };
 
