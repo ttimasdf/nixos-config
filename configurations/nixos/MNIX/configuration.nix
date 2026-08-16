@@ -33,6 +33,8 @@ in
     "net.ipv4.ip_forward" = 1;
     "net.ipv4.ip_unprivileged_port_start" = 80;
   };
+
+  zramSwap = { enable = true; memoryPercent = 50; };
   # endregion boot & kernel
 
   # region user settings
