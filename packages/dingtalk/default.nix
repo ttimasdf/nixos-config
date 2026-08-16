@@ -53,7 +53,7 @@
   nss,
   opencv,
   openldap,
-  openssl_1_1,
+  openssl,
   pango,
   pcre2,
   pipewire,
@@ -143,7 +143,7 @@ let
     nss
     opencv
     openldap
-    openssl_1_1
+    openssl
     pango
     pcre2
     pipewire
@@ -205,12 +205,12 @@ in
       mv opt/apps/com.alibabainc.dingtalk/files/*-Release.* release
 
       # Cleanup
-      rm -f release/{*.a,*.la,*.prl,dingtalk_crash_report,dingtalk_updater,libapr*,libcrypto.so.*,libcurl.so.*}
+      rm -f release/{*.a,*.la,*.prl,dingtalk_crash_report,dingtalk_updater,libapr*,libcurl.so.*}
       rm -f release/{libdouble-conversion.so.*,libEGL*,libfontconfig*,libfreetype*,libfribidi*,libgbm.*,libgdk*,libGLES*}
       rm -f release/{libgtk*,libgtk-x11-2.0.so.*,libharfbuzz*,libicu*,libidn2*,libjpeg*,libm.so.*,libnghttp2*}
       rm -f release/{libpango-1.0.*,libpangocairo-1.0.*,libpangoft2-1.0.*,libpcre2*,libpng*,libpsl*,libQt5*,libssh2*}
-      rm -f release/{libssl.*,libstdc++.so.6,libstdc++*,libunistring*,libvk*,libvulkan*,libxcb*,libz*}
-      rm -rf release/{engines-1_1,imageformats,platform*,swiftshader,xcbglintegrations}
+      rm -f release/{libstdc++.so.6,libstdc++*,libunistring*,libvk*,libvulkan*,libxcb*,libz*}
+      rm -rf release/{imageformats,platform*,swiftshader,xcbglintegrations}
       rm -rf release/Resources/{i18n/tool/*.exe,qss/mac}
       
       runHook postUnpack
