@@ -1,19 +1,20 @@
-{ flake, pkgs, lib, config, ... }:
-let
-  inherit (flake.inputs) self lanzaboote;
-in
+{ pkgs, lib, ... }:
 {
-  imports = [
-    lanzaboote.nixosModules.lanzaboote
-  ];
-  config = {
-    boot.lanzaboote = {
+  # Shared Limine Secure Boot policy. Existing keys in /var/lib/sbctl are
+  # intentionally reused; key generation and firmware enrollment are left to
+  # explicit administrative actions.
+  boot.loader.limine = {
+    enable = true;
+    enableEditor = false;
+    secureBoot = {
       enable = true;
-      pkiBundle = "/var/lib/sbctl";
+      autoGenerateKeys = false;
+      autoEnrollKeys.enable = false;
     };
-    # systemd-boot is configured by lanzaboote
-    boot.loader.systemd-boot.enable = lib.mkForce false;
-
-    environment.systemPackages = with pkgs; [ sbctl ];
   };
+
+  # Limine is the bootloader backend for hosts importing this module.
+  boot.loader.systemd-boot.enable = lib.mkForce false;
+
+  environment.systemPackages = with pkgs; [ sbctl ];
 }

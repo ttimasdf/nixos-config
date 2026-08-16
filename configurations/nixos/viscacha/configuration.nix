@@ -19,18 +19,21 @@ in
   ];
 
   # region boot & kernel
-  boot.lanzaboote = {
-    # Configuration for the `systemd-boot`. See `loader.conf(5)` for supported values.
-    settings = {
-      timeout = config.boot.loader.timeout;
-      console-mode = config.boot.loader.systemd-boot.consoleMode;
-      editor = false;
-      default = "nixos-*";
-      # default = "@saved";
-      # If this is disabled, the firmware interface may still be reached by using the f key.
-      auto-firmware = false;
-      reboot-for-bitlocker = true;
-    };
+  # Limine is enabled by the shared secure-boot module. Keep this entry
+  # host-specific so other hosts do not depend on a Windows EFI variable.
+  boot.loader.limine = {
+    maxGenerations = 20;
+    extraConfig = ''
+      remember_last_entry: yes
+    '';
+
+    # Set BootNext and reboot before launching Windows so BitLocker sees the
+    # firmware's expected TPM PCR state.
+    extraEntries = ''
+      /Windows
+        protocol: efi_boot_entry
+        entry: Windows Boot Manager
+    '';
   };
 
   boot.loader.efi.canTouchEfiVariables = true;
@@ -274,6 +277,7 @@ in
 
   programs.java.enable = true;
   programs.java.package = pkgs.jdk.override { enableJavaFX = true; };
+  programs.java.binfmt = true;
 
   programs.kdeconnect.enable = true;
   services.mihomo.enable = true;
@@ -490,6 +494,7 @@ in
     # Allow mihomo/easytier TUN mode to work with system stack
     trustedInterfaces = [
       "mihomo0"
+      "mihomo1"
       "easytier0"
       "astral"
     ];

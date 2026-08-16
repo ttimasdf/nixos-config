@@ -14,18 +14,12 @@ in
     ];
 
   # region boot & kernel
-  boot.lanzaboote = {
-    # Configuration for the `systemd-boot`. See `loader.conf(5)` for supported values.
-    settings = {
-      timeout = config.boot.loader.timeout;
-      console-mode = config.boot.loader.systemd-boot.consoleMode;
-      editor = false;
-      # default = "nixos-*";
-      default = "@saved";
-      # If this is disabled, the firmware interface may still be reached by using the f key.
-      auto-firmware = false;
-      reboot-for-bitlocker = true;
-    };
+  # Preserve the previous @saved behavior with Limine's equivalent setting.
+  boot.loader.limine = {
+    maxGenerations = 20;
+    extraConfig = ''
+      remember_last_entry: yes
+    '';
   };
 
   boot.loader.efi.canTouchEfiVariables = true;
