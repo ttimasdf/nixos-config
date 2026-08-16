@@ -16,7 +16,7 @@
     # wemeet # 有点问题，先用flatpak吧
     # pebble
     discord
-    bizconf-vc
+    # bizconf-vc
 
     # Development & Code Editors
     # vscode # enabled below
