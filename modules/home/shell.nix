@@ -173,6 +173,8 @@ in
     starship = {
       enable = true;
       settings = {
+        # 目录扫描超时（毫秒）。默认 30ms，内存紧张/磁盘繁忙时会超时并告警。
+        scan_timeout = 100;
         username = {
           style_user = "blue bold";
           style_root = "red bold";
