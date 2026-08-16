@@ -11,6 +11,7 @@
       scrollback_lines = 99999;
       # background_opacity = 0.85;
       cursor_trail = 1;
+      auto_reload_config = -1;
 
       tab_bar_edge = "top";
       tab_bar_style = "powerline";
