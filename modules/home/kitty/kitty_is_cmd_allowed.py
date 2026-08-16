@@ -24,7 +24,7 @@ def is_cmd_allowed(pcmd, window, from_socket, extra_data):
 
     log.debug('is_cmd_allowed called: cmd_name=%s, cmd_payload=%s, window=%s, from_socket=%s', cmd_name, cmd_payload, window, from_socket)
 
-    if cmd_name in {"focus-tab", "focus-window", "select-window"}:
+    if cmd_name in {"focus-tab", "focus-window", "select-window", "ls"}:
         log.info('Command whitelist: %s', cmd_name)
         return True
     elif cmd_name not in {"launch"}:
