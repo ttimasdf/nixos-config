@@ -1,0 +1,29 @@
+#compdef kitty-session
+
+_kitty_session() {
+  local -a commands snapshots
+
+  if (( CURRENT == 2 )); then
+    commands=(
+      'backup:write a session snapshot'
+      'restore:select and restore a session snapshot'
+      'list:list session snapshots with window and tab counts'
+    )
+    _describe -t commands command commands
+    return
+  fi
+
+  case "$words[2]" in
+    restore)
+      if (( CURRENT == 3 )); then
+        snapshots=("${(@f)$(kitty-session __complete restore "$words[CURRENT]" 2>/dev/null)}")
+        (( ${#snapshots} )) && compadd -a snapshots
+      fi
+      ;;
+    backup)
+      _arguments '--force[replace an existing snapshot]' '--best-effort[allow inaccessible Kitty servers]'
+      ;;
+  esac
+}
+
+compdef _kitty_session kitty-session

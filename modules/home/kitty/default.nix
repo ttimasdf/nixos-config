@@ -37,7 +37,7 @@ let
         (lib.getExe pkgs.libnotify)
         (if cfg.debug_log.enable then "DEBUG" else "INFO")
       ]
-      (builtins.readFile ./kitty_is_cmd_allowed.py);
+      (builtins.readFile ./scripts/kitty_is_cmd_allowed.py);
 
   adaptive-layouts-source =
     builtins.replaceStrings
@@ -46,17 +46,31 @@ let
         (builtins.toJSON adaptive-layouts-cfg.portrait.layouts)
         (builtins.toJSON adaptive-layouts-cfg.landscape.layouts)
       ]
-      (builtins.readFile ./adaptive_layouts.py);
+      (builtins.readFile ./scripts/adaptive_layouts.py);
+
+  kitty-session-bash-completion = builtins.readFile ./scripts/session/kitty_session.bash;
+  kitty-session-zsh-completion = builtins.readFile ./scripts/session/_kitty-session;
+  kitty-session-fish-completion = builtins.readFile ./scripts/session/kitty_session.fish;
 
   kitty-session =
     let
       name = "kitty-session";
     in
-    pkgs.writers.writePython3Bin name { flakeIgnore = flake8IgnoredErrors; } (
-      builtins.replaceStrings [ "@kitty@" ] [ (lib.getExe kitty-package) ] (
-        builtins.readFile ./kitty_session.py
-      )
-    );
+    pkgs.writers.writePython3Bin name
+      {
+        flakeIgnore = flake8IgnoredErrors;
+        makeWrapperArgs = [
+          "--prefix"
+          "PATH"
+          ":"
+          "${lib.makeBinPath [ pkgs.fzf ]}"
+        ];
+      }
+      (
+        builtins.replaceStrings [ "@kitty@" ] [ (lib.getExe kitty-package) ] (
+          builtins.readFile ./scripts/session/kitty_session.py
+        )
+      );
 
   kitty-new-tab =
     let
@@ -80,7 +94,7 @@ let
                 name
                 (if cfg.debug_log.enable then "DEBUG" else "INFO")
               ]
-              (builtins.readFile ./kitty_new_tab.py)
+              (builtins.readFile ./scripts/kitty_new_tab.py)
           );
       desktopItem = pkgs.makeDesktopItem {
         inherit name;
@@ -216,7 +230,23 @@ in
       xdg.configFile."kitty/adaptive_layouts.py".text = adaptive-layouts-source;
     })
     (mkIf (config.programs.kitty.enable && session-cfg.enable) {
+      programs.kitty.actionAliases = {
+        "kitty-session-backup" = "launch --type=background kitty-session backup";
+        "kitty-session-restore" = "launch --type=overlay kitty-session restore";
+      };
+      home.file = {
+        ".local/share/bash-completion/completions/kitty-session".text = kitty-session-bash-completion;
+        ".zfunc/_kitty-session".text = kitty-session-zsh-completion;
+        ".config/fish/completions/kitty-session.fish".text = kitty-session-fish-completion;
+      };
       home.packages = [ kitty-session ];
+    })
+    (mkIf (config.programs.kitty.enable && session-cfg.enable && config.programs.bash.enable) {
+      programs.bash.initExtra = mkAfter ''
+        if [[ -r "$HOME/.local/share/bash-completion/completions/kitty-session" ]]; then
+          source "$HOME/.local/share/bash-completion/completions/kitty-session"
+        fi
+      '';
     })
   ];
 }

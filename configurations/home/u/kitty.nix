@@ -35,7 +35,7 @@
       "ctrl+shift+enter" = "new_window_with_cwd"; # default to new_window
       "kitty_mod+n" = "new_os_window_with_cwd"; # default to new_os_window
 
-      "kitty_mod+p" = "command_palette";
+      "kitty_mod+m" = "command_palette";
       # "kitty_mod+s" = "launch --stdin-source=@screen_scrollback --type=background sh -c 'cat > ~/Documents/kitty-log/$(date +%Y-%m-%d-%H-%M-%S).log'"; # log current terminal buffer
       "kitty_mod+d" = "detach_window new-tab"; # moves the window into a new tab
       "kitty_mod+f" = "detach_window ask"; # asks which tab to move the window into
