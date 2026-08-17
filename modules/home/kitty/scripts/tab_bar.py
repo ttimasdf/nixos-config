@@ -8,6 +8,8 @@ import unicodedata
 from kitty.fast_data_types import get_boss
 
 
+MAX_COMMAND_LENGTH = 6
+
 INTERACTIVE_SHELLS = frozenset(
     {
         "bash",
@@ -32,6 +34,15 @@ def basename(value: str) -> str:
     return os.path.basename(trimmed) if trimmed else "/"
 
 
+def truncate(value: str, max_length: int) -> str:
+    """Cap text to a display length, using an ellipsis when truncated."""
+    if max_length < 1:
+        return ""
+    if len(value) <= max_length:
+        return value
+    return f"{value[: max_length - 1]}…"
+
+
 def agent_status(title: str) -> str:
     """Extract a symbolic status prefix from titles such as `⏳ - project`."""
     status, separator, _ = title.partition(" - ")
@@ -45,7 +56,7 @@ def ordinary_title(command_line: list[str]) -> str:
     if not command_line:
         return ""
 
-    command = basename(command_line[0]).lstrip("-")
+    command = truncate(basename(command_line[0]).lstrip("-"), MAX_COMMAND_LENGTH)
     if command in INTERACTIVE_SHELLS:
         return ""
 
