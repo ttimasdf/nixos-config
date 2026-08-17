@@ -231,8 +231,8 @@ in
     })
     (mkIf (config.programs.kitty.enable && session-cfg.enable) {
       programs.kitty.actionAliases = {
-        "kitty-session-backup" = "launch --type=background kitty-session backup";
-        "kitty-session-restore" = "launch --type=overlay kitty-session restore";
+        session_backup = "launch --type=background kitty-session backup";
+        session_restore = "launch --type=overlay kitty-session restore";
       };
       home.file = {
         ".local/share/bash-completion/completions/kitty-session".text = kitty-session-bash-completion;
