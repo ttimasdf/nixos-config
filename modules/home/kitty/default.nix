@@ -48,6 +48,8 @@ let
       ]
       (builtins.readFile ./scripts/adaptive_layouts.py);
 
+  tab-bar-source = builtins.readFile ./scripts/tab_bar.py;
+
   kitty-session-bash-completion = builtins.readFile ./scripts/session/kitty_session.bash;
   kitty-session-zsh-completion = builtins.readFile ./scripts/session/_kitty-session;
   kitty-session-fish-completion = builtins.readFile ./scripts/session/kitty_session.fish;
@@ -210,6 +212,9 @@ in
         }
       ];
     }
+    (mkIf config.programs.kitty.enable {
+      xdg.configFile."kitty/tab_bar.py".text = tab-bar-source;
+    })
     (mkIf (config.programs.kitty.enable && needs-remote-control) {
       programs.kitty.settings = {
         listen_on = "unix:\${XDG_RUNTIME_DIR}/kitty-rc";
