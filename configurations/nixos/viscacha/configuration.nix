@@ -383,7 +383,7 @@ in
 
   programs.traceroute.enable = true;
   programs.mtr.enable = true;
-  programs.astral.enable = lib.trace "FIXME: update astral-ng ASAP" false;
+  programs.astral.enable = true;
 
   programs.appimage.enable = true;
   programs.appimage.binfmt = true;

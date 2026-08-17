@@ -1,7 +1,7 @@
 {
   lib,
   stdenv,
-  flutter338,
+  flutter344,
   rustPlatform,
   fetchFromGitHub,
   makeDesktopItem,
@@ -13,13 +13,13 @@
 
 let
   pname = "astral-ng";
-  version = "2.8.1";
+  version = "0-unstable-2026-08-16";
 
   src = fetchFromGitHub {
     owner = "ttimasdf";
     repo = "astral-ng";
-    rev = "v${version}";
-    hash = "sha256-7v1rzZhrgGMLbq7jXT7W47KhVzua0HXxfdakXdbsUus=";
+    rev = "bc4ce43c904c6f521bfcf18dce1cf437f792801c";
+    hash = "sha256-G1Y2AQPdRx2HyCK6zyPhAYbgrKecPBcrj9WWxM8rwnw=";
     fetchSubmodules = true;
   };
 
@@ -28,7 +28,7 @@ let
 
     sourceRoot = "${src.name}/rust";
 
-    cargoHash = "sha256-FaqxEsu/+9TjnebWNNShcSbX5l4ebBQljz0jjrV+nUw=";
+    cargoHash = "sha256-hpGO7uoR4t65Tawy+4wyETu5j9yCl7Q59rU55cOC4BM=";
 
     nativeBuildInputs = [
       protobuf
@@ -40,7 +40,7 @@ let
     meta.platforms = [ "x86_64-linux" ];
   };
 in
-flutter338.buildFlutterApplication {
+flutter344.buildFlutterApplication {
   inherit pname version src;
 
   autoPubspecLock = src + "/pubspec.lock";
