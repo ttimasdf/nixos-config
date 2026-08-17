@@ -23,7 +23,7 @@
       tab_bar_style = "powerline";
       tab_powerline_style = "round";
       tab_title_template = "{fmt.fg.red}{bell_symbol}{activity_symbol}{fmt.fg.tab}{tab.last_focused_progress_percent}{custom}";
-      tab_title_max_length = 30;
+      tab_title_max_length = 16;
 
       notify_on_cmd_finish = "unfocused 10";
     };
