@@ -82,13 +82,31 @@ def active_command_line(tab_id: int) -> list[str]:
         return []
 
 
+MAXIMIZED_GLYPH = "⛶"  # U+26F6 SQUARE FOUR CORNERS, 1 cell wide
+AGENT_GLYPH = "⌬"  # U+232C BENZENE RING, 1 cell wide
+
+
+def is_maximized(tab_id: int) -> bool:
+    """Report whether the real tab backing this tab-bar entry uses the stack layout."""
+    try:
+        # data["tab"] in tab-bar draws is a TabBarData record without layout
+        # state, so resolve the live Tab via its id first.
+        tab = get_boss().tab_for_id(tab_id)
+        return tab.current_layout.name == "stack" if tab else False
+    except Exception:
+        # A tab can disappear while Kitty redraws its tab bar.
+        return False
+
+
 def draw_title(data: dict[str, object]) -> str:
     """Render an agent status plus folder, or a concise ordinary command line."""
     tab = data["tab"]
+    prefix = MAXIMIZED_GLYPH if is_maximized(tab.tab_id) else ""
     folder = basename(tab.active_wd)
     status = agent_status(str(data["title"]).strip())
     if status:
-        return f"{status} {folder}"
-
-    title = ordinary_title(active_command_line(tab.tab_id))
-    return title or folder or str(data["title"])
+        # Normalize the agent's own status glyph (e.g. π) to a fixed icon.
+        title = f"{AGENT_GLYPH}{folder}" if folder else AGENT_GLYPH
+    else:
+        title = ordinary_title(active_command_line(tab.tab_id)) or folder or str(data["title"])
+    return f"{prefix}{title}".strip() if prefix else title
