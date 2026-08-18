@@ -68,7 +68,14 @@ def on_resize(boss: Boss, window: Window, data: dict[str, Any]) -> None:
     # profile normally.
     _APPLYING.add(os_window_id)
     try:
+        # kitty's set_enabled_layouts keeps the current layout if it is still
+        # enabled, and otherwise picks enabled_layouts[0]. Since "stack" may be
+        # a member (or the head) of a profile, either rule can land on stack and
+        # mask the orientation change. Select the first non-stack layout
+        # explicitly instead.
+        target = next((name for name in layouts if name != "stack"), layouts[0])
         for tab in tabs_to_update:
             tab.set_enabled_layouts(layouts)
+            tab.goto_layout(target)
     finally:
         _APPLYING.discard(os_window_id)

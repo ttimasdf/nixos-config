@@ -65,8 +65,8 @@
   rabit.home.kitty.adaptive-layouts = {
     enable = true;
     portrait.layouts = [
-      "stack"
       "vertical"
+      "stack"
     ];
     landscape.layouts = [
       "tall"
