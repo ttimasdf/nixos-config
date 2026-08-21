@@ -2,7 +2,7 @@
 let
   inherit (flake) self;
   inherit (self) rabit-lib;
-  inherit (flake.inputs) rabit-nix-packages private-module;
+  inherit (flake.inputs) known-rabbit-packages private-module;
 
   currentSystem = config.nixpkgs.hostPlatform.system;
 
@@ -25,17 +25,17 @@ in
   nixpkgs.overlays = [
     # The package overlay also supplies compatibility dependencies required by
     # wuying-cloud-desktop. Existing-package overrides remain explicit.
-    rabit-nix-packages.overlays.packages
-    rabit-nix-packages.overlays.ark
-    rabit-nix-packages.overlays.clash-verge-rev
-    rabit-nix-packages.overlays.cockpit-zfs
-    rabit-nix-packages.overlays.fcitx5-rime-ice
-    rabit-nix-packages.overlays.ghidra
-    rabit-nix-packages.overlays.kscreen
-    rabit-nix-packages.overlays.nvtop
-    rabit-nix-packages.overlays.qt68
-    rabit-nix-packages.overlays.wps
-    rabit-nix-packages.overlays.xxzip-natspec
+    known-rabbit-packages.overlays.packages
+    known-rabbit-packages.overlays.ark
+    known-rabbit-packages.overlays.clash-verge-rev
+    known-rabbit-packages.overlays.cockpit-zfs
+    known-rabbit-packages.overlays.fcitx5-rime-ice
+    known-rabbit-packages.overlays.ghidra
+    known-rabbit-packages.overlays.kscreen
+    known-rabbit-packages.overlays.nvtop
+    known-rabbit-packages.overlays.qt68
+    known-rabbit-packages.overlays.wps
+    known-rabbit-packages.overlays.xxzip-natspec
   ]
   ++ (builtins.attrValues private-module.overlays)
   ++ [

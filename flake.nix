@@ -43,7 +43,7 @@
     nixos-hardware = { url = "github:NixOS/nixos-hardware/master"; inputs.nixpkgs.follows = "nixpkgs"; };
 
     # Software inputs
-    rabit-nix-packages = {
+    known-rabbit-packages = {
       url = "github:ttimasdf/nix-packages/main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
