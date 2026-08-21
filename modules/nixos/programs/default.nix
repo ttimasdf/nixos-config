@@ -1,7 +1,7 @@
 { flake, ... }:
 let
-  inherit (flake.inputs) nix-packages;
+  inherit (flake.inputs) rabit-nix-packages;
 in
 {
-  imports = builtins.attrValues nix-packages.nixosModules;
+  imports = builtins.attrValues rabit-nix-packages.nixosModules;
 }

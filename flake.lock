@@ -151,27 +151,6 @@
         "type": "github"
       }
     },
-    "nix-packages": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1787298901,
-        "narHash": "sha256-JaIsoOfMOTenwcQv4y4nKNYbVHjS+Obj4wIfmbBNQq8=",
-        "owner": "ttimasdf",
-        "repo": "nix-packages",
-        "rev": "c86a89ba94f075493a3aa7c057c8f1ccf6186c86",
-        "type": "github"
-      },
-      "original": {
-        "owner": "ttimasdf",
-        "ref": "main",
-        "repo": "nix-packages",
-        "type": "github"
-      }
-    },
     "nixos-hardware": {
       "inputs": {
         "nixpkgs": [
@@ -312,6 +291,27 @@
         "type": "github"
       }
     },
+    "rabit-nix-packages": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1787302903,
+        "narHash": "sha256-HVngz7LEydcpGvG/gYnsq49MiUvQEchNOmEwl3ruAQo=",
+        "owner": "ttimasdf",
+        "repo": "nix-packages",
+        "rev": "d8f69af436acd167e123c292c6e448f98e53639e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ttimasdf",
+        "ref": "main",
+        "repo": "nix-packages",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -321,13 +321,13 @@
         "home-manager": "home-manager",
         "nix-darwin": "nix-darwin",
         "nix-index-database": "nix-index-database",
-        "nix-packages": "nix-packages",
         "nixos-hardware": "nixos-hardware",
         "nixos-unified": "nixos-unified",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs",
         "nur": "nur",
         "private-module": "private-module",
+        "rabit-nix-packages": "rabit-nix-packages",
         "systems": "systems",
         "winapps": "winapps"
       }

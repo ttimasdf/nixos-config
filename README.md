@@ -47,16 +47,16 @@ inputs = {
 For packages and overlays, consume the dedicated flake directly:
 
 ```nix
-inputs.nix-packages = {
+inputs.rabit-nix-packages = {
   url = "github:ttimasdf/nix-packages";
   inputs.nixpkgs.follows = "nixpkgs";
 };
 
 # In a NixOS module:
 nixpkgs.overlays = [
-  inputs.nix-packages.overlays.default
+  inputs.rabit-nix-packages.overlays.default
   # Opt-in existing-package overrides:
-  inputs.nix-packages.overlays.kscreen
+  inputs.rabit-nix-packages.overlays.kscreen
 ];
 ```
 
@@ -66,7 +66,7 @@ The repository is organized into the following main directories:
 
 -   `flake.nix`: The main Nix flake file, defining inputs and outputs for the entire configuration.
 -   `packages/`: Local packages that cannot be published, currently private-source packages.
--   `nix-packages` input: Public packages, portable overlays, and package-specific NixOS modules.
+-   `rabit-nix-packages` input: Public packages, portable overlays, and package-specific NixOS modules.
 -   `configurations/`: Contains machine-specific NixOS and Home Manager configurations.
     -   `configurations/home/<user>.nix`: Defines Home Manager configurations for a specific user. The presence of such a file automatically registers `<user>` for both Home Manager and system-level user configurations. A directory like `configurations/home/<user>/default.nix` is also supported.
     -   `configurations/nixos/<hostname>/`: NixOS configurations for different machines.
