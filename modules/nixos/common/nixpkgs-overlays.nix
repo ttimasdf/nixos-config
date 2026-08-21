@@ -1,4 +1,9 @@
-{ flake, lib, config, ... }:
+{
+  flake,
+  lib,
+  config,
+  ...
+}:
 let
   inherit (flake) self;
   inherit (self) rabit-lib;
@@ -18,28 +23,33 @@ let
 
   localPackages =
     final: _prev:
-    rabit-lib.forAllNixFiles "${self}/packages" (packagePath: lib.callPackageWith final packagePath { });
+    rabit-lib.forAllNixFiles "${self}/packages" (
+      packagePath: lib.callPackageWith final packagePath { }
+    );
   privatePackages = _final: _prev: packagesForCurrentSystem "private-module";
+
+  # This configuration is the trusted reference consumer of the public package
+  # repository. Apply every distinct public overlay: `default` aliases
+  # `packages`, while `libtiff5` and `qt5webengine` are already composed into
+  # the package overlay for wuying-cloud-desktop.
+  knownRabbitOverlays = [
+    known-rabbit-packages.overlays.packages
+  ]
+  ++ builtins.attrValues (
+    builtins.removeAttrs known-rabbit-packages.overlays [
+      "default"
+      "packages"
+      "libtiff5"
+      "qt5webengine"
+    ]
+  );
 in
 {
-  nixpkgs.overlays = [
-    # The package overlay also supplies compatibility dependencies required by
-    # wuying-cloud-desktop. Existing-package overrides remain explicit.
-    known-rabbit-packages.overlays.packages
-    known-rabbit-packages.overlays.ark
-    known-rabbit-packages.overlays.clash-verge-rev
-    known-rabbit-packages.overlays.cockpit-zfs
-    known-rabbit-packages.overlays.fcitx5-rime-ice
-    known-rabbit-packages.overlays.ghidra
-    known-rabbit-packages.overlays.kscreen
-    known-rabbit-packages.overlays.nvtop
-    known-rabbit-packages.overlays.qt68
-    known-rabbit-packages.overlays.wps
-    known-rabbit-packages.overlays.xxzip-natspec
-  ]
-  ++ (builtins.attrValues private-module.overlays)
-  ++ [
-    localPackages
-    privatePackages
-  ];
+  nixpkgs.overlays =
+    knownRabbitOverlays
+    ++ (builtins.attrValues private-module.overlays)
+    ++ [
+      localPackages
+      privatePackages
+    ];
 }
