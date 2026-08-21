@@ -326,4 +326,6 @@ sh ./scripts/install-pre-commit-hook.sh
 
 Public packages and portable overlays are maintained in [`ttimasdf/nix-packages`](https://github.com/ttimasdf/nix-packages). That repository provides direct flake package outputs, a NUR-compatible `default.nix`, portable overlays, and package-specific NixOS modules.
 
+Hosts import published modules explicitly through `known-rabbit-packages.nixosModules.<name>`. `known-rabbit-packages.nixosModules.all` is available when a host intentionally wants the complete published module set. The local [`modules/nixos/programs/default.nix`](modules/nixos/programs/default.nix) scaffold only collects custom program modules defined beside it.
+
 The local `packages/` directory is reserved for packages that cannot be published, such as private-source software. Direct package files and directories containing `default.nix` are added to host package sets by [`modules/nixos/common/nixpkgs-overlays.nix`](modules/nixos/common/nixpkgs-overlays.nix).

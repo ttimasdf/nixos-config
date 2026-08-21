@@ -43,7 +43,7 @@ Multi-host NixOS flake with private module separation, reusable package inputs, 
 ## CONVENTIONS
 
 ### Reusable Packages and Overlays
-Public packages, portable overlays, and package-specific NixOS modules live in `ttimasdf/nix-packages`. This flake consumes its package overlay plus explicitly selected override overlays.
+Public packages, portable overlays, and package-specific NixOS modules live in `ttimasdf/nix-packages`. This flake consumes its package overlay plus explicitly selected override overlays. Hosts import published modules explicitly from `known-rabbit-packages.nixosModules`; `modules/nixos/programs/default.nix` only collects local custom program modules.
 
 ### Local Package Auto-Discovery
 The remaining `packages/` tree is reserved for packages that cannot be published, such as private-source packages. Direct children are discovered with `rabit-lib.forAllNixFiles`.

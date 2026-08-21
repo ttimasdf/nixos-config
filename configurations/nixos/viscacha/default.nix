@@ -3,7 +3,13 @@
 { flake, ... }:
 
 let
-  inherit (flake.inputs) self nixos-hardware nur private-module;
+  inherit (flake.inputs)
+    self
+    nixos-hardware
+    nur
+    private-module
+    known-rabbit-packages
+    ;
 in
 {
   imports = [
@@ -17,6 +23,8 @@ in
     self.nixosModules.common
     private-module.nixosModules.all
     self.nixosModules.programs
+    known-rabbit-packages.nixosModules.astral
+    known-rabbit-packages.nixosModules.fido-linux-id
     self.nixosModules.secure-boot
     self.nixosModules.gui
     self.nixosModules.winapps
