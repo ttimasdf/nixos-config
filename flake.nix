@@ -43,6 +43,10 @@
     nixos-hardware = { url = "github:NixOS/nixos-hardware/master"; inputs.nixpkgs.follows = "nixpkgs"; };
 
     # Software inputs
+    nix-packages = {
+      url = "github:ttimasdf/nix-packages/migration/nix-packages";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     winapps = {
       url = "github:winapps-org/winapps";
       inputs.nixpkgs.follows = "nixpkgs";

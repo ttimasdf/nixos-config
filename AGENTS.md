@@ -5,7 +5,7 @@
 **Branch:** dev
 
 ## OVERVIEW
-Multi-host NixOS flake with private module separation, auto-wired outputs via nixos-unified. 5 hosts, 29+ custom packages, ~15 overlays.
+Multi-host NixOS flake with private module separation, reusable package inputs, and auto-wired outputs via nixos-unified.
 
 ## STRUCTURE
 ```
@@ -15,8 +15,7 @@ Multi-host NixOS flake with private module separation, auto-wired outputs via ni
 │   ├── nixos/<host>/     # → nixosConfigurations.<host>
 │   ├── home/<user>/       # → legacyPackages.${system}.homeConfigurations.<user>
 │   └── users/<user>.nix   # System-level user config (loaded by myusers.nix)
-├── packages/             # Custom packages (auto-discovered via forAllNixFiles)
-├── overlays/             # Nixpkgs overlays (auto-discovered, non-standard signature)
+├── packages/             # Local/private-source packages only
 ├── modules/
 │   ├── nixos/            # NixOS modules (→ nixosModules)
 │   ├── home/             # Home Manager modules
@@ -29,8 +28,8 @@ Multi-host NixOS flake with private module separation, auto-wired outputs via ni
 
 | Task | Location | Notes |
 |------|----------|-------|
-| Add custom package | `packages/<name>.nix` or `packages/<name>/default.nix` | Auto-discovered; read `packages/AGENTS.md` |
-| Override existing nixpkgs pkg | `overlays/<name>.nix` | Uses `{ flake, ... }: final: prev:` signature |
+| Add public package or overlay | `../nix-packages/` | Published through the `nix-packages` input |
+| Add private-source package | `packages/<name>/default.nix` | Auto-discovered into the local package overlay |
 | Add NixOS system module | `modules/nixos/<name>.nix` | Auto-wired to `nixosModules.<name>` |
 | Add Home Manager module | `modules/home/<name>.nix` | Import via `modules/home/all.nix` |
 | Add flake/dev utility | `modules/flake/<name>.nix` | Add helper to `modules/flake/lib.nix` |
@@ -43,12 +42,11 @@ Multi-host NixOS flake with private module separation, auto-wired outputs via ni
 
 ## CONVENTIONS
 
-### Overlay Signature (NON-STANDARD)
-All overlays use `{ flake, ... }: final: prev:` instead of standard `final: prev:`.
-The `flake` arg gives access to `flake.inputs` for pinned nixpkgs, private-module, etc.
+### Reusable Packages and Overlays
+Public packages, portable overlays, and package-specific NixOS modules live in `ttimasdf/nix-packages`. This flake consumes its package overlay plus explicitly selected override overlays.
 
-### Package Auto-Discovery
-Packages are discovered by `rabit-lib.forAllNixFiles` - every `.nix` file or directory with `default.nix` directly under `packages/` becomes a top-level package. NO nested namespaces. `packages/foo/bar/default.nix` is NOT discovered.
+### Local Package Auto-Discovery
+The remaining `packages/` tree is reserved for packages that cannot be published, such as private-source packages. Direct children are discovered with `rabit-lib.forAllNixFiles`.
 
 ### Configuration Auto-Wiring
 Uses nixos-unified autowiring. Directory structure maps directly to flake outputs. No manual listing in `flake.nix` needed.
@@ -70,9 +68,9 @@ let inherit (flake.inputs) self; in
 
 - **NEVER change bootloader UUID** after initial install (viscacha:508, MNIX:501)
 - **NEVER put NixOS-specific config in `configurations/nixos/common/`** - shared between nixos and nix-darwin
-- **NEVER create nested packages** - `forAllNixFiles` does not recurse
+- **NEVER add public packages or overlays here** - use the `nix-packages` repository
+- **NEVER create nested local packages** - `forAllNixFiles` does not recurse
 - **NEVER leave `nixos-version-hint.txt` empty or "changeme"** - build will fail
-- **NEVER use standard `final: prev:` overlay signature** - must include `{ flake, ... }:` prefix
 - **Deprecated**: `xc trim-generations` → use `xc clean` instead
 
 ## UNIQUE STYLES
@@ -109,5 +107,4 @@ nix develop .#nixosConfigurations.<host>.pkgs.<package>
 
 - `currentSystem` is derived from `config.nixpkgs.hostPlatform.system` in `nixpkgs-overlays.nix`
 - Home Manager configs exposed as `legacyPackages.${system}.homeConfigurations` (not `homeConfigurations`) due to pkgs dependency
-- `.clinerules/writing-nix-config.md` has the canonical package/overlay authoring guide
-- `overlays/overlay-template.md` has advanced overlay examples (pinned nixpkgs, scoped overrides, Python package overrides)
+- Public package and overlay authoring guidance lives in the `nix-packages` repository

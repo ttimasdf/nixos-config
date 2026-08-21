@@ -1,8 +1,8 @@
-{ flake, lib, config, pkgs, ... }:
+{ flake, lib, config, ... }:
 let
   inherit (flake) self;
   inherit (self) rabit-lib;
-  inherit (flake.inputs) private-module;
+  inherit (flake.inputs) nix-packages private-module;
 
   currentSystem = config.nixpkgs.hostPlatform.system;
 
@@ -11,24 +11,35 @@ let
     let
       input = flake.inputs.${inputName};
     in
-      if builtins.hasAttr currentSystem input.packages then
-        input.packages.${currentSystem}
-      else
-        throw "${inputName}.packages is missing system '${currentSystem}'";
+    if builtins.hasAttr currentSystem input.packages then
+      input.packages.${currentSystem}
+    else
+      throw "${inputName}.packages is missing system '${currentSystem}'";
 
-  # Manually call packages, as using self.packages here would lead to infinite recursion
-  packages =
-    final: prev:
-      rabit-lib.forAllNixFiles "${self}/packages"
-        (fn: lib.callPackageWith final fn { });
-  privatePackages = final: prev: packagesForCurrentSystem "private-module";
-  # llmagentsPackages = final: prev: packagesForCurrentSystem "llm-agents";
+  localPackages =
+    final: _prev:
+    rabit-lib.forAllNixFiles "${self}/packages" (packagePath: lib.callPackageWith final packagePath { });
+  privatePackages = _final: _prev: packagesForCurrentSystem "private-module";
 in
 {
-  # Map the list of file paths to a list of overlay functions
-  nixpkgs.overlays =
-    (builtins.attrValues self.overlays)
-    ++ (builtins.attrValues private-module.overlays)
-    # ++ (builtins.attrValues llm-agents.overlays)
-    ++ [ packages privatePackages ];
+  nixpkgs.overlays = [
+    # The package overlay also supplies compatibility dependencies required by
+    # unicom-cloud-desktop. Existing-package overrides remain explicit.
+    nix-packages.overlays.packages
+    nix-packages.overlays.ark
+    nix-packages.overlays.clash-verge-rev
+    nix-packages.overlays.cockpit-zfs
+    nix-packages.overlays.fcitx5-rime-ice
+    nix-packages.overlays.ghidra
+    nix-packages.overlays.kscreen
+    nix-packages.overlays.nvtop
+    nix-packages.overlays.qt68
+    nix-packages.overlays.wps
+    nix-packages.overlays.xxzip-natspec
+  ]
+  ++ (builtins.attrValues private-module.overlays)
+  ++ [
+    localPackages
+    privatePackages
+  ];
 }

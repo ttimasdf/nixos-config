@@ -21,7 +21,7 @@ A modular, multi-host NixOS configuration with private module support so you can
 
 ## Using this config
 
-You can simply clone or fork this repository as a configuration template, or include it as a Flake module and reference the provided packages and NixOS modules.
+You can clone or fork this repository as a configuration template. Reusable packages, portable overlays, and package-specific modules are published separately in [`ttimasdf/nix-packages`](https://github.com/ttimasdf/nix-packages).
 
 To include this module in your NixOS config, you need to provide a `private-module` input. This allows for separation of public and private configuration details.
 
@@ -44,23 +44,20 @@ inputs = {
 };
 ```
 
-Then you can use the [flake outputs](#flake-outputs) from this config in your own configuration. It is recommended to configure `nixpkgs.overlays` similarly to [`modules/nixos/common/nixpkgs-overlays.nix`](modules/nixos/common/nixpkgs-overlays.nix):
+For packages and overlays, consume the dedicated flake directly:
 
 ```nix
-outputs = { self, nixpkgs, ttimasdf-nixos-config, ... }: {
-  nixosConfigurations.my-machine = nixpkgs.lib.nixosSystem {
-    system = "x86_64-linux";
-    modules = [
-      {
-        nixpkgs.overlays =
-          (builtins.attrValues ttimasdf-nixos-config.overlays)
-          ++ [
-            (final: prev: ttimasdf-nixos-config.packages)
-          ];
-      }
-    ];
-  };
+inputs.nix-packages = {
+  url = "github:ttimasdf/nix-packages";
+  inputs.nixpkgs.follows = "nixpkgs";
 };
+
+# In a NixOS module:
+nixpkgs.overlays = [
+  inputs.nix-packages.overlays.default
+  # Opt-in existing-package overrides:
+  inputs.nix-packages.overlays.kscreen
+];
 ```
 
 ## Structure
@@ -68,8 +65,8 @@ outputs = { self, nixpkgs, ttimasdf-nixos-config, ... }: {
 The repository is organized into the following main directories:
 
 -   `flake.nix`: The main Nix flake file, defining inputs and outputs for the entire configuration.
--   `packages/`: Custom packages (automatically discovered).
--   `overlays/`: Nixpkgs overlays (automatically discovered).
+-   `packages/`: Local packages that cannot be published, currently private-source packages.
+-   `nix-packages` input: Public packages, portable overlays, and package-specific NixOS modules.
 -   `configurations/`: Contains machine-specific NixOS and Home Manager configurations.
     -   `configurations/home/<user>.nix`: Defines Home Manager configurations for a specific user. The presence of such a file automatically registers `<user>` for both Home Manager and system-level user configurations. A directory like `configurations/home/<user>/default.nix` is also supported.
     -   `configurations/nixos/<hostname>/`: NixOS configurations for different machines.
@@ -94,14 +91,12 @@ Each of the directories are wired to the corresponding flake output, as indicate
 | `modules/nixos/foo.nix`                       | `nixosModules.foo`                                              |
 | `modules/darwin/foo.nix`                      | `darwinModules.foo`                                             |
 | `modules/flake/foo.nix`                       | `flakeModules.foo`                                              |
-| `overlays/foo.nix`                            | `overlays.foo`                                                  |
-| `packages/foo.nix`                            | `packages.${system}.foo`<sup>(3)</sup>                          |
 
 (1): This path could as well be `configurations/nixos/foo/default.nix`. Likewise for other output types.
 
 (2): Why `legacyPackages`? Because, creating a home-manager configuration [requires `pkgs`](https://github.com/srid/nixos-unified/blob/47a26bc9118d17500bbe0c4adb5ebc26f776cc36/nix/modules/flake-parts/lib.nix#L97). See <https://github.com/nix-community/home-manager/issues/3075>
 
-(3): Package files are discovered using `rabit-lib.forAllNixFiles "${self}/packages"`. Each `.nix` file or directory with a `default.nix` in `packages/` becomes a top-level package attribute, available as `packages.${system}.{name}` in your flake outputs.
+Public package outputs are provided by the separate `nix-packages` flake. Local package files are only injected into host `pkgs` through the local overlay.
 
 ### Home Manager configurations: `configurations/home/`
 
@@ -327,167 +322,8 @@ Install pre-commit hook
 sh ./scripts/install-pre-commit-hook.sh
 ```
 
-## Writing a Package Overlay
+## Developing Packages and Overlays
 
-You can override or extend Nixpkgs packages by creating overlays in the `overlays/` directory.
+Public packages and portable overlays are maintained in [`ttimasdf/nix-packages`](https://github.com/ttimasdf/nix-packages). That repository provides direct flake package outputs, a NUR-compatible `default.nix`, portable overlays, and package-specific NixOS modules.
 
-> [!IMPORTANT]
-> Overlays in this repository use the following signature at the top, notably the `{ flake, ... }` part, which is *different from the official Nixpkgs method* (see [overlays/overlay-template.md](overlays/overlay-template.md)):
-
-```nix
-{ flake, ... }:
-final: prev: {
-  # ...your overrides here
-}
-```
-
-The overlays are autowired by [nixos-unified autowire.nix](https://github.com/srid/nixos-unified/blob/90171c6936a8332ede17e09e337a0e71f4e659b1/nix/modules/flake-parts/autowire.nix#L54-L56) with arguments defined in [lib.nix](https://github.com/srid/nixos-unified/blob/90171c6936a8332ede17e09e337a0e71f4e659b1/nix/modules/flake-parts/lib.nix#L3-L6).
-
-For example, to override the `hello` package:
-
-```nix
-# overlays/hello-override.nix
-{ flake, ... }:
-final: prev: {
-  hello = prev.hello.overrideAttrs (oldAttrs: {
-    version = "2.12.1";
-    src = prev.fetchurl {
-      url = "https://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz";
-      sha256 = "sha256-differenthashgoeshere";
-    };
-  });
-}
-```
-
-See [overlays/overlay-template.md](overlays/overlay-template.md) for more overlay examples and best practices.
-
-
-## Writing a New Package
-
-This repository allows for easy integration of custom Nix packages. All `.nix` files and directories containing `default.nix` placed in the `packages/` directory are automatically discovered using `rabit-lib.forAllNixFiles "${self}/packages"` (handled by [`modules/nixos/common/nixpkgs-overlays.nix`](modules/nixos/common/nixpkgs-overlays.nix)). This means you don't typically need to manually add new packages from `packages/` to your `flake.nix`.
-
-### Example Directory Structure
-
-Consider the following structure within `packages/`:
-
-```
-packages/
-├── a.nix
-├── b.nix
-└── c
-   ├── my-extra-feature.patch
-   ├── default.nix
-   └── support-definitions.nix
-```
-
-### Accessing Packages from the Example Structure
-
-Using `rabit-lib.forAllNixFiles`, these packages would be accessible as top-level attributes:
-
-*   `pkgs.a` (from `packages/a.nix`)
-*   `pkgs.b` (from `packages/b.nix`)
-*   `pkgs.c` (from `packages/c/default.nix`)
-
-Note: `forAllNixFiles` does NOT recurse into nested namespaces. Every `.nix` file and every directory with a `default.nix` directly under `packages/` becomes a top-level package attribute.
-
-To add a new package:
-
-1.  **Create a package file or directory**: Inside `packages/`, either create a `.nix` file directly (e.g., `packages/my-new-package.nix`) or create a directory with a `default.nix` entry point (e.g., `packages/my-new-package/default.nix`).
-2.  **Write the package definition**:
-
-    **Example: Single-file package (`packages/my-new-package.nix`)**
-    ```nix
-    # packages/my-new-package.nix
-    { lib, stdenv, fetchurl }:
-
-    stdenv.mkDerivation {
-      pname = "my-new-package";
-      version = "1.0.0";
-
-      src = fetchurl {
-        url = "https://example.com/my-new-package-1.0.0.tar.gz";
-        hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Replace with actual hash
-      };
-
-      # Add build and install phases as needed
-      installPhase = ''
-        mkdir -p $out/bin
-        echo "Hello from my new package!" > $out/bin/my-new-package
-        chmod +x $out/bin/my-new-package
-      '';
-
-      meta = {
-        description = "A simple example package";
-        homepage = "https://example.com/my-new-package";
-        license = lib.licenses.mit;
-        platforms = lib.platforms.linux;
-      };
-    }
-    ```
-
-    **Example: Directory package with `default.nix`**
-    Use a directory when you need extra files (patches, helper scripts, etc.) alongside the package definition.
-    ```
-    packages/my-new-package/
-    ├── default.nix
-    ├── my-extra-feature.patch
-    └── support-definitions.nix
-    ```
-
-3.  **Using your new package**:
-    You can then use your new package in your NixOS configuration or Home Manager.
-
-    - A `.nix` file `packages/foo.nix` is accessible as `pkgs.foo`.
-    - A directory `packages/foo/default.nix` is accessible as `pkgs.foo`.
-
-    ```nix
-    # In configurations/nixos/viscacha/configuration.nix
-    environment.systemPackages = with pkgs; [
-      my-new-package # From packages/my-new-package.nix or packages/my-new-package/default.nix
-    ];
-    ```
-
-## Debugging Packages and Overlays
-
-When developing or debugging custom packages and overlays, it's often useful to have a dedicated shell environment. Here are instructions to set up a build shell and a run shell.
-
-### Build Shell
-
-To enter a development shell for a specific package (e.g., `binaryninja-commercial-dev`) and prepare output directories for building, first navigate to the package's directory:
-
-```bash
-cd packages/binaryninja # Or your specific package directory
-# dev shell for packages
-nix develop .#binaryninja-commercial-dev
-# dev shell for overlays
-nix develop .#nixosConfigurations.viscacha.pkgs._010editor
-
-# in dev shell
-mkdir -p result/{output,unpack} && pushd result/unpack
-```
-
-Run package phases manually inside dev shell.
-
-```bash
-runPhase unpackPhase  # step 1
-runPhase patchPhase  # step 2
-runPhase configurePhase  # step 3
-runPhase buildPhase  # step 4
-runPhase checkPhase  # step 5
-runPhase installPhase  # step 6
-runPhase fixupPhase  # step 7
-runPhase installCheckPhase  # step 8
-runPhase distPhase  # step 9
-```
-
-### Run Shell
-
-To enter a `nix-shell` environment and prepare output directories for running/testing, first navigate to the package's directory with a `shell.nix`:
-
-```bash
-cd packages/binaryninja # Or your specific package directory
-nix-shell .
-mkdir -p result/{output,unpack} && pushd result/output
-```
-
-These commands provide a way to isolate your development and testing environments, making it easier to debug issues with your Nix packages and overlays.
+The local `packages/` directory is reserved for packages that cannot be published, such as private-source software. Direct package files and directories containing `default.nix` are added to host package sets by [`modules/nixos/common/nixpkgs-overlays.nix`](modules/nixos/common/nixpkgs-overlays.nix).
