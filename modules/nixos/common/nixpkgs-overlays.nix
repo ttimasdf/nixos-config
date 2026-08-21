@@ -24,7 +24,7 @@ in
 {
   nixpkgs.overlays = [
     # The package overlay also supplies compatibility dependencies required by
-    # unicom-cloud-desktop. Existing-package overrides remain explicit.
+    # wuying-cloud-desktop. Existing-package overrides remain explicit.
     nix-packages.overlays.packages
     nix-packages.overlays.ark
     nix-packages.overlays.clash-verge-rev

@@ -44,7 +44,7 @@
 
     # Software inputs
     nix-packages = {
-      url = "github:ttimasdf/nix-packages/migration/nix-packages";
+      url = "github:ttimasdf/nix-packages/main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     winapps = {

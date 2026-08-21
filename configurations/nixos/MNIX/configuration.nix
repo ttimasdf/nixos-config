@@ -9,7 +9,8 @@ let
 in
 {
   imports =
-    [ # Include the results of the hardware scan.
+    [
+      # Include the results of the hardware scan.
       ./hardware-configuration.nix
     ];
 
@@ -35,7 +36,7 @@ in
   # endregion boot & kernel
 
   # region user settings
-  rabit.nixos.myusers = ["toor"];
+  rabit.nixos.myusers = [ "toor" ];
   # endregion user settings
 
   # region partitions
@@ -48,7 +49,7 @@ in
   networking.hostName = "MNIX"; # Define your hostname.
   # Pick only one of the below networking options.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-  networking.networkmanager.enable = true;  # Easiest to use and most distros use this by default.
+  networking.networkmanager.enable = true; # Easiest to use and most distros use this by default.
 
   # Define the NetworkManager dispatcher script
   # networking.networkmanager.dispatcherScripts = [
@@ -222,9 +223,8 @@ in
 
   # Add 'newuidmap' and 'sh' to the PATH for users' Systemd units.
   # Required for Rootless podman.
-  systemd.user.extraConfig = ''
-    DefaultEnvironment="PATH=/run/current-system/sw/bin:/run/wrappers/bin:${lib.makeBinPath [ pkgs.bash ]}"
-  '';
+  systemd.user.settings.Manager.DefaultEnvironment =
+    "PATH=/run/current-system/sw/bin:/run/wrappers/bin:${lib.makeBinPath [ pkgs.bash ]}";
 
   systemd.services."user@".serviceConfig = {
     TimeoutStopSec = "30s";
@@ -237,17 +237,17 @@ in
     git
 
     # sysadmin
-    inetutils   # ftp  hostname  ifconfig  telnet  tftp  traceroute  whois
-    net-tools   # netstat
+    inetutils # ftp  hostname  ifconfig  telnet  tftp  traceroute  whois
+    net-tools # netstat
     htop
     tcpdump
     dig.dnsutils
 
     # Hardware info
-    pciutils          # lspci
-    usbutils          # lsusb
-    intel-gpu-tools   # intel_gpu_top
-    smartmontools     # smartctl
+    pciutils # lspci
+    usbutils # lsusb
+    intel-gpu-tools # intel_gpu_top
+    smartmontools # smartctl
     inxi
     lm_sensors
 
@@ -319,10 +319,10 @@ in
       defaultNetwork.settings.dns_enabled = true;
     };
     containers.containersConf.settings = {
-      unqualified-search-registries = ["docker.io"];
+      unqualified-search-registries = [ "docker.io" ];
 
       engine = {
-        compose_providers = ["/run/current-system/sw/bin/podman-compose"];
+        compose_providers = [ "/run/current-system/sw/bin/podman-compose" ];
         compose_warning_logs = false;
         env = [
           "HTTP_PROXY=${config.rabit.nixos.http_proxy}"
@@ -399,17 +399,17 @@ in
 
     allowedTCPPorts = [
       #22000   # syncthing
-      53317   # localsend
-      8888    # MITM
-      4444    # reverse listener
-      6806    # siyuan
-      25      # SMTP for phish
+      53317 # localsend
+      8888 # MITM
+      4444 # reverse listener
+      6806 # siyuan
+      25 # SMTP for phish
     ];
     allowedUDPPorts = [
       #22000   # syncthing
-      53317   # localsend
-      67      # dhcp
-      53      # dns
+      53317 # localsend
+      67 # dhcp
+      53 # dns
     ];
   };
 
@@ -475,10 +475,12 @@ in
     # cudaCapabilities = [ "8.9" ];
 
     permittedInsecurePackages = [
-      lib.warn "Enabling insecure package qtwebengine-5.15.19 due to unicom-cloud-desktop dependency"
-        "qtwebengine-5.15.19"
-      lib.warn "Enabling insecure package openssl-1.1.1w due to nur.repos.yakkhini.dingtalk dependency"
-        "openssl-1.1.1w"
+      lib.warn
+      "Enabling insecure package electron-39.8.10 due to bitwarden-desktop dependency"
+      "electron-39.8.10"
+      lib.warn
+      "Enabling insecure package qtwebengine-5.15.19 due to wuying-cloud-desktop dependency"
+      "qtwebengine-5.15.19"
     ];
   };
 

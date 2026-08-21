@@ -158,16 +158,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1787288962,
-        "narHash": "sha256-J41esPa8RlBsPOOjJur65Gl5plICYLK+9JUG0XcyGn4=",
+        "lastModified": 1787293829,
+        "narHash": "sha256-fZdHlvsJvwOd9YnNgsfoiPP6IBuIXbqWccZdc/+LHdU=",
         "owner": "ttimasdf",
         "repo": "nix-packages",
-        "rev": "0779d4f541c19b757ef9bdae90a6a35c7ea3f341",
+        "rev": "9ae298aec07576870b1260dd6dc2c6429936aab3",
         "type": "github"
       },
       "original": {
         "owner": "ttimasdf",
-        "ref": "migration/nix-packages",
+        "ref": "main",
         "repo": "nix-packages",
         "type": "github"
       }

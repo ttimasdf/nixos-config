@@ -525,11 +525,6 @@ in
     # Ada Lovelace support for LLM inference
     # cudaCapabilities = [ "8.9" ];
 
-    permittedInsecurePackages = [
-      lib.warn
-      "Enabling insecure package openssl-1.1.1w due to nur.repos.yakkhini.dingtalk dependency"
-      "openssl-1.1.1w"
-    ];
   };
 
   # Copy the NixOS configuration file and link it from the resulting system
