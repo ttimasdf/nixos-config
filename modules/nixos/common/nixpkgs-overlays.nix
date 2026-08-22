@@ -29,27 +29,15 @@ let
   privatePackages = _final: _prev: packagesForCurrentSystem "private-module";
 
   # This configuration is the trusted reference consumer of the public package
-  # repository. Apply every distinct public overlay: `default` aliases
-  # `packages`, while `libtiff5` and `qt5webengine` are already composed into
-  # the package overlay for wuying-cloud-desktop.
-  knownRabbitOverlays = [
-    known-rabbit-packages.overlays.packages
-  ]
-  ++ builtins.attrValues (
-    builtins.removeAttrs known-rabbit-packages.overlays [
-      "default"
-      "packages"
-      "libtiff5"
-      "qt5webengine"
-    ]
-  );
+  # repository, so it opts into the repository's complete aggregate overlay.
 in
 {
-  nixpkgs.overlays =
-    knownRabbitOverlays
-    ++ (builtins.attrValues private-module.overlays)
-    ++ [
-      localPackages
-      privatePackages
-    ];
+  nixpkgs.overlays = [
+    known-rabbit-packages.overlays.all
+  ]
+  ++ (builtins.attrValues private-module.overlays)
+  ++ [
+    localPackages
+    privatePackages
+  ];
 }
