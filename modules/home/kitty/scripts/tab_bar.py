@@ -10,7 +10,9 @@ from kitty.fast_data_types import get_boss
 
 MAX_COMMAND_LENGTH = 6
 
-# Interactive shells are shell infrastructure rather than user applications.
+# These processes are shell infrastructure rather than user applications.
+# Kitty can observe Starship briefly while zsh expands PROMPT/RPROMPT, so it
+# belongs here alongside interactive shells.
 NON_APPLICATION_COMMANDS = frozenset(
     {
         "bash",
@@ -20,6 +22,7 @@ NON_APPLICATION_COMMANDS = frozenset(
         "ksh",
         "nu",
         "sh",
+        "starship",
         "tcsh",
         "xonsh",
         "zsh",
