@@ -270,6 +270,11 @@ in
     stdenv.cc.cc.lib
     zlib
     glib
+  ]
+  # NVIDIA userspace driver matching the effective kernel packages, so
+  # unpatched binaries (e.g. CUDA apps) can resolve libnvidia-*.so.
+  ++ lib.optionals config.hardware.nvidia.enabled [
+    config.boot.kernelPackages.nvidia_x11
   ];
 
   programs.vim.enable = true;
