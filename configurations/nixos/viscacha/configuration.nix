@@ -215,6 +215,11 @@ in
     # prime.allowExternalGpu = true;
   };
 
+  environment.sessionVariables = {
+    # Triton looks for libcuda.so.1 via /sbin/ldconfig, which NixOS doesn't have
+    TRITON_LIBCUDA_PATH = "/run/opengl-driver/lib";
+  };
+
   hardware.graphics = {
     enable = true;
     # for wine
