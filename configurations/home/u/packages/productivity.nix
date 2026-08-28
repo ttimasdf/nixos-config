@@ -45,6 +45,7 @@
     vlc
     qmplay2
     unlock-music-cli
+    ffmpeg-headless
 
     # Networking
     proxychains-ng
