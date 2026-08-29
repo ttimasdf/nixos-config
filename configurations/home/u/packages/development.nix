@@ -25,7 +25,7 @@
 
     # Code Editors
     # vscode  # enabled by programs.vscode.enable
-    jetbrains.idea
+    # jetbrains.idea
 
     # AI Agentic Coding Tools
     antigravity
@@ -39,17 +39,17 @@
     bubblewrap  # needed by codex
 
     # Deployment tools
-    terraform
-    coder
-    kubectl
-    kubectl-cnpg
-    kubectl-ktop
-    k9s
-    k3d
-    argocd
-    kubernetes-helm
-    kustomize
-    kubeseal
+    # terraform
+    # coder
+
+    # kubectl
+    # kubectl-cnpg
+    # kubectl-ktop
+    # k9s
+    # argocd
+    # kubernetes-helm
+    # kustomize
+    # kubeseal
   ];
   programs.vscode.enable = true;
   programs.gh.enable = true;
