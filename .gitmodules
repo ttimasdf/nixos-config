@@ -1,0 +1,3 @@
+[submodule "public-packages"]
+	path = public-packages
+	url = https://github.com/ttimasdf/nix-packages.git
