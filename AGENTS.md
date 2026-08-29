@@ -61,9 +61,9 @@ git -C public-packages commit
 git -C public-packages push origin HEAD
 
 # From the parent repository:
-nix flake update known-rabbit-packages
-publicPackagesRev="$(nix flake metadata --json . | jq -r '.locks.nodes["known-rabbit-packages"].locked.rev')"
 publicPackagesHead="$(git -C public-packages rev-parse HEAD)"
+scripts/update-flake-input.sh known-rabbit-packages "$publicPackagesHead"
+publicPackagesRev="$(nix flake metadata --json . | jq -r '.locks.nodes["known-rabbit-packages"].locked.rev')"
 test "$publicPackagesHead" = "$publicPackagesRev"
 nix flake check
 
