@@ -97,8 +97,20 @@ def try_remote_launch(sock, title, cwd, hold, cmd):
   return False
 
 
+def detached_log_path():
+  """Return the log file Kitty's --detach redirects its output to."""
+  return RUNTIME_DIR / "kitty-new-tab.log"
+
+
 def fallback_launch(title, app_id, cwd, hold, cmd):
-  args = ["kitty"]
+  """Launch a detached Kitty instance and return immediately.
+
+  kitty --detach forks, calls setsid and redirects its own stdio, so the spawned
+  process exits right away instead of replacing this script and blocking the
+  terminal that invoked it.
+  """
+  log_path = detached_log_path()
+  args = ["kitty", "--detach", "--detached-log", str(log_path)]
   if title:
     args += ["--title", title]
   if app_id:
@@ -110,8 +122,22 @@ def fallback_launch(title, app_id, cwd, hold, cmd):
   if cmd:
     args.append("--")
     args += cmd
-  log.info("fallback: exec %s", args)
-  os.execvp("kitty", args)
+  log.info("fallback: %s", args)
+  result = subprocess.run(
+    args,
+    stdin=subprocess.DEVNULL,
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.PIPE,
+    text=True,
+    start_new_session=True,
+  )
+  if result.returncode == 0:
+    log.info("detached fallback kitty started")
+    return True
+  detail = result.stderr.strip() or f"kitty exited with status {result.returncode} (see {log_path})"
+  log.warning("detached fallback failed (rc=%d): %s", result.returncode, detail)
+  notify("Kitty launch failed", detail, urgency="critical")
+  return False
 
 
 def main():
@@ -124,7 +150,8 @@ def main():
   sock = find_sock()
   if sock and try_remote_launch(sock, title, cwd, hold, cmd):
     return
-  fallback_launch(title, app_id, cwd, hold, cmd)
+  if not fallback_launch(title, app_id, cwd, hold, cmd):
+    sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -279,7 +279,29 @@ def restore(name: str | None) -> int:
 
     # Restore intentionally leaves existing Kitty OS windows alone. The session
     # starts a fresh Kitty process and recreates the saved OS-window/tab/pane tree.
-    subprocess.Popen([KITTY, "--session", str(source)], start_new_session=True)
+    # --detach makes kitty fork, setsid and redirect its own stdio, so the spawned
+    # process exits immediately instead of keeping the invoking terminal or Kitty
+    # overlay window open. Output of the detached instance goes to the log file.
+    log_path = Path(os.environ.get("XDG_RUNTIME_DIR") or tempfile.gettempdir()) / "kitty-session-restore.log"
+    result = subprocess.run(
+        [
+            KITTY,
+            "--detach",
+            "--detached-log",
+            str(log_path),
+            "--session",
+            str(source),
+        ],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        text=True,
+        start_new_session=True,
+        check=False,
+    )
+    if result.returncode:
+        detail = result.stderr.strip() or f"kitty exited with status {result.returncode} (see {log_path})"
+        raise RuntimeError(f"Could not start Kitty to restore {source.name}: {detail}")
     print(f"Started Kitty restore from {source.name}")
     return 0
 
