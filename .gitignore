@@ -13,6 +13,9 @@ result
 # private module
 private/
 
+# output for scripts/nix-store-add.sh
+nix-paths.txt
+
 # output for scripts/nix-derivation-tree.py
 /*.html
 *.pyc
