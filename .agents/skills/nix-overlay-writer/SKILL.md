@@ -50,7 +50,7 @@ Prefer these references before editing:
 - `overlays/AGENTS.md` for current project conventions.
 - `overlays/overlay-template.md` for scoped overrides and pinned nixpkgs examples.
 - `.clinerules/writing-nix-config.md` only as older background guidance.
-- Existing overlays such as `clash-verge-rev.nix`, `podman-compose.nix`, `wps.nix`, `xxzip-natspec.nix`, `qt68.nix`, and `cockpit-zfs/default.nix` for local style.
+- Existing overlays such as `clash-verge-rev.nix`, `podman-compose.nix`, `wps.nix`, `zip-nls.nix`, `unzip-nls.nix`, `qt68.nix`, and `cockpit-zfs/default.nix` for local style.
 
 ## Common patterns
 
