@@ -28,7 +28,7 @@ Multi-host NixOS flake with private module separation, reusable package inputs, 
 
 | Task | Location | Notes |
 |------|----------|-------|
-| Add public package or overlay | `../nix-packages/` | Published through the `known-rabbit-packages` input |
+| Add public package or overlay | `public-packages/` | Published through the `known-rabbit-packages` input |
 | Add private-source package | `packages/<name>/default.nix` | Auto-discovered into the local package overlay |
 | Add NixOS system module | `modules/nixos/<name>.nix` | Auto-wired to `nixosModules.<name>` |
 | Add Home Manager module | `modules/home/<name>.nix` | Import via `modules/home/all.nix` |
