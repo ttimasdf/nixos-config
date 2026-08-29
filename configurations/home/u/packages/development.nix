@@ -28,7 +28,7 @@
     # jetbrains.idea
 
     # AI Agentic Coding Tools
-    antigravity
+    # antigravity
     # opencode
     # opencode-desktop
     # y-agent
