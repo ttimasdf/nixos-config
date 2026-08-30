@@ -210,6 +210,13 @@ in
       rm -f release/{libgtk*,libgtk-x11-2.0.so.*,libharfbuzz*,libicu*,libidn2*,libjpeg*,libm.so.*,libnghttp2*}
       rm -f release/{libpango-1.0.*,libpangocairo-1.0.*,libpangoft2-1.0.*,libpcre2*,libpng*,libpsl*,libQt5*,libssh2*}
       rm -f release/{libstdc++.so.6,libstdc++*,libunistring*,libvk*,libvulkan*,libxcb*,libz*}
+      # Drop the bundled (old) GLVND libGLX/libGLdispatch. Their RUNPATH does not
+      # contain /run/opengl-driver/lib, so GLVND cannot find Mesa's
+      # libGLX_mesa.so.0 and every GLX context creation fails with Qt's
+      # qFatal("Could not initialize GLX") -> SIGABRT. The NixOS-patched system
+      # libglvnd (RUNPATH includes /run/opengl-driver/lib) resolves the vendor
+      # library correctly.
+      rm -f release/{libGLX*,libGLdispatch*}
       rm -rf release/{imageformats,platform*,swiftshader,xcbglintegrations}
       rm -rf release/Resources/{i18n/tool/*.exe,qss/mac}
       
@@ -252,6 +259,18 @@ in
       runHook preFixup
 
       # Wrap the binary to set up environment variables and library paths
+      #
+      # Audio fix: libmeeting_sdk.so dlopen()s "libpulse.so.0" / "libasound.so.2"
+      # by bare name, but its RUNPATH only contains $out/lib and libglvnd (and the
+      # process has no LD_LIBRARY_PATH), so on NixOS the dlopen fails and the
+      # meeting window cannot enumerate any microphone/speaker devices. Put the
+      # PulseAudio and ALSA lib dirs on LD_LIBRARY_PATH so the dlopen succeeds.
+      #
+      # Note: the bundled GLVND libs (libGLX.so.0 / libGLdispatch.so.0) are
+      # removed in unpackPhase so the NixOS-patched system libglvnd is used.
+      # Otherwise GLX context creation fails ("Could not initialize GLX" ->
+      # SIGABRT), because the bundled libGLX has no /run/opengl-driver/lib in its
+      # RUNPATH and thus cannot find Mesa's libGLX_mesa.so.0 vendor library.
       wrapProgram $out/bin/dingtalk \
         "''${qtWrapperArgs[@]}" \
         "''${gappsWrapperArgs[@]}" \
@@ -259,6 +278,7 @@ in
         --unset WAYLAND_DISPLAY \
         --set QT_QPA_PLATFORM "xcb" \
         --set QT_AUTO_SCREEN_SCALE_FACTOR 1 \
+        --prefix LD_LIBRARY_PATH : "${libpulseaudio}/lib:${alsa-lib}/lib" \
         --prefix LD_PRELOAD : "${dingtalk-wayland-screenshare}/lib/libdingtalkhook.so"
 
       runHook postFixup
