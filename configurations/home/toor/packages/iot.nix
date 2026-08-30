@@ -8,5 +8,6 @@
     rkdeveloptool # Rockchip Development Tool
     squashfsTools
     dtc
+    usbmuxd       # USB Multiplexing Daemon (iOS)
   ];
 }
