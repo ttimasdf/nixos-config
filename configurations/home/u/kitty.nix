@@ -1,6 +1,4 @@
 {
-  config,
-  lib,
   pkgs,
   isDarwin,
   ...
@@ -50,10 +48,6 @@
       "ctrl+8" = "goto_tab 8";
       "ctrl+9" = "goto_tab 9";
       "ctrl+0" = "goto_tab 10";
-    }
-    // lib.optionalAttrs config.rabit.home.kitty.session.enable {
-      "kitty_mod+;" = "session_backup";
-      "kitty_mod+'" = "session_restore";
     };
 
     # see output of `kitten themes`
