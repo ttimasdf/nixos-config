@@ -189,27 +189,27 @@ in
     prime.intelBusId = "PCI:00:02:0";
     prime.nvidiaBusId = "PCI:01:00:0";
 
-    # modesetting.enable = true;
     powerManagement.enable = true;
-    powerManagement.finegrained = true;
 
     # ==== PRIME Settings
     # == Sync mode: use dGPU to render, copy buffer to iGPU
     # prime.sync.enable = true;
     # prime.offload.enable = false;
+    # modesetting.enable = true;
     # = optional: create a specialisation for disabling NVIDIA GPU
     # primeBatterySaverSpecialisation = true;
+
+    # == Reverse Sync: use iGPU to render, copy buffer to dGPU
+    # prime.reverseSync.enable = true;
 
     # == Offload: iGPU render, use dGPU only when launched via `nvidia-offload` cmd
     # = prime offload is enabled by nixos-hardware.nixosModules.common-gpu-nvidia prime
     # prime.sync.enable = lib.mkForce false;
     # prime.offload.enable = true;
     # prime.offload.enableOffloadCmd = true;
+    powerManagement.finegrained = true;
     # = optional: create a specialisation for disabling NVIDIA GPU
     primeBatterySaverSpecialisation = true;
-
-    # == Reverse sync: dGPU only, disable iGPU.
-    # prime.reverseSync.enable = true;
 
     # == Enable if using an external GPU via Thunderbolt/USB4 enclosure
     # prime.allowExternalGpu = true;
