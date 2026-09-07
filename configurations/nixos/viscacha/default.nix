@@ -23,7 +23,7 @@ in
     self.nixosModules.common
     private-module.nixosModules.all
     self.nixosModules.programs
-    known-rabbit-packages.nixosModules.astral
+    known-rabbit-packages.nixosModules.enmesh
     known-rabbit-packages.nixosModules.fido-linux-id
     self.nixosModules.secure-boot
     self.nixosModules.gui

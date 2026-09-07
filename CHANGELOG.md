@@ -4,6 +4,12 @@ All notable changes to this NixOS configuration repository will be documented in
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v2026.09.07.01] - 2026-09-07
+
+### Changed
+- Rebranded astral-ng to enmesh following the upstream ttimasdf/enmesh rename; pinned v3.0.0-rc.3 (binary `enmesh`, desktop entry Enmesh, `enmesh://` deep links)
+- Renamed programs.astral module to programs.enmesh with an enmesh cap_net_admin wrapper
+
 ## [v2026.03.04.01] - 2026-03-04
 
 ### Changed
