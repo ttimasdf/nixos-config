@@ -10,6 +10,7 @@
     # System monitoring and process management
     killall  # Kill processes by name
     ncdu     # Disk usage analyzer with ncurses interface
+    btdu
     nix-tree # Interactive Nix package browser
     nvtopPackages.nvidia-intel  # NVIDIA GPU monitoring tool
     # nvtopPackages.nvidia  # NVIDIA GPU monitoring tool
