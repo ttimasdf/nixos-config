@@ -192,27 +192,93 @@ in
     powerManagement.enable = true;
 
     # ==== PRIME Settings
-    # == Sync mode: use dGPU to render, copy buffer to iGPU
-    # prime.sync.enable = true;
-    # prime.offload.enable = false;
-    # modesetting.enable = true;
-    # = optional: create a specialisation for disabling NVIDIA GPU
-    # primeBatterySaverSpecialisation = true;
-
-    # == Reverse Sync: use iGPU to render, copy buffer to dGPU
-    # prime.reverseSync.enable = true;
-
-    # == Offload: iGPU render, use dGPU only when launched via `nvidia-offload` cmd
-    # = prime offload is enabled by nixos-hardware.nixosModules.common-gpu-nvidia prime
-    # prime.sync.enable = lib.mkForce false;
-    # prime.offload.enable = true;
-    # prime.offload.enableOffloadCmd = true;
+    # Reverse PRIME is the default: the Intel GPU renders, while the NVIDIA
+    # GPU drives displays physically connected to it (HDMI and USB-C on this
+    # laptop). Reverse sync also implies PRIME offload in nixos-hardware.
+    prime.reverseSync.enable = true;
     powerManagement.finegrained = true;
-    # = optional: create a specialisation for disabling NVIDIA GPU
-    primeBatterySaverSpecialisation = true;
 
-    # == Enable if using an external GPU via Thunderbolt/USB4 enclosure
-    # prime.allowExternalGpu = true;
+    # Enable another rendering/display arrangement from the boot menu when
+    # needed. The names are intentionally short; system.nixos.tags supplies
+    # descriptive generation labels.
+    #
+    #   offload: Intel renders by default; use `nvidia-offload` for NVIDIA.
+    #   sync:    NVIDIA is the primary renderer and is always active.
+    #   igpu-only: disable NVIDIA completely for maximum battery life.
+  };
+
+  specialisation = {
+    # Limine renders specialisations in lexicographic order and uses the
+    # specialisation key as the visible menu entry. Numeric prefixes therefore
+    # keep the boot menu order stable; they are also part of the runtime
+    # specialisation paths under /run/current-system/specialisation/.
+    "01-offload".configuration = {
+      # WARNING: NVIDIA may power up for offloaded applications; use this
+      # instead of reverse sync when battery life is more important than
+      # having NVIDIA own the external display outputs.
+      system.nixos.tags = [ "nvidia-offload" ];
+      hardware.nvidia.prime = {
+        offload.enable = lib.mkForce true;
+        sync.enable = lib.mkForce false;
+        reverseSync.enable = lib.mkForce false;
+      };
+    };
+
+    "02-sync".configuration = {
+      # WARNING: NVIDIA stays active continuously, so this mode has higher
+      # power consumption and shorter battery life.
+      system.nixos.tags = [ "nvidia-performance" ];
+      hardware.nvidia = {
+        prime = {
+          offload.enable = lib.mkForce false;
+          sync.enable = lib.mkForce true;
+          reverseSync.enable = lib.mkForce false;
+        };
+        # Fine-grained power management requires PRIME offload and is not
+        # compatible with sync mode, where NVIDIA is always the renderer.
+        powerManagement.finegrained = lib.mkForce false;
+      };
+    };
+
+    "03-igpu-only".configuration = {
+      # WARNING: NVIDIA is disabled. HDMI and USB-C display outputs, which
+      # are wired to NVIDIA on this laptop, will not be available.
+      imports = [
+        "${flake.inputs.nixos-hardware}/common/gpu/nvidia/disable.nix"
+      ];
+      system.nixos.tags = [ "igpu-only" ];
+      hardware.nvidia = {
+        prime = {
+          offload.enable = lib.mkForce false;
+          sync.enable = lib.mkForce false;
+          reverseSync.enable = lib.mkForce false;
+        };
+        powerManagement = {
+          enable = lib.mkForce false;
+          finegrained = lib.mkForce false;
+        };
+      };
+    };
+
+    "04-dgpu-only".configuration = {
+      # WARNING: Use this only with an external display already connected.
+      # This laptop has no MUX, so disabling i915 makes the internal eDP panel
+      # unavailable. HDMI and USB-C displays connected to NVIDIA remain usable.
+      imports = [
+        "${flake.inputs.nixos-hardware}/common/gpu/intel/disable.nix"
+      ];
+      system.nixos.tags = [ "nvidia-dgpu-only" ];
+      hardware.nvidia = {
+        prime = {
+          offload.enable = lib.mkForce false;
+          sync.enable = lib.mkForce false;
+          reverseSync.enable = lib.mkForce false;
+        };
+        # Fine-grained power management is a PRIME-offload feature. Keep the
+        # NVIDIA GPU active while it owns the external display outputs.
+        powerManagement.finegrained = lib.mkForce false;
+      };
+    };
   };
 
   environment.sessionVariables = {
