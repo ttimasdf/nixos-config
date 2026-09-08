@@ -21,10 +21,10 @@
           default = null;
           description = "SSH public key for signing Git commits";
         };
-        allowedSigners = lib.mkOption {
-          type = lib.types.listOf lib.types.str;
-          default = [ config.rabit.home.me.email ];
-          description = "Allowed signers for Git commit verification";
+        extraAllowedSigners = lib.mkOption {
+          type = lib.types.attrsOf lib.types.str;
+          default = { };
+          description = "Additional allowed signers for Git commit verification, as an attrset of email to SSH public key";
         };
       };
     };

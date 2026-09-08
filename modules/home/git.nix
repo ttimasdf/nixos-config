@@ -61,9 +61,12 @@ in
     "${pubKeyFileName}".text = cfg.git.sshSigningKey;
     ".config/git/allowed_signers".text =
       let
-        signers =
-          map (email: "${email} ${cfg.git.sshSigningKey}") cfg.git.allowedSigners;
+        # The primary email + sshSigningKey is implicitly an allowed signer.
+        signers = [ "${cfg.email} ${cfg.git.sshSigningKey}" ];
+        extraSigners = lib.mapAttrsToList
+          (email: key: "${email} ${key}")
+          cfg.git.extraAllowedSigners;
       in
-      lib.concatStringsSep "\n" signers;
+      lib.concatStringsSep "\n" (signers ++ extraSigners);
   };
 }

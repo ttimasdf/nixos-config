@@ -21,6 +21,9 @@ in
     fullname = "ttimasdf";
     email = "opensource@rabit.pw";
     git.sshSigningKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHbP5VCRKV5Q9AawX3C7CcIwXgnd9m8wvcrzrrpobrje Git commit signing for ttimasdf";
+    git.extraAllowedSigners = {
+      "cortex-red@rabit.pw" = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA3sh1m0QdjHxDStQ1WrdlLUtl7tVXI2Q8HyJJd+N0VM CortexRed";
+    };
   };
 
   # Adopt the Home Manager 26.05 XDG Firefox profile path.
