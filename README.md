@@ -27,6 +27,8 @@ To include this module in your NixOS config, you need to provide a `private-modu
 
 For public users who want to use this config as a base or reference without access to the private repository, please use the [public module template](https://github.com/ttimasdf/nixos-config-module) in place of the private module.
 
+This repository's own `private-module` input already points at that public template, so the committed flake evaluates without private access. Local builds override the input with the private checkout instead (`xc switch`, `xc test`, ...), as shown in [Tasks](#tasks).
+
 Add the following to your `flake.nix` inputs:
 
 ```nix
@@ -170,7 +172,9 @@ Build a specific host configuration
 Inputs: HOST
 
 ```bash
-nh os build --hostname $HOST
+nh os build --hostname $HOST -- \
+  --override-input known-rabbit-packages path:./public-packages \
+  --override-input private-module path:./private
 ```
 
 
@@ -204,13 +208,17 @@ Build xfce-iso for NixOS configuration [`savior`](configurations/nixos/savior).
 I usually use this ISO as a system rescue CD.
 
 ```bash
-nixos-rebuild build-image --flake .#savior --image-variant iso-xfce
+nixos-rebuild build-image --flake .#savior --image-variant iso-xfce \
+  --override-input known-rabbit-packages path:./public-packages \
+  --override-input private-module path:./private
 ```
 
 ### build-nas-vm
 
 ```bash
-nixos-rebuild build-image --flake .#basenji --image-variant proxmox
+nixos-rebuild build-image --flake .#basenji --image-variant proxmox \
+  --override-input known-rabbit-packages path:./public-packages \
+  --override-input private-module path:./private
 ```
 
 ### list
@@ -244,7 +252,9 @@ nh clean all
 Build and activate the new configuration, and make it the boot default
 
 ```bash
-nh os build $@
+nh os build $@ -- \
+  --override-input known-rabbit-packages path:./public-packages \
+  --override-input private-module path:./private
 ```
 
 ### version-hint
@@ -330,7 +340,10 @@ Check nix flake
 
 ```bash
 git add .
-nix flake check $@
+nix flake check \
+  --override-input known-rabbit-packages path:./public-packages \
+  --override-input private-module path:./private \
+  $@
 ```
 
 ### dev
