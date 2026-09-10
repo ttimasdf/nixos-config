@@ -156,6 +156,14 @@ in
   rabitprivate.nixos.hosts.intra.enable = true;
   # endregion network
 
+  # region remote access
+  # RustDesk client with the DRM/KMS unattended-wayland capture backend
+  # (master-era source build; see public-packages/packages/
+  # rustdesk-flutter-unattended-wayland). The hbbs/hbbr server side and the
+  # rendezvous/relay/key client settings live in the private module.
+  services.rustdesk-unattended-wayland.enable = true;
+  # endregion remote access
+
   # region UI/UX
   rabit.nixos.gui.kde.enable = true;
   rabit.nixos.gui.l10n-chinese.enable = true;

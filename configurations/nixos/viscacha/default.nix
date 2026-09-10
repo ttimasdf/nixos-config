@@ -25,6 +25,7 @@ in
     self.nixosModules.programs
     known-rabbit-packages.nixosModules.enmesh
     known-rabbit-packages.nixosModules.fido-linux-id
+    known-rabbit-packages.nixosModules.rustdesk-unattended-wayland
     self.nixosModules.secure-boot
     self.nixosModules.gui
     self.nixosModules.winapps
