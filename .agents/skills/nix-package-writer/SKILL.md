@@ -5,15 +5,16 @@ description: Help write new Nix package definitions for this nixos-config reposi
 
 # Nix Package Writer
 
-Use this skill to add or repair package definitions in this repository's `packages/` tree. The repo auto-discovers packages, so the main job is to create a correct package file that matches local conventions and can be built by `nix`.
+Use this skill to add or repair package definitions in this repository's `public-packages/packages/` tree. The repo auto-discovers packages, so the main job is to create a correct package file that matches local conventions and can be built by `nix`; follow the public-packages `AGENTS.md` files.
 
 ## Scope
 
 This skill covers new package definitions only:
 
-- `packages/<name>.nix`
-- `packages/<name>/default.nix`
-- supporting files inside `packages/<name>/`, such as patches, update scripts, icons, or helper scripts
+- `public-packages/packages/<name>.nix`
+- `public-packages/packages/<name>/package.nix`
+- `public-packages/packages/<name>/README.md`
+- supporting files inside `public-packages/packages/<name>/`, such as patches, update scripts, icons, or helper scripts
 
 Do not use this skill for overlays, package overrides, or changes under `overlays/`. If the user asks to override an existing Nixpkgs package, use an overlay-specific workflow instead.
 
@@ -22,9 +23,9 @@ Do not use this skill for overlays, package overrides, or changes under `overlay
 1. Read `packages/AGENTS.md` and any nearby package examples that match the requested source type.
 2. Inspect the upstream project layout before writing phases. Do not guess build commands from the README alone if source files are available.
 3. Decide between a single file and a directory package:
-   - Use `packages/<name>.nix` for self-contained packages.
-   - Use `packages/<name>/default.nix` when you need patches, helper scripts, update scripts, local assets, or multi-file package logic.
-4. Keep the package as a direct child of `packages/`. `rabit-lib.forAllNixFiles` does not recurse into nested namespaces, so `packages/foo/bar/default.nix` will not become `pkgs.foo.bar`.
+   - Use `public-packages/packages/<name>.nix` for self-contained packages.
+   - Use `public-packages/packages/<name>/package.nix` when you need documentation or supporting files.
+4. Keep the package directory directly under `public-packages/packages/`; package discovery does not create arbitrary nested attribute namespaces.
 
 ## Repository conventions
 
@@ -84,7 +85,7 @@ Choose the smallest builder that matches upstream:
 - Rust workspaces or Tauri apps: `stdenv.mkDerivation` plus `rustPlatform.cargoSetupHook`, `cargo`, `rustc`, and explicit `cargo build --frozen` if frontend steps must run first.
 - Node/pnpm projects: use `pnpm.configHook` and `fetchPnpmDeps` when the repo has a pnpm lockfile.
 - AppImage packages: use `appimageTools.extractType2` plus `appimageTools.wrapType2`, install desktop files/icons from extracted contents, and set `meta.sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];`.
-- `.deb` binary packages: use `dpkg` in `unpackPhase`; usually pair with `autoPatchelfHook`, wrappers, desktop items, and explicit runtime libraries.
+- `.deb` binary packages: do not install the Debian package. Extract it in `unpackPhase` with `ar` and `tar`, then install only the application payload. Usually pair this with `autoPatchelfHook`, `makeWrapper`, desktop items, and explicit runtime libraries. Inspect artifacts with `dpkg-deb -f`/`dpkg-deb -c` outside the sandbox; bundled Flutter/Electron/plugin libraries often need to be copied into the output and included in `appendRunpaths`.
 - Setup hooks/helper packages: use `makeSetupHook` or the smallest Nix helper function instead of wrapping it in `stdenv.mkDerivation` unnecessarily.
 
 Distinguish dependency categories carefully:
@@ -152,6 +153,19 @@ After editing a package, run targeted checks first:
 nix build .#<package-name>
 nix develop .#<package-name>
 ```
+
+When testing a package from a local `public-packages/` checkout through the
+parent flake, override the locked input for that command:
+
+```bash
+nix build --override-input known-rabbit-packages path:./public-packages \
+  .#nixosConfigurations.<host>.pkgs.<package-name>
+```
+
+Likewise, use `nix eval --override-input known-rabbit-packages path:./public-packages ...`
+for evaluation checks. This is temporary and does not update `flake.lock`; it
+is useful when the package has not yet been pushed or the parent lockfile still
+points at an older revision.
 
 Inside the package devshell, use `runPhase <phase>` to debug individual phases. For repo-wide validation, use the existing tasks when appropriate:
 

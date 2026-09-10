@@ -71,9 +71,22 @@ git add flake.lock public-packages
 git commit -m "build(public-packages): update package revision"
 ```
 
-Never replace the remote input with `path:./public-packages`, commit the parent
-submodule pointer before updating `flake.lock`, or leave the submodule and
-`known-rabbit-packages` locked revision out of sync.
+For local debugging before the package is pushed or the parent lockfile is
+updated, temporarily point the parent flake at the checked-out submodule:
+
+```bash
+nix build --override-input known-rabbit-packages path:./public-packages \
+  .#nixosConfigurations.<host>.pkgs.<package>
+```
+
+Use the same `--override-input known-rabbit-packages path:./public-packages`
+with `nix eval`. This is evaluation-only and does not modify `flake.lock`.
+After publishing, remove the override and follow the synchronization workflow
+above.
+
+Never replace the remote input with `path:./public-packages` permanently,
+commit the parent submodule pointer before updating `flake.lock`, or leave the
+submodule and `known-rabbit-packages` locked revision out of sync.
 
 This trusted reference configuration applies `known-rabbit-packages.overlays.all`, which composes every distinct public overlay. Hosts import published modules explicitly from `known-rabbit-packages.nixosModules`; `modules/nixos/programs/default.nix` only collects local custom program modules.
 
@@ -122,7 +135,7 @@ let inherit (flake.inputs) self; in
 
 ```bash
 xc update          # nix flake update
-xc build           # nh os switch (build + activate + boot default)
+xc build           # nh os switch -k -K -- --override-input known-rabbit-packages path:./public-packages
 xc test            # nh os build (build only, don't activate)
 xc check           # git add . && nix flake check
 xc lint            # nix fmt
