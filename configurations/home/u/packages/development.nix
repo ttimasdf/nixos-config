@@ -34,7 +34,7 @@
     # y-agent
     cc-switch
 
-    zap
+    # zap
     qoder-cn
     bubblewrap  # needed by codex
 
