@@ -537,7 +537,7 @@ in
       ];
     };
 
-    containers.registries.search = [
+    containers.registries.settings.registries.search.registries = [
       "docker.io"
     ];
 

@@ -18,11 +18,11 @@ in
       let
         hasUserImport = lib.hasAttr name userImports;
         cfg = lib.warnIf (!hasUserImport) "User '${name}' has no user configuration under ./configurations/users"
-          (if hasUserImport then userImports.${name} else {});
+          (if hasUserImport then userImports.${name} else { });
       in
-      cfg // lib.optionalAttrs pkgs.stdenv.isDarwin {
+      cfg // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
         home = "/Users/${name}";
-      } // lib.optionalAttrs pkgs.stdenv.isLinux {
+      } // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
         isNormalUser = true;
       });
 
@@ -33,7 +33,7 @@ in
       in
       {
         imports = lib.throwIf (!hasHomePath) "User '${name}' has no home configuration under ./configurations/home"
-          (if hasHomePath then [ homePaths.${name} ] else []);
+          (if hasHomePath then [ homePaths.${name} ] else [ ]);
       });
 
     # All users can add Nix caches.
