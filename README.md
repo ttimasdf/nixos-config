@@ -163,12 +163,39 @@ Update nix flake
 nix flake update
 ```
 
-### build
+### build-host
+
+Build a specific host configuration
+
+Inputs: HOST
+
+```bash
+nh os build --hostname $HOST
+```
+
+
+### build-package
+
+Build a specific package
+
+Inputs: PACKAGE
+
+```bash
+echo $HOST
+nix build \
+  --override-input known-rabbit-packages path:./public-packages \
+  --override-input private-module path:./private \
+  .#nixosConfigurations.${HOST:-$(hostname)}.pkgs.rustdesk-flutter-unattended-wayland
+```
+
+### switch
 
 Build and activate the new configuration, and make it the boot default
 
 ```bash
-nh os switch $@
+nh os switch -k -K -- \
+  --override-input known-rabbit-packages path:./public-packages \
+  --override-input private-module path:./private
 ```
 
 ### build-xfce-iso

@@ -10,9 +10,9 @@
             "problemMatcher": []
         },
         {
-            "label": "Build NixOS system",
+            "label": "Build NixOS system and switch",
             "type": "shell",
-            "command": ["xc", "build", "--", "-k", "-K"],
+            "command": ["xc", "switch"],
             "group": {
                 "kind": "build",
                 "isDefault": true
