@@ -1,14 +1,70 @@
-{ flake, pkgs, lib, config, modulesPath,... }:
+{ flake, pkgs, lib, config, modulesPath, ... }:
 let
   inherit (flake) self;
   inherit (self) rabit-lib;
+
+  # The live CD autologs in as this user; its desktop gets the install manual.
+  liveUser = "nixos";
+
+  installManualSrc = ../../docs/install.md;
+  installManualHtml = pkgs.runCommand "nixos-install-manual.html"
+    {
+      nativeBuildInputs = [ pkgs.pandoc ];
+    } ''
+    cat > manual-header.html <<'HTML'
+    <style>
+      body { max-width: 54rem; margin: 2.5rem auto; padding: 0 1.25rem;
+             font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+             line-height: 1.55; color: #1a1a1a; }
+      h1, h2, h3 { line-height: 1.25; }
+      code { background: #f2f2f2; padding: .1em .3em; border-radius: 4px; }
+      pre { background: #f2f2f2; padding: .8rem 1rem; border-radius: 6px;
+            overflow-x: auto; }
+      pre code { background: none; padding: 0; }
+      table { border-collapse: collapse; }
+      th, td { border: 1px solid #ccc; padding: .35rem .6rem; text-align: left; }
+      blockquote { border-left: 4px solid #ccc; margin-left: 0; padding-left: 1rem;
+                   color: #444; }
+    </style>
+    HTML
+    pandoc \
+      --from gfm \
+      --to html5 \
+      --standalone \
+      --include-in-header manual-header.html \
+      --metadata title="KnownRabbit NixOS - first install" \
+      --metadata lang=en \
+      ${installManualSrc} > $out
+  '';
 
   cfgISO = {
     # system.build.image = config.system.build.isoImage;
     # image.extension = if config.isoImage.compressImage then "iso.zst" else "iso";
 
     isoImage.appendToMenuLabel = " Live CD:";
-    rabit.nixos.myusers = ["nixos"];
+    rabit.nixos.myusers = [ liveUser ];
+
+    # First-install helper and its manual, so a freshly booted ISO can set up a
+    # new host without leaving the live session.
+    environment.systemPackages = [ pkgs."nixos-install-config" ];
+    environment.etc."nixos-install-manual.md".source = installManualSrc;
+    environment.etc."nixos-install-manual.html".source = installManualHtml;
+
+    # Drop the rendered manual onto the live user's desktop.
+    system.activationScripts.nixos-install-manual = {
+      deps = [ "users" ];
+      text = ''
+        liveUser=${lib.escapeShellArg liveUser}
+        if ${pkgs.coreutils}/bin/id "$liveUser" >/dev/null 2>&1; then
+          liveGroup="$(${pkgs.coreutils}/bin/id -gn "$liveUser")"
+          liveDesktop="/home/$liveUser/Desktop"
+          ${pkgs.coreutils}/bin/install -D -m 0644 -o "$liveUser" -g "$liveGroup" \
+            ${installManualHtml} "$liveDesktop/INSTALL.html"
+          ${pkgs.coreutils}/bin/install -D -m 0644 -o "$liveUser" -g "$liveGroup" \
+            ${installManualSrc} "$liveDesktop/INSTALL.md"
+        fi
+      '';
+    };
   };
 
   cfgFS = {

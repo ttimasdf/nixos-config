@@ -213,6 +213,21 @@ nixos-rebuild build-image --flake .#savior --image-variant iso-xfce \
   --override-input private-module path:./private
 ```
 
+### install
+
+Bootstrap a new host as its first generation. The [install manual](docs/install.md)
+covers the required and optional mountpoints; this task runs the same
+`nixos-install-config` helper that ships on the ISO, against a target root.
+
+Inputs: HOST
+
+```bash
+sudo scripts/install.sh \
+  --host "$HOST" \
+  --root "${ROOT:-/mnt}" \
+  --user "${NIXOS_USER:-nixos}"
+```
+
 ### build-nas-vm
 
 ```bash
