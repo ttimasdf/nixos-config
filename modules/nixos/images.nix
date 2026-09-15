@@ -6,6 +6,30 @@ let
   # The live CD autologs in as this user; its desktop gets the install manual.
   liveUser = "nixos";
 
+  # Extra host closures to preload into the ISO store, so those hosts can be
+  # rebuilt or installed from the live ISO without downloading their closure.
+  # Names refer to `nixosConfigurations` outputs. Read from the environment so
+  # the host is chosen on the nixos-rebuild command line (requires --impure):
+  #   RABIT_ISO_PACK_HOSTS="viscacha MNIX" nixos-rebuild build-image ... --impure
+  # Space- or comma-separated. Empty (the default in pure evaluation) packs
+  # nothing, so ordinary ISO builds are unaffected.
+  packedHostNames =
+    lib.filter (name: name != "")
+      (lib.splitString " " (lib.replaceStrings [ "," ] [ " " ] (lib.maybeEnv "RABIT_ISO_PACK_HOSTS" "")));
+
+  packedHostStoreContents = lib.warnIf (packedHostNames != [ ])
+    "RABIT_ISO_PACK_HOSTS: preloading host closures into the ISO store: ${lib.concatStringsSep ", " packedHostNames}"
+    (map
+      (name:
+        let
+          configs = self.nixosConfigurations or { };
+        in
+        if builtins.hasAttr name configs then
+          configs.${name}.config.system.build.toplevel
+        else
+          throw "RABIT_ISO_PACK_HOSTS: '${name}' is not a nixosConfigurations output")
+      packedHostNames);
+
   installManualSrc = ../../docs/install.md;
   installManualHtml = pkgs.runCommand "nixos-install-manual.html"
     {
@@ -43,6 +67,10 @@ let
 
     isoImage.appendToMenuLabel = " Live CD:";
     rabit.nixos.myusers = [ liveUser ];
+
+    # Preload the requested host closures, if any (see RABIT_ISO_PACK_HOSTS).
+    # Merges with the default, which is this system's own toplevel.
+    isoImage.storeContents = packedHostStoreContents;
 
     # First-install helper and its manual, so a freshly booted ISO can set up a
     # new host without leaving the live session.
