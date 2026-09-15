@@ -1,6 +1,7 @@
 { config
 , lib
 , pkgs
+, options
 , isDarwin
 , ...
 }:
@@ -15,13 +16,13 @@ let
     optional
     assertMsg
     ;
-  cfg = config.rabit.home.kitty.kitty-new-tab;
+  new-tab-cfg = config.rabit.home.kitty.new-tab;
   adaptive-layouts-cfg = config.rabit.home.kitty.adaptive-layouts;
-  session-cfg = config.rabit.home.kitty.session;
-  session-pi-resume-cfg = config.rabit.home.kitty.session.pi-resume;
+  session-snapshot-cfg = config.rabit.home.kitty.session-snapshot;
+  pi-resume-cfg = config.rabit.home.kitty.session-snapshot.pi-resume;
   kitty-package =
     if config.programs.kitty.package != null then config.programs.kitty.package else pkgs.kitty;
-  needs-remote-control = cfg.enable || session-cfg.enable;
+  needs-remote-control = new-tab-cfg.enable || session-snapshot-cfg.enable;
 
   flake8IgnoredErrors = [
     "E111" # indentation is not a multiple of 4
@@ -37,7 +38,7 @@ let
       [ "@libnotify@" "@log_level@" ]
       [
         (lib.getExe pkgs.libnotify)
-        (if cfg.debug_log.enable then "DEBUG" else "INFO")
+        (if new-tab-cfg.debug_log.enable then "DEBUG" else "INFO")
       ]
       (builtins.readFile ./scripts/kitty_is_cmd_allowed.py);
 
@@ -58,8 +59,8 @@ let
 
   # Shell hooks that resume a Pi session recorded by `kitty-session backup`.
   # The env var is consumed by the interactive shell that a snapshot launches.
-  pi-resume-env-var = session-pi-resume-cfg.envVar;
-  pi-resume-command = session-pi-resume-cfg.command;
+  pi-resume-env-var = pi-resume-cfg.envVar;
+  pi-resume-command = pi-resume-cfg.command;
 
   # Runs in .zshenv for every zsh (and early in .bashrc): refuse to resume from
   # a non-interactive shell, warn, and drop the marker.
@@ -108,7 +109,7 @@ let
           [ "@kitty@" "@resume_env_var@" ]
           [
             (lib.getExe kitty-package)
-            session-pi-resume-cfg.envVar
+            pi-resume-cfg.envVar
           ]
           (builtins.readFile ./scripts/session/kitty_session.py)
       );
@@ -133,7 +134,7 @@ let
               [ "@name@" "@log_level@" ]
               [
                 name
-                (if cfg.debug_log.enable then "DEBUG" else "INFO")
+                (if new-tab-cfg.debug_log.enable then "DEBUG" else "INFO")
               ]
               (builtins.readFile ./scripts/kitty_new_tab.py)
           );
@@ -179,7 +180,7 @@ let
     };
 in
 {
-  options.rabit.home.kitty.kitty-new-tab = {
+  options.rabit.home.kitty.new-tab = {
     enable = mkOption {
       type = types.bool;
       default = false;
@@ -223,10 +224,15 @@ in
     };
   };
 
-  options.rabit.home.kitty.session.enable =
-    mkEnableOption "Kitty session backup and restore commands";
+  options.rabit.home.kitty.session-snapshot.enable =
+    mkEnableOption ''
+      snapshotting the running Kitty window/tab layout to session files under
+      $XDG_STATE_HOME/kitty/sessions, via the kitty-session backup/restore/list
+      commands, their shell completions and the session_backup/session_restore
+      keybindings
+    '';
 
-  options.rabit.home.kitty.session.pi-resume = {
+  options.rabit.home.kitty.session-snapshot.pi-resume = {
     enable = mkEnableOption "resuming Pi sessions recorded in Kitty session snapshots";
 
     envVar = mkOption {
@@ -249,28 +255,30 @@ in
     {
       assertions = [
         {
-          assertion = cfg.enable -> config.programs.kitty.enable;
-          message = "rabit.home.kitty.kitty-new-tab.enable requires programs.kitty.enable to be true";
+          assertion = new-tab-cfg.enable -> config.programs.kitty.enable;
+          # Option paths are derived, not spelled out, so they cannot go stale when
+          # an option is moved or renamed.
+          message = "${lib.showOption options.rabit.home.kitty.new-tab.enable.loc} requires ${lib.showOption options.programs.kitty.enable.loc} to be true";
         }
         {
           assertion = adaptive-layouts-cfg.enable -> config.programs.kitty.enable;
           message = "rabit.home.kitty.adaptive-layouts.enable requires programs.kitty.enable to be true";
         }
         {
-          assertion = session-cfg.enable -> config.programs.kitty.enable;
-          message = "rabit.home.kitty.session.enable requires programs.kitty.enable to be true";
+          assertion = session-snapshot-cfg.enable -> config.programs.kitty.enable;
+          message = "${lib.showOption options.rabit.home.kitty.session-snapshot.enable.loc} requires ${lib.showOption options.programs.kitty.enable.loc} to be true";
         }
         {
-          assertion = session-pi-resume-cfg.enable -> session-cfg.enable;
-          message = "rabit.home.kitty.session.pi-resume.enable requires rabit.home.kitty.session.enable";
+          assertion = pi-resume-cfg.enable -> session-snapshot-cfg.enable;
+          message = "${lib.showOption options.rabit.home.kitty.session-snapshot.pi-resume.enable.loc} requires ${lib.showOption options.rabit.home.kitty.session-snapshot.enable.loc}";
         }
         {
           assertion = adaptive-layouts-cfg.enable -> adaptive-layouts-cfg.portrait.layouts != [ ];
-          message = "rabit.home.kitty.adaptive-layouts.portrait.layouts must not be empty";
+          message = "${lib.showOption options.rabit.home.kitty.adaptive-layouts.portrait.layouts.loc} must not be empty";
         }
         {
           assertion = adaptive-layouts-cfg.enable -> adaptive-layouts-cfg.landscape.layouts != [ ];
-          message = "rabit.home.kitty.adaptive-layouts.landscape.layouts must not be empty";
+          message = "${lib.showOption options.rabit.home.kitty.adaptive-layouts.landscape.layouts.loc} must not be empty";
         }
       ];
     }
@@ -287,7 +295,7 @@ in
       '';
       xdg.configFile."kitty/kitty_is_cmd_allowed.py".text = kitty-is-cmd-allowed-source;
     })
-    (mkIf (config.programs.kitty.enable && cfg.enable) {
+    (mkIf (config.programs.kitty.enable && new-tab-cfg.enable) {
       home.packages = [ kitty-new-tab ];
     })
     (mkIf (config.programs.kitty.enable && adaptive-layouts-cfg.enable) {
@@ -296,7 +304,7 @@ in
       '';
       xdg.configFile."kitty/adaptive_layouts.py".text = adaptive-layouts-source;
     })
-    (mkIf (config.programs.kitty.enable && session-cfg.enable) {
+    (mkIf (config.programs.kitty.enable && session-snapshot-cfg.enable) {
       programs.kitty.actionAliases = {
         session_backup = "launch --type=background kitty-session backup";
         session_restore = "launch --type=overlay kitty-session restore";
@@ -311,8 +319,8 @@ in
     (mkIf
       (
         config.programs.kitty.enable
-        && session-cfg.enable
-        && session-pi-resume-cfg.enable
+        && session-snapshot-cfg.enable
+        && pi-resume-cfg.enable
         && config.programs.zsh.enable
       )
       {
@@ -323,8 +331,8 @@ in
     (mkIf
       (
         config.programs.kitty.enable
-        && session-cfg.enable
-        && session-pi-resume-cfg.enable
+        && session-snapshot-cfg.enable
+        && pi-resume-cfg.enable
         && config.programs.bash.enable
       )
       {
@@ -332,7 +340,7 @@ in
         programs.bash.initExtra = mkAfter piResumeDoResume;
       }
     )
-    (mkIf (config.programs.kitty.enable && session-cfg.enable && config.programs.bash.enable) {
+    (mkIf (config.programs.kitty.enable && session-snapshot-cfg.enable && config.programs.bash.enable) {
       programs.bash.initExtra = mkAfter ''
         if [[ -r "$HOME/.local/share/bash-completion/completions/kitty-session" ]]; then
           source "$HOME/.local/share/bash-completion/completions/kitty-session"

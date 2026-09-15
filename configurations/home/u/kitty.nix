@@ -55,8 +55,8 @@
     themeFile = "Catppuccin-Latte";
   };
 
-  rabit.home.kitty.kitty-new-tab.enable = true;
-  # rabit.home.kitty.kitty-new-tab.debug_log.enable = lib.trace "kitty-new-tab.debug_log enabled" true;
+  rabit.home.kitty.new-tab.enable = true;
+  # rabit.home.kitty.new-tab.debug_log.enable = lib.trace "kitty-new-tab.debug_log enabled" true;
   rabit.home.kitty.adaptive-layouts = {
     enable = true;
     portrait.layouts = [
@@ -69,6 +69,6 @@
       "stack"
     ];
   };
-  rabit.home.kitty.session.enable = true;
-  rabit.home.kitty.session.pi-resume.enable = true;
+  rabit.home.kitty.session-snapshot.enable = true;
+  rabit.home.kitty.session-snapshot.pi-resume.enable = true;
 }
