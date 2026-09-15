@@ -1,6 +1,6 @@
 { flake, config, lib, pkgs, isDarwin, ... }:
 let
-  inherit (flake.inputs) self private-module;
+  inherit (flake.inputs) self private-module known-rabbit-packages;
 in
 {
   imports =
@@ -12,6 +12,7 @@ in
     ++ [
       self.homeModules.all
       private-module.homeModules.all
+      known-rabbit-packages.homeModules.all
     ];
 
   # Defined by /modules/home/options.nix
