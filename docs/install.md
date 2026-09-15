@@ -142,9 +142,64 @@ sudo nixos-rebuild switch --flake ".#$(hostname)" \
   --override-input known-rabbit-packages path:./public-packages
 ```
 
-Commit `configurations/nixos/<host>/` when you are happy with it. Enable the
-`secure-boot` module (Limine + `sbctl`) only after the machine boots and you
-have generated and enrolled keys.
+Commit `configurations/nixos/<host>/` when you are happy with it.
+
+### Enabling Secure Boot
+
+The scaffold boots with systemd-boot. To move to the signed Limine setup, put
+the firmware in Setup Mode and import the module — the first rebuild generates
+the signing keys and enrolls them for you.
+
+#### 1. Put the firmware in Setup Mode
+
+Reboot into firmware setup (`Del`, `F2` or `Esc`) and reset/clear the Secure
+Boot keys. Secure Boot must be off while keys are enrolled.
+
+#### 2. Import the module
+
+- `configurations/nixos/<host>/default.nix`: add
+  `self.nixosModules.secure-boot` to `imports`.
+- `configurations/nixos/<host>/configuration.nix`: remove
+  `boot.loader.systemd-boot.enable = true;` — the module force-disables it and
+  enables Limine. Keep `boot.loader.efi.canTouchEfiVariables = true;`.
+
+#### 3. Rebuild
+
+Bootloader installation generates the keys in `/var/lib/sbctl`, signs Limine
+with them and enrolls them via `sbctl enroll-keys --microsoft
+--firmware-builtin`. Microsoft's keys are included so option ROMs, firmware
+updates and any Windows install keep working.
+
+```bash
+cd /nixos-config
+sudo nixos-rebuild switch --flake ".#$(hostname)" \
+  --override-input private-module path:./private \
+  --override-input known-rabbit-packages path:./public-packages
+```
+
+#### 4. Re-enable Secure Boot
+
+Turn Secure Boot back on in firmware setup, reboot, then verify.
+
+```bash
+sbctl status   # Secure Boot: enabled
+sbctl verify   # binaries on the ESP are signed
+```
+
+Notes:
+
+- Keys live in `/var/lib/sbctl`, never in the Nix store. Because
+  `modules/nixos/secure-boot.nix` sets `autoGenerateKeys = true` and
+  `autoEnrollKeys.enable = true`, bootloader installation creates them and
+  enrolls them; hosts that already have keys keep them. Enrollment only
+  succeeds while the firmware is in Setup Mode.
+- `autoEnrollKeys.extraArgs` defaults to `--microsoft --firmware-builtin`.
+  Override it if your firmware needs different arguments, or set it to `[ ]`
+  to enroll only your own keys.
+- Back up `/var/lib/sbctl/keys`. Losing them means returning to Setup Mode and
+  enrolling again.
+- After switching, confirm the firmware boot order points at Limine (the
+  `limine` EFI entry), not the old systemd-boot entry.
 
 ## Troubleshooting
 

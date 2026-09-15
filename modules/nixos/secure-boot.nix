@@ -1,15 +1,15 @@
 { pkgs, lib, ... }:
 {
-  # Shared Limine Secure Boot policy. Existing keys in /var/lib/sbctl are
-  # intentionally reused; key generation and firmware enrollment are left to
-  # explicit administrative actions.
+  # Shared Limine Secure Boot policy. Keys already in /var/lib/sbctl are
+  # reused; a machine without them gets keys generated and enrolled during
+  # bootloader installation, so the firmware must be in Setup Mode first.
   boot.loader.limine = {
     enable = true;
     enableEditor = false;
     secureBoot = {
       enable = true;
-      autoGenerateKeys = false;
-      autoEnrollKeys.enable = false;
+      autoGenerateKeys = true;
+      autoEnrollKeys.enable = true;
     };
   };
 
