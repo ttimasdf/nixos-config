@@ -220,7 +220,7 @@ in
     # specialisation key as the visible menu entry. Numeric prefixes therefore
     # keep the boot menu order stable; they are also part of the runtime
     # specialisation paths under /run/current-system/specialisation/.
-    "01-offload".configuration = {
+    "02-offload".configuration = {
       # WARNING: NVIDIA may power up for offloaded applications; use this
       # instead of reverse sync when battery life is more important than
       # having NVIDIA own the external display outputs.
@@ -232,7 +232,7 @@ in
       };
     };
 
-    "02-sync".configuration = {
+    "03-sync".configuration = {
       # WARNING: NVIDIA stays active continuously, so this mode has higher
       # power consumption and shorter battery life.
       system.nixos.tags = [ "nvidia-performance" ];
@@ -248,7 +248,7 @@ in
       };
     };
 
-    "03-igpu-only".configuration = {
+    "04-igpu-only".configuration = {
       # WARNING: NVIDIA is disabled. HDMI and USB-C display outputs, which
       # are wired to NVIDIA on this laptop, will not be available.
       imports = [
@@ -268,7 +268,7 @@ in
       };
     };
 
-    "04-dgpu-only".configuration = {
+    "05-dgpu-only".configuration = {
       # WARNING: Use this only with an external display already connected.
       # This laptop has no MUX, so disabling i915 makes the internal eDP panel
       # unavailable. HDMI and USB-C displays connected to NVIDIA remain usable.
