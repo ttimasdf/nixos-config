@@ -5,8 +5,10 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 from datetime import datetime
+import json
 import os
 from pathlib import Path
+import shlex
 import stat
 import subprocess
 import sys
@@ -17,6 +19,12 @@ from typing import Sequence
 KITTY = "@kitty@"
 SOCKET_PREFIX = "kitty-rc-"
 SESSION_SUFFIX = ".kitty-session"
+# Window variable published by the pi-kitty-session extension.
+PI_SESSION_VAR = "pi_session_id"
+# Environment variable consumed by the shell rc to resume the session.
+PI_RESUME_ENV_VAR = "@resume_env_var@"
+# Marker Kitty embeds in each serialized window launch line.
+UNSERIALIZE_TOKEN = "kitty-unserialize-data="
 
 
 @dataclass(frozen=True)
@@ -34,6 +42,15 @@ class SnapshotInfo:
     @property
     def label(self) -> str:
         return f"{self.name}, {self.windows} windows, {self.tabs} tabs"
+
+
+@dataclass(frozen=True)
+class WindowInfo:
+    """One Kitty terminal window as reported by ``kitten @ ls``."""
+
+    id: int
+    cwd: str | None
+    user_vars: dict[str, str]
 
 
 def session_directory() -> Path:
@@ -164,6 +181,123 @@ def session_from_socket(socket: Path) -> str:
     return result.stdout.rstrip()
 
 
+def windows_from_socket(socket: Path) -> list[WindowInfo]:
+    """Read window ids, working directories and user variables from one server."""
+    result = subprocess.run(
+        [KITTY, "@", "--to", f"unix:{socket}", "ls"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode:
+        detail = result.stderr.strip() or result.stdout.strip()
+        if not detail:
+            detail = f"kitty exited with status {result.returncode}"
+        raise RuntimeError(detail)
+
+    try:
+        os_windows = json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError(f"Cannot parse Kitty window list: {error}") from error
+    if not isinstance(os_windows, list):
+        raise RuntimeError("Kitty window list is not a JSON array")
+
+    windows: list[WindowInfo] = []
+    for os_window in os_windows:
+        if not isinstance(os_window, dict):
+            continue
+        for tab in os_window.get("tabs", []):
+            if not isinstance(tab, dict):
+                continue
+            for window in tab.get("windows", []):
+                if not isinstance(window, dict):
+                    continue
+                window_id = window.get("id")
+                if not isinstance(window_id, int):
+                    continue
+                cwd = window.get("cwd")
+                raw_user_vars = window.get("user_vars")
+                user_vars: dict[str, str] = {}
+                if isinstance(raw_user_vars, dict):
+                    user_vars = {
+                        name: value
+                        for name, value in raw_user_vars.items()
+                        if isinstance(name, str) and isinstance(value, str)
+                    }
+                windows.append(
+                    WindowInfo(window_id, cwd if isinstance(cwd, str) else None, user_vars)
+                )
+    return windows
+
+
+def launch_window_id(line: str) -> int | None:
+    """Extract the window id Kitty embeds in a serialized launch line."""
+    marker = line.find(UNSERIALIZE_TOKEN)
+    if marker < 0:
+        return None
+
+    payload = line[marker + len(UNSERIALIZE_TOKEN) :].lstrip()
+    if not payload.startswith("{"):
+        return None
+
+    depth = 0
+    for index, character in enumerate(payload):
+        if character == "{":
+            depth += 1
+        elif character == "}":
+            depth -= 1
+            if depth == 0:
+                try:
+                    data = json.loads(payload[: index + 1])
+                except json.JSONDecodeError:
+                    return None
+                window_id = data.get("id") if isinstance(data, dict) else None
+                return window_id if isinstance(window_id, int) else None
+    return None
+
+
+def pi_resume_launch(window: WindowInfo, session_id: str) -> str:
+    """Build a default-shell launch that hands the session id to the shell."""
+    parts = ["launch"]
+    if window.cwd:
+        parts.append(shlex.quote(f"--cwd={window.cwd}"))
+    parts.append("--env")
+    parts.append(shlex.quote(f"{PI_RESUME_ENV_VAR}={session_id}"))
+    return " ".join(parts)
+
+
+def inject_pi_resume(session: str, windows: Sequence[WindowInfo]) -> tuple[str, int]:
+    """Replace Pi window launches with a shell that resumes the recorded session."""
+    rewritten: list[str] = []
+    injected = 0
+    ordinal = 0
+    for line in session.splitlines():
+        stripped = line.lstrip()
+        if stripped != "launch" and not stripped.startswith("launch "):
+            rewritten.append(line)
+            continue
+
+        window_id = launch_window_id(line)
+        window = None
+        if window_id is not None:
+            window = next((candidate for candidate in windows if candidate.id == window_id), None)
+        if window is None and ordinal < len(windows):
+            window = windows[ordinal]
+        ordinal += 1
+
+        session_id = window.user_vars.get(PI_SESSION_VAR) if window else None
+        if window is not None and session_id:
+            rewritten.append(pi_resume_launch(window, session_id))
+            injected += 1
+        else:
+            rewritten.append(line)
+
+    text = "\n".join(rewritten)
+    if session.endswith("\n"):
+        text += "\n"
+    return text, injected
+
+
 def write_snapshot(target: Path, sessions: Sequence[tuple[Path, str]]) -> None:
     """Atomically write combined per-server sessions as one Kitty session file."""
     try:
@@ -211,14 +345,23 @@ def backup(name: str | None, force: bool, best_effort: bool) -> int:
 
     sessions: list[tuple[Path, str]] = []
     failures: list[tuple[Path, str]] = []
+    injected = 0
     for socket in sockets:
         try:
             session = session_from_socket(socket)
         except RuntimeError as error:
             failures.append((socket, str(error)))
             continue
-        if session:
-            sessions.append((socket, session))
+        if not session:
+            continue
+        try:
+            windows = windows_from_socket(socket)
+        except RuntimeError as error:
+            print(f"warning: cannot read window variables from {socket}: {error}", file=sys.stderr)
+            windows = []
+        session, count = inject_pi_resume(session, windows)
+        injected += count
+        sessions.append((socket, session))
 
     if failures and not best_effort:
         details = "\n".join(f"  {socket}: {error}" for socket, error in failures)
@@ -232,6 +375,8 @@ def backup(name: str | None, force: bool, best_effort: bool) -> int:
         raise RuntimeError("No Kitty server returned a session to save")
 
     write_snapshot(target, sessions)
+    if injected:
+        print(f"Recorded Pi resume marker(s) for {injected} window(s)")
     for socket, error in failures:
         print(f"warning: omitted {socket}: {error}", file=sys.stderr)
     print(f"Saved {len(sessions)} Kitty server session(s) as {target.name}")

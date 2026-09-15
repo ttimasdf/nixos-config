@@ -70,4 +70,5 @@
     ];
   };
   rabit.home.kitty.session.enable = true;
+  rabit.home.kitty.session.pi-resume.enable = true;
 }

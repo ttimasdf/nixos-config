@@ -1,9 +1,8 @@
-{
-  config,
-  lib,
-  pkgs,
-  isDarwin,
-  ...
+{ config
+, lib
+, pkgs
+, isDarwin
+, ...
 }:
 let
   inherit (lib)
@@ -19,6 +18,7 @@ let
   cfg = config.rabit.home.kitty.kitty-new-tab;
   adaptive-layouts-cfg = config.rabit.home.kitty.adaptive-layouts;
   session-cfg = config.rabit.home.kitty.session;
+  session-pi-resume-cfg = config.rabit.home.kitty.session.pi-resume;
   kitty-package =
     if config.programs.kitty.package != null then config.programs.kitty.package else pkgs.kitty;
   needs-remote-control = cfg.enable || session-cfg.enable;
@@ -28,6 +28,8 @@ let
     "E114" # indentation is not a multiple of 4 (comment)
     "E121" # continuation line under-indented for hanging indent
     "E501" # line too long
+    "E203" # whitespace before ':' - conflicts with black's slice formatting,
+    # which is what the scripts in scripts/session/ are formatted with
   ];
 
   kitty-is-cmd-allowed-source =
@@ -54,6 +56,39 @@ let
   kitty-session-zsh-completion = builtins.readFile ./scripts/session/_kitty-session;
   kitty-session-fish-completion = builtins.readFile ./scripts/session/kitty_session.fish;
 
+  # Shell hooks that resume a Pi session recorded by `kitty-session backup`.
+  # The env var is consumed by the interactive shell that a snapshot launches.
+  pi-resume-env-var = session-pi-resume-cfg.envVar;
+  pi-resume-command = session-pi-resume-cfg.command;
+
+  # Runs in .zshenv for every zsh (and early in .bashrc): refuse to resume from
+  # a non-interactive shell, warn, and drop the marker.
+  piResumeGuard = ''
+    if [ -n "''${${pi-resume-env-var}:-}" ]; then
+      case $- in
+        *i*) ;;
+        *)
+          printf '%s\n' "${pi-resume-env-var}=''${${pi-resume-env-var}} ignored: non-interactive shell" >&2
+          unset ${pi-resume-env-var}
+          ;;
+      esac
+    fi
+  '';
+
+  # Runs at the end of the interactive rc: hand off to Pi and keep the shell.
+  piResumeDoResume = ''
+    if [ -n "''${${pi-resume-env-var}:-}" ]; then
+      _pi_resume_session="''${${pi-resume-env-var}}"
+      unset ${pi-resume-env-var}
+      if command -v ${pi-resume-command} >/dev/null 2>&1; then
+        ${pi-resume-command} --session "$_pi_resume_session"
+      else
+        printf '%s\n' "${pi-resume-command} not found; session $_pi_resume_session not resumed" >&2
+      fi
+      unset _pi_resume_session
+    fi
+  '';
+
   kitty-session =
     let
       name = "kitty-session";
@@ -69,9 +104,13 @@ let
         ];
       }
       (
-        builtins.replaceStrings [ "@kitty@" ] [ (lib.getExe kitty-package) ] (
-          builtins.readFile ./scripts/session/kitty_session.py
-        )
+        builtins.replaceStrings
+          [ "@kitty@" "@resume_env_var@" ]
+          [
+            (lib.getExe kitty-package)
+            session-pi-resume-cfg.envVar
+          ]
+          (builtins.readFile ./scripts/session/kitty_session.py)
       );
 
   kitty-new-tab =
@@ -187,6 +226,25 @@ in
   options.rabit.home.kitty.session.enable =
     mkEnableOption "Kitty session backup and restore commands";
 
+  options.rabit.home.kitty.session.pi-resume = {
+    enable = mkEnableOption "resuming Pi sessions recorded in Kitty session snapshots";
+
+    envVar = mkOption {
+      type = types.str;
+      default = "PI_RESUME_SESSION_ID";
+      description = ''
+        Environment variable set by a restored Kitty session window. The
+        interactive shell consumes it to resume the recorded Pi session.
+      '';
+    };
+
+    command = mkOption {
+      type = types.str;
+      default = "pi";
+      description = "Command used to resume a recorded Pi session.";
+    };
+  };
+
   config = mkMerge [
     {
       assertions = [
@@ -201,6 +259,10 @@ in
         {
           assertion = session-cfg.enable -> config.programs.kitty.enable;
           message = "rabit.home.kitty.session.enable requires programs.kitty.enable to be true";
+        }
+        {
+          assertion = session-pi-resume-cfg.enable -> session-cfg.enable;
+          message = "rabit.home.kitty.session.pi-resume.enable requires rabit.home.kitty.session.enable";
         }
         {
           assertion = adaptive-layouts-cfg.enable -> adaptive-layouts-cfg.portrait.layouts != [ ];
@@ -246,6 +308,30 @@ in
       };
       home.packages = [ kitty-session ];
     })
+    (mkIf
+      (
+        config.programs.kitty.enable
+        && session-cfg.enable
+        && session-pi-resume-cfg.enable
+        && config.programs.zsh.enable
+      )
+      {
+        programs.zsh.envExtra = mkAfter piResumeGuard;
+        programs.zsh.initContent = mkAfter piResumeDoResume;
+      }
+    )
+    (mkIf
+      (
+        config.programs.kitty.enable
+        && session-cfg.enable
+        && session-pi-resume-cfg.enable
+        && config.programs.bash.enable
+      )
+      {
+        programs.bash.bashrcExtra = mkAfter piResumeGuard;
+        programs.bash.initExtra = mkAfter piResumeDoResume;
+      }
+    )
     (mkIf (config.programs.kitty.enable && session-cfg.enable && config.programs.bash.enable) {
       programs.bash.initExtra = mkAfter ''
         if [[ -r "$HOME/.local/share/bash-completion/completions/kitty-session" ]]; then
