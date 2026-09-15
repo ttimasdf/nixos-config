@@ -220,6 +220,37 @@ in
     # specialisation key as the visible menu entry. Numeric prefixes therefore
     # keep the boot menu order stable; they are also part of the runtime
     # specialisation paths under /run/current-system/specialisation/.
+    #
+    # 01-niri-wayle is the desktop variant; 02-05 are the GPU/PRIME modes.
+    "01-niri-wayle".configuration = {
+      imports = [ ./niri-wayle.nix ];
+      system.nixos.tags = [ "niri-wayle" ];
+
+      rabit.nixos.gui.niri-wayle.enable = true;
+
+      # Plasma is replaced outright in this boot entry.
+      # modules/nixos/gui/niri-wayle.nix enables SDDM itself, so the login screen
+      # survives losing modules/nixos/gui/kde.nix. Side effects of dropping KDE:
+      # SDDM falls back to its default package/theme, the KWallet PAM hook goes
+      # away (gnome-keyring takes over the Secret service), and the extra KDE
+      # applications listed in kde.nix leave the closure.
+      rabit.nixos.gui.kde.enable = lib.mkForce false;
+
+      # niri's FAQ flags reverse PRIME - Intel renders, NVIDIA scans out - as a
+      # stutter source on high-resolution external displays, and DP-1 here is
+      # 3840x2160. Making NVIDIA the primary renderer removes the iGPU -> dGPU
+      # copy. This mirrors the existing "03-sync" entry, including disabling
+      # fine-grained power management, which is a PRIME-offload feature.
+      hardware.nvidia = {
+        prime = {
+          offload.enable = lib.mkForce false;
+          sync.enable = lib.mkForce true;
+          reverseSync.enable = lib.mkForce false;
+        };
+        powerManagement.finegrained = lib.mkForce false;
+      };
+    };
+
     "02-offload".configuration = {
       # WARNING: NVIDIA may power up for offloaded applications; use this
       # instead of reverse sync when battery life is more important than
