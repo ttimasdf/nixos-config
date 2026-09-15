@@ -52,9 +52,6 @@ in
   };
 
   # https://wiki.nixos.org/wiki/Swap
-  # Resume from the decrypted swap device.
-  boot.resumeDevice = "/dev/mapper/cryptswap";
-
   # Compressed cache in front of disk swap. Do not enable zramSwap at the same time.
   boot.zswap = {
     enable = true;

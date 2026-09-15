@@ -58,6 +58,10 @@
     options = [ "defaults,rw,nofail,discard,nosuid,uid=1000,dmask=022,fmask=133" ];
   };
 
+  # Resume from the decrypted swap device.
+  # https://wiki.nixos.org/wiki/Swap
+  boot.resumeDevice = "/dev/mapper/cryptswap";
+
   swapDevices = [
     {
       device = "/dev/mapper/cryptswap";
