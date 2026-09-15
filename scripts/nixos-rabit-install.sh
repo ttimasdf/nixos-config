@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# nixos-install-config — install the KnownRabbit NixOS config as a machine's
+# nixos-rabit-install — install the KnownRabbit NixOS config as a machine's
 # first generation, starting from a live installer ISO.
 #
 # Partitioning, formatting and mounting are intentionally left to you. Before
@@ -11,16 +11,18 @@
 # mountpoints.
 #
 # This script then:
-#   1. clones (or reuses) the config flake at <root>/etc/nixos
+#   1. places the config flake at <root>/nixos-config: the baked copy the ISO
+#      points at via RABIT_ISO_BAKED_FLAKE when present, otherwise a git clone
 #   2. scaffolds configurations/nixos/<host>/{default,configuration}.nix
 #   3. runs nixos-generate-config to write hardware-configuration.nix
-#   4. stages the new host so the flake (which only sees git-tracked files)
-#      can evaluate it
+#   4. stages the new host so a git-based flake can evaluate it
 #   5. runs nixos-install --flake <dir>#<host>
 #
-# The first generation uses the committed public shim for the private module,
-# so it needs no credentials. Clone ./private and run `xc switch` after the
-# first boot to pull the private module in.
+# When the flake comes from the ISO it is copied out of the store and every
+# input is pinned to the baked source, so the install needs no network at all
+# and substituters are disabled. The first generation uses the committed
+# public shim for the private module, so it needs no credentials. Clone
+# ./private and run `xc switch` after the first boot to pull it in.
 
 set -euo pipefail
 
@@ -28,8 +30,12 @@ readonly DEFAULT_REPO_URL="https://github.com/ttimasdf/nixos-config"
 readonly DEFAULT_ROOT="/mnt"
 readonly DEFAULT_USER="nixos"
 readonly DEFAULT_HOST_PLATFORM="x86_64-linux"
+# Set by the ISO's nixos-rabit-install wrapper to store paths holding the
+# baked flake source and the input manifest. Empty outside the ISO.
+BAKED_FLAKE="${RABIT_ISO_BAKED_FLAKE:-}"
+BAKED_INPUTS="${RABIT_ISO_BAKED_INPUTS:-}"
 
-repo_url="$DEFAULT_REPO_URL"
+repo_url="" # empty = auto: baked flake if present, else DEFAULT_REPO_URL
 repo_ref=""
 root="$DEFAULT_ROOT"
 host=""
@@ -40,6 +46,9 @@ flake_dir=""
 assume_yes=0
 no_root_password=0
 set_user_password=1
+offline="auto"
+use_baked=0
+override_args=()
 
 log() { printf '==> %s\n' "$*"; }
 warn() { printf 'warning: %s\n' "$*" >&2; }
@@ -50,25 +59,29 @@ die() {
 
 usage() {
   cat <<'USAGEEOF'
-nixos-install-config — bootstrap a new host as its first generation.
+nixos-rabit-install — bootstrap a new host as its first generation.
 
 Usage:
-  nixos-install-config --host NAME [options]
+  nixos-rabit-install --host NAME [options]
 
 Options:
   --host NAME             Host name; must match configurations/nixos/<NAME>. (required)
   --user NAME             Login user to configure. Default: nixos
   --root PATH             Target root, mounted. Default: /mnt
-  --flake-dir PATH        Where to clone/reuse the config flake.
-                          Default: <root>/etc/nixos
-  --repo-url URL          Config flake to clone.
-                          Default: https://github.com/ttimasdf/nixos-config
+  --flake-dir PATH        Where to put the config flake.
+                          Default: <root>/nixos-config
+  --repo-url URL          Clone the config flake from URL instead of using the
+                          copy baked onto the ISO. Default when there is no
+                          baked flake: https://github.com/ttimasdf/nixos-config
   --repo-ref REF          Branch or tag to clone (default: the repo default branch)
   --host-platform SYS     nixpkgs.hostPlatform for the new host. Default: x86_64-linux
   --state-version VER     system.stateVersion for the new host.
                           Default: detected from `nixos-version`
   --no-root-password      Do not let nixos-install prompt for a root password
   --no-user-password      Do not offer to set the login user's password
+  --offline               Disable binary substituters so only the ISO store is
+                          used. Default when the flake is the baked copy.
+  --online                Allow substituters even when using the baked flake
   -y, --yes               Assume yes for all confirmations (non-interactive)
   -h, --help              Show this help
 
@@ -143,6 +156,14 @@ while [ "$#" -gt 0 ]; do
       set_user_password=0
       shift
       ;;
+    --offline)
+      offline=1
+      shift
+      ;;
+    --online)
+      offline=0
+      shift
+      ;;
     -y | --yes)
       assume_yes=1
       shift
@@ -198,27 +219,43 @@ if [ -z "$state_version" ]; then
   fi
 fi
 
-flake_dir="${flake_dir:-$root/etc/nixos}"
+flake_dir="${flake_dir:-$root/nixos-config}"
 flake_dir="$(realpath -m -- "$flake_dir")"
 
 log "host:          $host"
 log "user:          $user_name"
 log "install root:  $root"
 log "flake dir:     $flake_dir"
-log "repo:          $repo_url${repo_ref:+ (ref: $repo_ref)}"
+log "flake source:  ${repo_url:-auto}${repo_ref:+ (ref: $repo_ref)}"
 log "state version: $state_version"
 
-# -- step 1: clone or reuse the flake ---------------------------------------
+# -- step 1: place the config flake ------------------------------------------
 
-if [ -d "$flake_dir/.git" ]; then
-  log "reusing existing checkout at $flake_dir"
-  if [ -n "$repo_ref" ]; then
+if [ -e "$flake_dir/flake.nix" ]; then
+  log "reusing existing flake at $flake_dir"
+  if [ -n "$repo_ref" ] && [ -d "$flake_dir/.git" ]; then
     git -C "$flake_dir" fetch --depth=1 origin "$repo_ref"
     git -C "$flake_dir" checkout --detach FETCH_HEAD
   fi
+elif [ -z "$repo_url" ] && [ -z "$repo_ref" ] && [ -n "$BAKED_FLAKE" ] && [ -e "$BAKED_FLAKE/flake.nix" ]; then
+  use_baked=1
+  log "copying the baked flake from $BAKED_FLAKE"
+  mkdir -p -- "$flake_dir"
+  cp -R -- "$BAKED_FLAKE/." "$flake_dir/"
+  chmod -R u+w -- "$flake_dir"
+  if [ -f "$BAKED_INPUTS" ]; then
+    pinned_inputs=0
+    while IFS=' ' read -r input_name input_path; do
+      [ -n "${input_name:-}" ] || continue
+      override_args+=(--override-input "$input_name" "path:$input_path")
+      pinned_inputs=$((pinned_inputs + 1))
+    done < "$BAKED_INPUTS"
+    log "pinned $pinned_inputs baked input(s)"
+  fi
 elif [ -e "$flake_dir" ] && [ -n "$(ls -A -- "$flake_dir" 2>/dev/null || true)" ]; then
-  die "$flake_dir exists but is not a git checkout; move it aside or pass --flake-dir"
+  die "$flake_dir exists but has no flake.nix; move it aside or pass --flake-dir"
 else
+  : "${repo_url:=$DEFAULT_REPO_URL}"
   log "cloning $repo_url into $flake_dir"
   mkdir -p -- "$(dirname -- "$flake_dir")"
   if [ -n "$repo_ref" ]; then
@@ -226,6 +263,19 @@ else
   else
     git clone -- "$repo_url" "$flake_dir"
   fi
+fi
+
+# A copy taken from the ISO store is complete and self-contained, so default
+# to offline for it; a git checkout wants substituters.
+if [ "$offline" = "auto" ]; then
+  if [ "$use_baked" -eq 1 ] || [ ! -d "$flake_dir/.git" ]; then
+    offline=1
+  else
+    offline=0
+  fi
+fi
+if [ "$offline" -eq 1 ]; then
+  log "offline: using only the ISO store as a substituter"
 fi
 
 # -- step 2: scaffold the host ----------------------------------------------
@@ -261,7 +311,7 @@ fi
 if [ ! -e "$host_dir/configuration.nix" ]; then
   log "writing $host_rel/configuration.nix"
   cat > "$host_dir/configuration.nix" <<'NIXEOF'
-# First-generation host scaffolded by `nixos-install-config`.
+# First-generation host scaffolded by `nixos-rabit-install`.
 # Keep this minimal until the machine boots; add gui/secure-boot/etc. later.
 { flake
 , config
@@ -330,14 +380,24 @@ fi
 
 # -- step 4: make the new host visible to the flake -------------------------
 
-log "staging $host_rel so the flake can evaluate it"
-git -C "$flake_dir" add -- "$host_rel"
+if [ -d "$flake_dir/.git" ]; then
+  log "staging $host_rel so the flake can evaluate it"
+  git -C "$flake_dir" add -- "$host_rel"
+else
+  log "not a git checkout; nothing to stage"
+fi
 
 # -- step 5: install ---------------------------------------------------------
 
 install_args=(--root "$root" --flake "$flake_dir#$host")
 if [ "$no_root_password" -eq 1 ]; then
   install_args+=(--no-root-password)
+fi
+if [ "${#override_args[@]}" -gt 0 ]; then
+  install_args+=("${override_args[@]}")
+fi
+if [ "$offline" -eq 1 ]; then
+  install_args+=(--option substituters "")
 fi
 
 log "running: nixos-install ${install_args[*]}"
@@ -360,13 +420,14 @@ cat <<EOF
 After rebooting into the new system:
   1. Log in as '$user_name'.
   2. Pull in the private module (only if you have access to it):
-       git clone git@github.com:ttimasdf/nixos-config-private /etc/nixos/private
-       git -C /etc/nixos submodule update --init --recursive
+       git clone git@github.com:ttimasdf/nixos-config-private /nixos-config/private
+       git -C /nixos-config submodule update --init --recursive
   3. Switch to the full configuration:
-       cd /etc/nixos
+       cd /nixos-config
        sudo nixos-rebuild switch --flake .#\$(hostname) \\
          --override-input private-module path:./private \\
          --override-input known-rabbit-packages path:./public-packages
-  4. Commit the scaffolded host so it stays part of the flake:
-       git -C /etc/nixos add configurations/nixos/$host
+  4. Keep the scaffolded host under version control (if /nixos-config is a git
+     checkout):
+       git -C /nixos-config add configurations/nixos/$host
 EOF

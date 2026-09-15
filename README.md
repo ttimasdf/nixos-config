@@ -235,12 +235,12 @@ RABIT_ISO_PACK_HOSTS="$RABIT_ISO_PACK_HOSTS" nixos-rebuild build-image \
 
 Bootstrap a new host as its first generation. The [install manual](docs/install.md)
 covers the required and optional mountpoints; this task runs the same
-`nixos-install-config` helper that ships on the ISO, against a target root.
+`nixos-rabit-install` helper that ships on the ISO, against a target root.
 
 Inputs: HOST
 
 ```bash
-sudo scripts/install.sh \
+sudo scripts/nixos-rabit-install.sh \
   --host "$HOST" \
   --root "${ROOT:-/mnt}" \
   --user "${NIXOS_USER:-nixos}"

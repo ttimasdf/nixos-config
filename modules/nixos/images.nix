@@ -30,7 +30,90 @@ let
           throw "RABIT_ISO_PACK_HOSTS: '${name}' is not a nixosConfigurations output")
       packedHostNames);
 
+  # The flake source plus every source reachable in its input graph, so the
+  # flake baked onto the ISO can be evaluated with no network access. Flake
+  # inputs expose their own `inputs`, so this walks transitive inputs too;
+  # dedup by store path also breaks the input cycle. ~0.2 GiB, dominated by
+  # the nixpkgs source.
+  flakeInputPaths =
+    let
+      walk = seen: node:
+        let
+          path = node.outPath or null;
+          isNew = path == null || !(builtins.elem path seen);
+          seen' = if path == null then seen else seen ++ [ path ];
+        in
+        if isNew then builtins.foldl' walk seen' (builtins.attrValues (node.inputs or { })) else seen;
+    in
+    walk [ ] { inputs = flake.inputs; };
+
+  # Direct input name -> store path, so the installer can pin the baked flake
+  # to exactly these sources with --override-input and never fetch anything.
+  flakeInputManifest = lib.mapAttrs (_: input: input.outPath) (builtins.removeAttrs flake.inputs [ "self" ]);
+
+  # A filtered snapshot of the flake source to bake onto the ISO. Drops VCS and
+  # build junk via cleanSourceFilter (including `.git` and `result`), plus the
+  # private checkout, the public-packages submodule, generated artifacts and
+  # editor caches. The installer copies this to the target, so it should hold
+  # only what evaluation needs.
+  flakeSource = lib.cleanSourceWith {
+    name = "nixos-config-source";
+    src = self;
+    filter =
+      path: type:
+      let
+        base = baseNameOf (toString path);
+      in
+      lib.cleanSourceFilter path type
+      && !(builtins.elem base [
+        ".direnv"
+        ".ruff_cache"
+        ".vscode"
+        "__pycache__"
+        "nix-paths.txt"
+        "private"
+        "public-packages"
+        "source"
+        "viscacha-tree.html"
+      ]);
+  };
+
+  offlineFlakeStoreContents = lib.unique ([ flakeSource ] ++ flakeInputPaths);
+
+  # Input name -> baked store path, consumed by nixos-rabit-install to pin the
+  # baked flake with --override-input. This lives in the store, not /etc.
+  flakeInputManifestFile = pkgs.writeText "nixos-config-inputs"
+    (lib.concatStringsSep "\n" (lib.mapAttrsToList (name: path: "${name} ${path}") flakeInputManifest) + "\n");
+
+  # The installer preconfigured for the live ISO. It carries the baked flake
+  # source and the input manifest (both plain store paths) via environment
+  # variables and delegates to the generic package.
+  nixosRabitInstall = pkgs.writeShellApplication {
+    name = "nixos-rabit-install";
+    text = ''
+      export RABIT_ISO_BAKED_FLAKE=${flakeSource}
+      export RABIT_ISO_BAKED_INPUTS=${flakeInputManifestFile}
+      exec ${pkgs."nixos-rabit-install"}/bin/nixos-rabit-install "$@"
+    '';
+  };
+
+  # Placeholder the manual uses for the host name.
+  manualHostPattern = "\${HOST}";
+
   installManualSrc = ../../docs/install.md;
+
+  # Substitute the manual's host placeholder with the first host packed into
+  # the ISO (RABIT_ISO_PACK_HOSTS), if any, so the on-ISO instructions match
+  # what the ISO actually carries. Left as-is when nothing is packed.
+  installManualMd =
+    if packedHostNames == [ ] then
+      installManualSrc
+    else
+      pkgs.runCommand "nixos-install-manual.md" { } ''
+        substitute ${installManualSrc} $out \
+          --replace-fail ${lib.escapeShellArg manualHostPattern} ${lib.escapeShellArg (lib.head packedHostNames)}
+      '';
+
   installManualHtml = pkgs.runCommand "nixos-install-manual.html"
     {
       nativeBuildInputs = [ pkgs.pandoc ];
@@ -58,7 +141,7 @@ let
       --include-in-header manual-header.html \
       --metadata title="KnownRabbit NixOS - first install" \
       --metadata lang=en \
-      ${installManualSrc} > $out
+      ${installManualMd} > $out
   '';
 
   cfgISO = {
@@ -68,14 +151,16 @@ let
     isoImage.appendToMenuLabel = " Live CD:";
     rabit.nixos.myusers = [ liveUser ];
 
-    # Preload the requested host closures, if any (see RABIT_ISO_PACK_HOSTS).
-    # Merges with the default, which is this system's own toplevel.
-    isoImage.storeContents = packedHostStoreContents;
+    # Preload the requested host closures, if any (see RABIT_ISO_PACK_HOSTS),
+    # plus the flake source and its inputs so a host can be installed from the
+    # ISO with no network access. Merges with the default, which is this
+    # system's own toplevel.
+    isoImage.storeContents = packedHostStoreContents ++ offlineFlakeStoreContents;
 
-    # First-install helper and its manual, so a freshly booted ISO can set up a
-    # new host without leaving the live session.
-    environment.systemPackages = [ pkgs."nixos-install-config" ];
-    environment.etc."nixos-install-manual.md".source = installManualSrc;
+    # First-install helper (preconfigured with the baked flake and inputs) and
+    # its manual, so a freshly booted ISO can set up a new host offline.
+    environment.systemPackages = [ nixosRabitInstall ];
+    environment.etc."nixos-install-manual.md".source = installManualMd;
     environment.etc."nixos-install-manual.html".source = installManualHtml;
 
     # Drop the rendered manual onto the live user's desktop.
@@ -89,7 +174,7 @@ let
           ${pkgs.coreutils}/bin/install -D -m 0644 -o "$liveUser" -g "$liveGroup" \
             ${installManualHtml} "$liveDesktop/INSTALL.html"
           ${pkgs.coreutils}/bin/install -D -m 0644 -o "$liveUser" -g "$liveGroup" \
-            ${installManualSrc} "$liveDesktop/INSTALL.md"
+            ${installManualMd} "$liveDesktop/INSTALL.md"
         fi
       '';
     };

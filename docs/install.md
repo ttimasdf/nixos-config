@@ -2,13 +2,16 @@
 
 This ISO is built from the `savior` configuration (`xc build-xfce-iso`). It
 boots into an XFCE live session as user `nixos` (no password) and carries the
-`nixos-install-config` helper.
+`nixos-rabit-install` helper.
 
 This manual is on the live desktop as `INSTALL.html` (rendered) and
 `INSTALL.md` (source), and at `/etc/nixos-install-manual.{html,md}`.
 
 The installer deliberately does **not** partition or format disks. You pick
 the layout, mount it, and the script records exactly what it sees.
+
+The ISO also carries this config's flake and every input it needs, so a host
+can be installed with no network access at all.
 
 ## 1. Partition, format, mount
 
@@ -37,54 +40,71 @@ Rules of thumb:
 - Re-run `nixos-generate-config` (or the installer) any time your mounts
   change.
 
-### Worked example: LUKS + Btrfs, matching `viscacha`
+### Format and mount
+
+Partition the disk however you like (`parted`, `fdisk`, ...), then fill in
+your own partition names below and run it. LUKS is optional: comment the block
+out for a plain install, and the rest works unchanged.
 
 ```bash
-# Adjust the device names. Run `lsblk` first.
-dev=/dev/nvme0n1
+# Fill these in from `lsblk`.
+esp=/dev/nvme0n1p1    # EFI System Partition (vfat)
+root=/dev/nvme0n1p2   # holds /
 
-# 1. GPT layout: p1 = ESP, p2 = root (LUKS)
-parted -s "$dev" mklabel gpt
-parted -s "$dev" mkpart ESP fat32 1MiB 1GiB
-parted -s "$dev" set 1 esp on
-parted -s "$dev" mkpart root 1GiB 100%
+# Optional: encrypt the root partition. Skip this block for a plain install.
+cryptsetup luksFormat "$root"
+cryptsetup open "$root" nixos-root   # any name; becomes boot.initrd.luks.devices."<name>"
+root=/dev/mapper/nixos-root
 
-# 2. EFI System Partition
-mkfs.fat -F 32 -n BOOT "${dev}p1"
-
-# 3. LUKS container + Btrfs subvolumes
-cryptsetup luksFormat "${dev}p2"
-cryptsetup open "${dev}p2" nixos-root
-mkfs.btrfs -L nixos /dev/mapper/nixos-root
-
-mount /dev/mapper/nixos-root /mnt
-btrfs subvolume create /mnt/root
-btrfs subvolume create /mnt/home
-btrfs subvolume create /mnt/nix
-umount /mnt
-
-# 4. Mount exactly what you want recorded, root first
-opts="compress=zstd,noatime"
-mount -o "subvol=root,$opts" /dev/mapper/nixos-root /mnt
-mkdir -p /mnt/{home,nix,boot}
-mount -o "subvol=home,$opts" /dev/mapper/nixos-root /mnt/home
-mount -o "subvol=nix,$opts" /dev/mapper/nixos-root /mnt/nix
-mount "${dev}p1" /mnt/boot
+# Format and mount.
+mkfs.fat -F 32 -n BOOT "$esp"
+mkfs.ext4 -L nixos "$root"
+mount "$root" /mnt
+mkdir -p /mnt/boot
+mount "$esp" /mnt/boot
 ```
 
-For a swap partition, `mkswap` and `swapon` it before installing so it lands
-in the hardware config. For an encrypted swap, create and open it (for example
-`cryptswap`) before installing as well.
+If you prefer Btrfs with separate `/`, `/home` and `/nix`, replace the ext4
+line and the mounts above with:
+
+```bash
+mkfs.btrfs -L nixos "$root"
+mount "$root" /mnt
+btrfs subvolume create /mnt/root /mnt/home /mnt/nix
+umount /mnt
+opts="compress=zstd,noatime"
+mount -o "subvol=root,$opts" "$root" /mnt
+mkdir -p /mnt/{home,nix,boot}
+mount -o "subvol=home,$opts" "$root" /mnt/home
+mount -o "subvol=nix,$opts" "$root" /mnt/nix
+mount "$esp" /mnt/boot
+```
+
+To include swap, create a swap partition, `mkswap` it and `swapon` it before
+running the installer — only active partition swap is recorded. Encrypted swap
+works the same way (`cryptsetup luksFormat` + `cryptsetup open <part> cryptswap`
++ `swapon /dev/mapper/cryptswap`). zram and swap files are configured in
+`configuration.nix` instead.
 
 ## 2. Run the installer
 
 ```bash
-nixos-install-config --host myserver --user u
+nixos-rabit-install --host "${HOST}" --user u
 ```
 
-It clones the config flake into `/mnt/etc/nixos`, scaffolds
-`configurations/nixos/<host>/`, writes `hardware-configuration.nix`, prints
-it for review, and runs `nixos-install`.
+It places the config flake at `/mnt/nixos-config` (copied from the ISO when
+present, otherwise cloned), scaffolds `configurations/nixos/<host>/`, writes
+`hardware-configuration.nix`, prints it for review, and runs `nixos-install`.
+
+### Offline installs
+
+The ISO's `nixos-rabit-install` is preconfigured with the flake and all of its
+inputs, which live in the store. It copies the baked flake instead of cloning,
+pins each input to its baked store path with `--override-input`, and disables
+binary substituters, so the whole install runs with no network. Use
+`--repo-url` to force a git clone (the default when not running the baked
+wrapper), `--online` to allow substituters anyway, or `--offline` to force
+offline mode.
 
 Useful flags:
 
@@ -93,15 +113,16 @@ Useful flags:
   Default `nixos`, a minimal profile that is a safe bootstrap; switch to your
   real user afterwards.
 - `--root PATH` — install root, default `/mnt`.
-- `--flake-dir PATH` — checkout location, default `<root>/etc/nixos`.
+- `--flake-dir PATH` — where to put the flake, default `<root>/nixos-config`.
 - `--repo-url URL`, `--repo-ref REF` — clone a fork or a specific branch/tag.
 - `--state-version VER` — override the auto-detected `system.stateVersion`
   (taken from the running ISO's `nixos-version`).
 - `--no-root-password`, `--no-user-password` — skip the corresponding prompts.
 - `-y, --yes` — non-interactive; assumes yes for every confirmation.
 
-The script stages `configurations/nixos/<host>/` with `git add` before
-installing, because a flake in a git checkout only sees tracked files.
+When the flake is a git checkout, the script stages
+`configurations/nixos/<host>/` with `git add` before installing, because such
+a flake only sees tracked files.
 
 ## 3. First boot
 
@@ -110,10 +131,10 @@ not your private checkout, so it needs no credentials. On the installed
 system:
 
 ```bash
-git clone git@github.com:ttimasdf/nixos-config-private /etc/nixos/private
-git -C /etc/nixos submodule update --init --recursive
+git clone git@github.com:ttimasdf/nixos-config-private /nixos-config/private
+git -C /nixos-config submodule update --init --recursive
 
-cd /etc/nixos
+cd /nixos-config
 sudo nixos-rebuild switch --flake ".#$(hostname)" \
   --override-input private-module path:./private \
   --override-input known-rabbit-packages path:./public-packages
@@ -127,12 +148,12 @@ have generated and enrolled keys.
 
 - **"flake does not provide nixosConfigurations.&lt;host&gt;"** — the host files
   were not staged. Flakes in a git checkout only see tracked files:
-  `git -C /etc/nixos add configurations/nixos/<host>`.
+  `git -C /nixos-config add configurations/nixos/<host>`.
 - **Bootloader fails to install** — no ESP mounted at `/mnt/boot`. Mount it and
   re-run; `hardware-configuration.nix` must contain `fileSystems."/boot"`.
 - **The machine will not boot after install** — check `boot.loader` in the
   scaffolded `configuration.nix`. It defaults to systemd-boot; a legacy BIOS
   install needs `boot.loader.grub` instead.
 - **A filesystem is missing from the config** — it was not mounted when the
-  scan ran. Mount it and re-run `nixos-install-config` (or
-  `nixos-generate-config --root /mnt --dir /mnt/etc/nixos/configurations/nixos/<host>`).
+  scan ran. Mount it and re-run `nixos-rabit-install` (or
+  `nixos-generate-config --root /mnt --dir /mnt/nixos-config/configurations/nixos/<host>`).

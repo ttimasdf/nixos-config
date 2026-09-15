@@ -1,1 +1,1 @@
-iso-pack
+offline-install
