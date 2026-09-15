@@ -375,7 +375,7 @@ if [ "$assume_yes" -eq 0 ] && [ -t 0 ]; then
   printf '\n--- %s ---\n' "$host_rel/hardware-configuration.nix"
   cat "$host_dir/hardware-configuration.nix"
   printf -- '--- end ---\n\n'
-  confirm "Proceed with nixos-install for '$host'?" || die "aborted"
+  confirm "You can still edit $host_dir/configuration.nix to tweak settings. Install '$host'?" || die "aborted"
 fi
 
 # -- step 4: make the new host visible to the flake -------------------------

@@ -94,7 +94,9 @@ nixos-rabit-install --host "${HOST}" --user u
 
 It places the config flake at `/mnt/nixos-config` (copied from the ISO when
 present, otherwise cloned), scaffolds `configurations/nixos/<host>/`, writes
-`hardware-configuration.nix`, prints it for review, and runs `nixos-install`.
+`hardware-configuration.nix`, prints it, and asks for confirmation before
+installing — the prompt reminds you that `configuration.nix` can still be
+edited. Pass `--yes` to skip the confirmation.
 
 ### Offline installs
 
