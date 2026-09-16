@@ -103,8 +103,9 @@ edited. Pass `--yes` to skip the confirmation.
 The ISO's `nixos-rabit-install` is preconfigured with the flake and all of its
 inputs, which live in the store. It copies the baked flake instead of cloning,
 pins the inputs that were overridden at ISO build time with `--override-input`
-(the rest resolve from the baked lock), and disables binary substituters, so the
-whole install runs with no network. Use `--repo-url` to force a git clone, or
+(the rest resolve from the baked lock), and uses only the ISO store as a
+substituter, so the preloaded closure is copied and the whole install runs with
+no network. Use `--repo-url` to force a git clone, or
 `--offline`/`--online` to override the mode.
 
 Useful flags:

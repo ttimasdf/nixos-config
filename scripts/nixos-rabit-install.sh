@@ -20,7 +20,8 @@
 #
 # When the flake comes from the ISO it is copied out of the store and every
 # input is pinned to the baked source, so the install needs no network at all
-# and substituters are disabled. The first generation uses the committed
+# and substituters are limited to the ISO's own store. The first generation
+# uses the committed
 # public shim for the private module, so it needs no credentials. Clone
 # ./private and run `xc switch` after the first boot to pull it in.
 
@@ -79,8 +80,9 @@ Options:
                           Default: detected from `nixos-version`
   --no-root-password      Do not let nixos-install prompt for a root password
   --no-user-password      Do not offer to set the login user's password
-  --offline               Disable binary substituters so only the ISO store is
-                          used. Default when the flake is the baked copy.
+  --offline               Use only the ISO store as a substituter, so the
+                          preloaded closure is copied instead of rebuilt.
+                          Default when the flake comes from the ISO.
   --online                Allow substituters even when using the baked flake
   -y, --yes               Assume yes for all confirmations (non-interactive)
   -h, --help              Show this help
@@ -397,7 +399,11 @@ if [ "${#override_args[@]}" -gt 0 ]; then
   install_args+=("${override_args[@]}")
 fi
 if [ "$offline" -eq 1 ]; then
-  install_args+=(--option substituters "")
+  # Keep the ISO's own store available as a substituter. Clearing substituters
+  # (`--option substituters ""`) also drops the `auto` substituter that
+  # nixos-install adds, and Nix then rebuilds the whole system from source
+  # instead of copying the preloaded closure out of the ISO store.
+  install_args+=(--option substituters "auto?trusted=1")
 fi
 
 log "running: nixos-install ${install_args[*]}"
