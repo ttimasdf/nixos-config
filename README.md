@@ -215,18 +215,16 @@ nixos-rebuild build-image --flake .#savior --image-variant iso-xfce \
 
 ### build-xfce-iso-with
 
-Build the xfce-iso for [`savior`](configurations/nixos/savior) with one or more
-host closures preloaded into the ISO store, so those hosts can be rebuilt or
-installed from the live ISO without downloading their closure. Pass host names
-from `nixosConfigurations`, space- or comma-separated (e.g. `viscacha` or
-`viscacha,MNIX`). Requires `--impure`, since the host list is read from the
-environment at evaluation time.
+Build the xfce-iso for [`savior`](configurations/nixos/savior) with one host's
+closure preloaded into the ISO store, so it can be built or installed from the
+live ISO with no network access. Each host is an image variant named
+`iso-xfce-install-<host>`.
 
-Inputs: RABIT_ISO_PACK_HOSTS
+Inputs: HOST
 
 ```bash
-RABIT_ISO_PACK_HOSTS="$RABIT_ISO_PACK_HOSTS" nixos-rebuild build-image \
-  --flake .#savior --image-variant iso-xfce --impure \
+nixos-rebuild build-image --flake .#savior \
+  --image-variant "iso-xfce-install-$HOST" \
   --override-input known-rabbit-packages path:./public-packages \
   --override-input private-module path:./private
 ```
