@@ -17,7 +17,7 @@ A modular, multi-host NixOS configuration with private module support so you can
 - **Private Module**: Supports separation of public and private configuration via a private module; a [module template](https://github.com/ttimasdf/nixos-config-module) is available for reference (see [Using this config](#using-this-config)).
 - **Modular Design**: Unifies [NixOS](https://nixos.org/), [nix-darwin](https://github.com/LnL7/nix-darwin), and [home-manager](https://github.com/nix-community/home-manager) configuration in a single flake using [nixos-unified](https://github.com/srid/nixos-unified).
 - **Auto-wiring**: Automatically discovers and imports configurations into the final flake output from the directory structure, see the chapter [Structure](#structure) below.
-- **Image Building**: Build ISO/VM/Cloud images from any machine config using `nixos-rebuild build-image` (e.g., `nixos-rebuild build-image --flake .#savior --image-variant iso-xfce`).
+- **Image Building**: Build ISO/VM/Cloud images from any machine config using `nixos-rebuild build-image` (e.g., `nixos-rebuild build-image --flake .#savior --image-variant iso-xfce`). One installer variant per host carries that host's closure, so it can be installed offline: `--image-variant iso-xfce-install-<host>`.
 
 ## Using this config
 
@@ -204,8 +204,8 @@ nh os switch -k -K -- \
 
 ### build-xfce-iso
 
-Build xfce-iso for NixOS configuration [`savior`](configurations/nixos/savior).
-I usually use this ISO as a system rescue CD.
+Build the plain xfce-iso for [`savior`](configurations/nixos/savior). This is
+my usual system rescue CD: it carries no host closure.
 
 ```bash
 nixos-rebuild build-image --flake .#savior --image-variant iso-xfce \
@@ -215,10 +215,10 @@ nixos-rebuild build-image --flake .#savior --image-variant iso-xfce \
 
 ### build-xfce-iso-with
 
-Build the xfce-iso for [`savior`](configurations/nixos/savior) with one host's
-closure preloaded into the ISO store, so it can be built or installed from the
-live ISO with no network access. Each host is an image variant named
-`iso-xfce-install-<host>`.
+Build an xfce-iso that additionally carries one host's closure, so that host can
+be built or installed from the live ISO with no network access. There is one
+variant per host, `iso-xfce-install-<host>`, for every directory under
+`configurations/nixos/`.
 
 Inputs: HOST
 
@@ -228,6 +228,12 @@ nixos-rebuild build-image --flake .#savior \
   --override-input known-rabbit-packages path:./public-packages \
   --override-input private-module path:./private
 ```
+
+For example, `xc build-xfce-iso-with viscacha`. To list the available variants,
+run `nix eval .#nixosConfigurations.savior.config.image.modules --apply 'm: builtins.filter (n: builtins.match "iso-xfce-install-.*" n != null) (builtins.attrNames m)'`.
+
+Boot the resulting ISO and run `nixos-rabit-install --host <host>`; see the
+[install manual](docs/install.md).
 
 ### install
 
