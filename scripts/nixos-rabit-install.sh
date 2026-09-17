@@ -233,15 +233,20 @@ log "state version: $state_version"
 
 # -- step 1: place the config flake ------------------------------------------
 
-if [ -e "$flake_dir/flake.nix" ]; then
-  log "reusing existing flake at $flake_dir"
-  if [ -n "$repo_ref" ] && [ -d "$flake_dir/.git" ]; then
-    git -C "$flake_dir" fetch --depth=1 origin "$repo_ref"
-    git -C "$flake_dir" checkout --detach FETCH_HEAD
-  fi
-elif [ -z "$repo_url" ] && [ -z "$repo_ref" ] && [ -n "$BAKED_FLAKE" ] && [ -e "$BAKED_FLAKE/flake.nix" ]; then
+# A baked flake on the ISO is authoritative: the packed system closure was
+# evaluated from exactly that source with exactly those inputs. Always refresh a
+# reused copy from it, and always re-pin the baked inputs -- a leftover copy from
+# an earlier ISO evaluates a different system and forces a full rebuild from
+# source, and skipping the pin lets the flake's own flake.lock (which points at
+# the remote inputs) win.
+if [ -z "$repo_url" ] && [ -z "$repo_ref" ] && [ -n "$BAKED_FLAKE" ] && [ -e "$BAKED_FLAKE/flake.nix" ] && [ ! -d "$flake_dir/.git" ] && [ "$flake_dir" != "/" ]; then
   use_baked=1
-  log "copying the baked flake from $BAKED_FLAKE"
+  if [ -e "$flake_dir/flake.nix" ]; then
+    log "refreshing $flake_dir from the baked flake (edits in it are discarded; pass --flake-dir to install from your own checkout)"
+    rm -rf -- "$flake_dir"
+  else
+    log "copying the baked flake from $BAKED_FLAKE"
+  fi
   mkdir -p -- "$flake_dir"
   cp -R -- "$BAKED_FLAKE/." "$flake_dir/"
   chmod -R u+w -- "$flake_dir"
@@ -253,6 +258,12 @@ elif [ -z "$repo_url" ] && [ -z "$repo_ref" ] && [ -n "$BAKED_FLAKE" ] && [ -e "
       pinned_inputs=$((pinned_inputs + 1))
     done < "$BAKED_INPUTS"
     log "pinned $pinned_inputs baked input(s)"
+  fi
+elif [ -e "$flake_dir/flake.nix" ]; then
+  log "reusing existing flake at $flake_dir"
+  if [ -n "$repo_ref" ] && [ -d "$flake_dir/.git" ]; then
+    git -C "$flake_dir" fetch --depth=1 origin "$repo_ref"
+    git -C "$flake_dir" checkout --detach FETCH_HEAD
   fi
 elif [ -e "$flake_dir" ] && [ -n "$(ls -A -- "$flake_dir" 2>/dev/null || true)" ]; then
   die "$flake_dir exists but has no flake.nix; move it aside or pass --flake-dir"
