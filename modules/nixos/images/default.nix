@@ -102,9 +102,11 @@ let
     let
       hostConfig = self.nixosConfigurations.${host}.config;
       build = hostConfig.system.build;
-      specialisations = lib.mapAttrsToList (_: spec: spec.config.system.build.toplevel) (
-        hostConfig.specialisation or { }
-      );
+      # `specialisation.<name>.configuration` is the extended NixOS config of
+      # the specialisation, not a plain module (see specialisation.nix).
+      specialisations = lib.mapAttrsToList (
+        _: spec: spec.configuration.system.build.toplevel
+      ) (hostConfig.specialisation or { });
     in
     [ build.toplevel ]
     ++ specialisations
