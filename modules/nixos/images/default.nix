@@ -107,10 +107,14 @@ let
       specialisations = lib.mapAttrsToList (
         _: spec: spec.configuration.system.build.toplevel
       ) (hostConfig.specialisation or { });
+      # A few `system.build` entries are a string or a list of descriptions
+      # rather than a derivation (`etcActivationCommands`, `fileSystems`).
+      isDerivation = value: builtins.isAttrs value && value ? drvPath;
+      generated = map (attr: build.${attr}) (
+        lib.filter (attr: builtins.hasAttr attr build && isDerivation build.${attr}) deltaRootAttrs
+      );
     in
-    [ build.toplevel ]
-    ++ specialisations
-    ++ map (attr: build.${attr}) (lib.filter (attr: builtins.hasAttr attr build) deltaRootAttrs);
+    [ build.toplevel ] ++ specialisations ++ generated;
 
   mkXfce =
     { packedHost ? null, hostToplevel ? null, deltaRoots ? [ ] }:
