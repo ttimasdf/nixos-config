@@ -37,6 +37,7 @@
     # zap
     qoder-cn
     bubblewrap  # needed by codex
+    nono        # kernel-enforced sandbox for AI agent/MCP workloads
 
     # Deployment tools
     # terraform
