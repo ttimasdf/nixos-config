@@ -3,23 +3,36 @@ let
   inherit (baked) offlineFlakeStoreContents nixosRabitInstall;
   inherit (manual) mkInstallManualMd mkInstallManualHtml;
 
+  # What a packed variant preloads on top of the baked flake: the host's runtime
+  # closure (the packages its regenerated system derivations reference), stdenv
+  # (the compiler) and the store paths needed to *rebuild* those derivations --
+  # stdenv's builder scripts, lndir and friends are in no runtime closure. See
+  # delta-probe.nix / delta-build-inputs.py.
+  mkHostStoreContents = { hostToplevel, deltaRoots }:
+    [ hostToplevel pkgs.stdenv ]
+    ++ lib.optional (deltaRoots != [ ]) (import ./delta-probe.nix {
+      inherit pkgs lib hostToplevel deltaRoots;
+      packedPaths = offlineFlakeStoreContents;
+    });
+
   # Everything an installer-capable ISO carries: the install manual (rendered
   # and raw), the preconfigured installer, the store contents to preload, and
   # the copy of the manual dropped on the live desktop.
   mkCfgISOContent =
-    { packedHost ? null, hostToplevel ? null }:
+    { packedHost ? null, hostToplevel ? null, deltaRoots ? [ ] }:
     let
       installManualMd = mkInstallManualMd packedHost;
       installManualHtml = mkInstallManualHtml installManualMd;
     in
     {
-      # The baked flake + inputs, the preloaded host's runtime closure, and
-      # stdenv, so the few NixOS system derivations that still differ on install
-      # can be rebuilt from the ISO store alone. (The host's full build closure
-      # is far too large: it is ~200 GiB unpacked.) Merges with the default,
-      # which is this system's own toplevel.
+      # The baked flake + inputs, the preloaded host's runtime closure, and the
+      # build closure of the delta: the derivations that depend on
+      # hardware-configuration.nix are regenerated on the target, so the ISO has
+      # to be able to build them. (The host's *full* build closure is far too
+      # large: ~40 GiB of outputs, and ~200 GiB unpacked.) Merges with the
+      # default, which is this system's own toplevel.
       isoImage.storeContents = offlineFlakeStoreContents
-        ++ lib.optionals (hostToplevel != null) [ hostToplevel pkgs.stdenv ];
+        ++ lib.optionals (hostToplevel != null) (mkHostStoreContents { inherit hostToplevel deltaRoots; });
 
       environment.systemPackages = [ nixosRabitInstall ];
       environment.etc."nixos-install-manual.md".source = installManualMd;

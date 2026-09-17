@@ -74,12 +74,49 @@ let
     } // cfgCLISpecialisation;
   };
 
-  mkXfce = { packedHost ? null, hostToplevel ? null }:
+  # The host derivations that depend on hardware-configuration.nix, and so are
+  # regenerated -- and therefore rebuilt -- by nixos-install. Their inputs are
+  # what a packed ISO has to be able to satisfy; delta-probe.nix walks them.
+  deltaRootAttrs = [
+    "bootStage1"
+    "bootStage2"
+    "earlyMountScript"
+    "etc"
+    "etcActivationCommands"
+    "etcBasedir"
+    "etcMetadataImage"
+    "fileSystems"
+    "initialRamdisk"
+    "initialRamdiskSecretAppender"
+    "inhibitSwitch"
+    "installBootLoader"
+    "modulesClosure"
+    "separateActivationScripts"
+    "setEnvironment"
+    "uki"
+    "units"
+  ];
+
+  hostDeltaRoots =
+    host:
+    let
+      hostConfig = self.nixosConfigurations.${host}.config;
+      build = hostConfig.system.build;
+      specialisations = lib.mapAttrsToList (_: spec: spec.config.system.build.toplevel) (
+        hostConfig.specialisation or { }
+      );
+    in
+    [ build.toplevel ]
+    ++ specialisations
+    ++ map (attr: build.${attr}) (lib.filter (attr: builtins.hasAttr attr build) deltaRootAttrs);
+
+  mkXfce =
+    { packedHost ? null, hostToplevel ? null, deltaRoots ? [ ] }:
     rabit-lib.mergeAttrsList [
       xfceBase
       cfgFS
       cfgISO
-      (mkCfgISOContent { inherit packedHost hostToplevel; })
+      (mkCfgISOContent { inherit packedHost hostToplevel deltaRoots; })
     ];
 
   # One XFCE installer ISO per host, so a host's closure can be carried and
@@ -88,6 +125,7 @@ let
     (host: lib.nameValuePair "iso-xfce-install-${host}" (mkXfce {
       packedHost = host;
       hostToplevel = self.nixosConfigurations.${host}.config.system.build.toplevel;
+      deltaRoots = map (drv: drv.drvPath) (hostDeltaRoots host);
     }))
     (builtins.attrNames (self.nixosConfigurations or { })));
 in
