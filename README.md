@@ -17,7 +17,7 @@ A modular, multi-host NixOS configuration with private module support so you can
 - **Private Module**: Supports separation of public and private configuration via a private module; a [module template](https://github.com/ttimasdf/nixos-config-module) is available for reference (see [Using this config](#using-this-config)).
 - **Modular Design**: Unifies [NixOS](https://nixos.org/), [nix-darwin](https://github.com/LnL7/nix-darwin), and [home-manager](https://github.com/nix-community/home-manager) configuration in a single flake using [nixos-unified](https://github.com/srid/nixos-unified).
 - **Auto-wiring**: Automatically discovers and imports configurations into the final flake output from the directory structure, see the chapter [Structure](#structure) below.
-- **Image Building**: Build ISO/VM/Cloud images from any machine config using `nixos-rebuild build-image` (e.g., `nixos-rebuild build-image --flake .#savior --image-variant iso-xfce`). One installer variant per host carries that host's closure, so it can be installed offline: `--image-variant iso-xfce-install-<host>`.
+- **Image Building**: Build ISO/VM/Cloud images from any machine config using `nh os build-image` (e.g., `nh os build-image --image-variant iso-xfce .#savior`). One installer variant per host carries that host's closure, so it can be installed offline: `--image-variant iso-xfce-install-<host>`.
 
 ## Using this config
 
@@ -27,7 +27,7 @@ To include this module in your NixOS config, you need to provide a `private-modu
 
 For public users who want to use this config as a base or reference without access to the private repository, please use the [public module template](https://github.com/ttimasdf/nixos-config-module) in place of the private module.
 
-This repository's own `private-module` input already points at that public template, so the committed flake evaluates without private access. Local builds override the input with the private checkout instead (`xc switch`, `xc test`, ...), as shown in [Tasks](#tasks).
+This repository's own `private-module` input already points at that public template, so the committed flake evaluates without private access. Local tasks point the input at the gitignored `./private` checkout instead whenever that checkout exists (`xc switch`, `xc test`, ...), as shown in [Tasks](#tasks).
 
 Add the following to your `flake.nix` inputs:
 
@@ -172,9 +172,10 @@ Build a specific host configuration
 Inputs: HOST
 
 ```bash
+[ -d ./private ] && OVERRIDE_PRIVATE_ARGS="--override-input private-module path:./private"
 nh os build --hostname $HOST -- \
   --override-input known-rabbit-packages path:./public-packages \
-  --override-input private-module path:./private
+  $OVERRIDE_PRIVATE_ARGS
 ```
 
 
@@ -182,13 +183,19 @@ nh os build --hostname $HOST -- \
 
 Build a specific package
 
+`build-package` and `build-host` are the two tasks that point
+`known-rabbit-packages` at the local `public-packages` checkout, so a package
+change can be tried before it is pushed and the parent lockfile is updated.
+Every other task uses the revision pinned in `flake.lock`.
+
 Inputs: PACKAGE
 
 ```bash
+[ -d ./private ] && OVERRIDE_PRIVATE_ARGS="--override-input private-module path:./private"
 echo $HOST
 nix build \
   --override-input known-rabbit-packages path:./public-packages \
-  --override-input private-module path:./private \
+  $OVERRIDE_PRIVATE_ARGS \
   .#nixosConfigurations.${HOST:-$(hostname)}.pkgs.rustdesk-flutter-unattended-wayland
 ```
 
@@ -197,9 +204,8 @@ nix build \
 Build and activate the new configuration, and make it the boot default
 
 ```bash
-nh os switch -k -K -- \
-  --override-input known-rabbit-packages path:./public-packages \
-  --override-input private-module path:./private
+[ -d ./private ] && OVERRIDE_PRIVATE_ARGS="--override-input private-module path:./private"
+nh os switch -k -K -- $OVERRIDE_PRIVATE_ARGS
 ```
 
 ### build-xfce-iso
@@ -208,10 +214,13 @@ Build the plain xfce-iso for [`savior`](configurations/nixos/savior). This is
 my usual system rescue CD: it carries no host closure.
 
 ```bash
-nixos-rebuild build-image --flake .#savior --image-variant iso-xfce \
-  --override-input known-rabbit-packages path:./public-packages \
-  --override-input private-module path:./private
+[ -d ./private ] && OVERRIDE_PRIVATE_ARGS="--override-input private-module path:./private"
+nh os build-image -o result --image-variant iso-xfce .#savior -- $OVERRIDE_PRIVATE_ARGS
 ```
+
+`nh` puts the result link in a temporary directory unless told otherwise, hence
+`-o result` (`nixos-rebuild build-image` used to write `./result`); the link
+doubles as the garbage-collection root for the image.
 
 ### build-xfce-iso-with
 
@@ -223,10 +232,8 @@ variant per host, `iso-xfce-install-<host>`, for every directory under
 Inputs: HOST
 
 ```bash
-nixos-rebuild build-image --flake .#savior \
-  --image-variant "iso-xfce-install-$HOST" \
-  --override-input known-rabbit-packages path:./public-packages \
-  --override-input private-module path:./private
+[ -d ./private ] && OVERRIDE_PRIVATE_ARGS="--override-input private-module path:./private"
+nh os build-image -o result --image-variant "iso-xfce-install-$HOST" .#savior -- $OVERRIDE_PRIVATE_ARGS
 ```
 
 For example, `xc build-xfce-iso-with viscacha`. To list the available variants,
@@ -253,9 +260,8 @@ sudo scripts/nixos-rabit-install.sh \
 ### build-nas-vm
 
 ```bash
-nixos-rebuild build-image --flake .#basenji --image-variant proxmox \
-  --override-input known-rabbit-packages path:./public-packages \
-  --override-input private-module path:./private
+[ -d ./private ] && OVERRIDE_PRIVATE_ARGS="--override-input private-module path:./private"
+nh os build-image -o result --image-variant proxmox .#basenji -- $OVERRIDE_PRIVATE_ARGS
 ```
 
 ### list
@@ -263,7 +269,7 @@ nixos-rebuild build-image --flake .#basenji --image-variant proxmox \
 List system generations
 
 ```bash
-nixos-rebuild list-generations
+nh os info
 ```
 
 ### list-user
@@ -289,9 +295,8 @@ nh clean all
 Build and activate the new configuration, and make it the boot default
 
 ```bash
-nh os build $@ -- \
-  --override-input known-rabbit-packages path:./public-packages \
-  --override-input private-module path:./private
+[ -d ./private ] && OVERRIDE_PRIVATE_ARGS="--override-input private-module path:./private"
+nh os build $@ -- $OVERRIDE_PRIVATE_ARGS
 ```
 
 ### version-hint
@@ -328,10 +333,10 @@ fi
 Interactively remove generations
 
 ```bash
-nixos-rebuild list-generations
+nh os info
 while read -p 'remove generation:' n; do
   sudo nix-env -p /nix/var/nix/profiles/system --delete-generations "$n"
-  nixos-rebuild list-generations
+  nh os info
 done
 ```
 
@@ -376,11 +381,9 @@ nix fmt
 Check nix flake
 
 ```bash
+[ -d ./private ] && OVERRIDE_PRIVATE_ARGS="--override-input private-module path:./private"
 git add .
-nix flake check \
-  --override-input known-rabbit-packages path:./public-packages \
-  --override-input private-module path:./private \
-  $@
+nix flake check $OVERRIDE_PRIVATE_ARGS $@
 ```
 
 ### dev
