@@ -198,6 +198,7 @@ in
   environment.systemPackages = with pkgs; [
     # Basic packages for editing nix config
     git
+    nix-output-monitor
 
     # System administration
     htop
