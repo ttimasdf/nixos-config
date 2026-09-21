@@ -4,15 +4,16 @@ let
   inherit (manual) mkInstallManualMd mkInstallManualHtml;
 
   # What a packed variant preloads on top of the baked flake: the host's runtime
-  # closure (the packages its regenerated system derivations reference), stdenv
-  # (the compiler) and the store paths needed to *rebuild* those derivations --
-  # stdenv's builder scripts, lndir and friends are in no runtime closure. See
-  # delta-probe.nix / delta-build-inputs.py.
+  # closure (the packages its regenerated system derivations reference),
+  # stdenv (the compiler) and the store paths needed to *rebuild* those
+  # derivations -- stdenv's builder scripts, lndir and friends are in no
+  # runtime closure. delta-probe.nix computes the last part by pure evaluation
+  # over the derivations' ATerms; carrying an already-carried path is free, so
+  # its list lands in storeContents unfiltered.
   mkHostStoreContents = { hostToplevel, deltaRoots }:
     [ hostToplevel pkgs.stdenv ]
-    ++ lib.optional (deltaRoots != [ ]) (import ./delta-probe.nix {
-      inherit pkgs lib hostToplevel deltaRoots;
-      packedPaths = offlineFlakeStoreContents;
+    ++ lib.optionals (deltaRoots != [ ]) (import ./delta-probe.nix {
+      inherit lib deltaRoots;
     });
 
   # Everything an installer-capable ISO carries: the install manual (rendered

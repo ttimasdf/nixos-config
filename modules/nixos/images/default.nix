@@ -131,7 +131,7 @@ let
     (host: lib.nameValuePair "iso-xfce-install-${host}" (mkXfce {
       packedHost = host;
       hostToplevel = self.nixosConfigurations.${host}.config.system.build.toplevel;
-      deltaRoots = map (drv: drv.drvPath) (hostDeltaRoots host);
+      deltaRoots = hostDeltaRoots host;
     }))
     (builtins.attrNames (self.nixosConfigurations or { })));
 in
