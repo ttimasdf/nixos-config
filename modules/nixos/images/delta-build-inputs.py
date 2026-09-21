@@ -11,11 +11,18 @@ every build-time input: stdenv's builder scripts, `lndir`, jq's `dev` output and
 friends are not reachable from any *runtime* closure, and `stdenv`'s output does
 not carry them either.
 
-So walk the generated derivations' direct inputs and emit every output the ISO
-does not already carry. Carrying an output is enough to satisfy Nix, so the walk
-does not descend past the inputs it decides to carry; input drvs whose outputs
-are all present are skipped, because Nix will neither build them nor look at
-their inputs.
+So walk the generated derivations' direct inputs and emit the store paths the
+ISO does not already carry: their input sources, and the *used* outputs of
+their input derivations -- the ATerm records, per input, exactly which outputs
+it consumes (`"…drv",["out","dev"]`). Carrying an output is enough to
+satisfy Nix, so the walk does not descend past the inputs it decides to carry;
+input drvs whose used outputs are all present are skipped, because Nix will
+neither build them nor look at their inputs. Only the used outputs are
+carried: a multi-output package's `debug`/`doc`/`man` siblings are never build
+inputs (the kernel's `dev` output alone is about a gigabyte). Input drvs that
+are themselves among the generated derivations are skipped outright -- they
+are re-evaluated on the target, so nothing there references their old outputs,
+and carrying them is pure ballast.
 
 A derivation's ATerm lists inputs and outputs but not the *ranges* of its input
 derivations, so over-approximating costs ISO size -- hence this parse of the
@@ -29,12 +36,14 @@ import re
 import sys
 
 OUTPUT_RE = re.compile(r'\("([^"]+)","([^"]*)"')
-DRV_RE = re.compile(r'"(/nix/store/[^"]+\.drv)"')
+# An input derivation plus the outputs it consumes: ("…drv",["out","dev"]).
+INPUT_RE = re.compile(r'\("(/nix/store/[^"]+\.drv)",\[([^\]]*)\]\)')
+NAME_RE = re.compile(r'"([^"]*)"')
 SRC_RE = re.compile(r'"(/nix/store/[^"]+)"')
 
 
 def parse(path):
-    """-> ({output name: path}, {input drv}, {input src}) for a .drv file."""
+    """-> ({output name: path}, {input drv: used outputs}, {input src})"""
     with open(path) as handle:
         content = handle.read()
 
@@ -42,7 +51,7 @@ def parse(path):
     outputs, input_drvs, input_srcs = content.split("],[", 2)
 
     out = dict(OUTPUT_RE.findall(outputs))
-    drvs = set(DRV_RE.findall(input_drvs))
+    drvs = {drv: set(NAME_RE.findall(names)) for drv, names in INPUT_RE.findall(input_drvs)}
     # Only the first list of the remainder: the builder, args and env that
     # follow mention plenty of store paths that are not input sources.
     srcs = set(SRC_RE.findall(input_srcs.split("]", 1)[0]))
@@ -54,7 +63,7 @@ def main():
 
     carried = set(open(packed_file).read().split())
     # passAsFile joins the list with spaces.
-    generated = open(roots_file).read().split()
+    generated = set(open(roots_file).read().split())
 
     needed = {}
 
@@ -62,7 +71,7 @@ def main():
         if path and path not in carried:
             needed.setdefault(path, why)
 
-    for root in generated:
+    for root in sorted(generated):
         _, input_drvs, input_srcs = parse(root)
 
         # The generated derivations themselves are rebuilt on the target, so
@@ -71,15 +80,16 @@ def main():
         for src in sorted(input_srcs):
             want(src, f"{os.path.basename(root)} (input source)")
 
-        for drv in sorted(input_drvs):
+        for drv, used in sorted(input_drvs.items()):
+            if drv in generated:
+                # Regenerated on the target; its old output is ballast.
+                continue
             try:
                 outputs, _, _ = parse(drv)
             except OSError:
                 continue  # not reachable in this build; nothing we can carry
-            if not outputs or all(path in carried for path in outputs.values()):
-                continue
-            for name, path in sorted(outputs.items()):
-                want(path, f"{os.path.basename(drv)} [{name}]")
+            for name in sorted(used & set(outputs)):
+                want(outputs[name], f"{os.path.basename(drv)} [{name}]")
 
     for path in sorted(needed):
         print(path)
