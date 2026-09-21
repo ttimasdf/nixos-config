@@ -77,6 +77,10 @@ let
   # The host derivations that depend on hardware-configuration.nix, and so are
   # regenerated -- and therefore rebuilt -- by nixos-install. Their inputs are
   # what a packed ISO has to be able to satisfy; delta-probe.nix walks them.
+  # Beyond system.build, every derivation-valued /etc entry is walked as a
+  # root too: the /etc tree regenerates with the hardware scan (mount and
+  # swap units, fstab bits), and its entries are built with tools no runtime
+  # closure carries -- the unit trees build with lndir.
   deltaRootAttrs = [
     "bootStage1"
     "bootStage2"
@@ -104,17 +108,24 @@ let
       build = hostConfig.system.build;
       # `specialisation.<name>.configuration` is the extended NixOS config of
       # the specialisation, not a plain module (see specialisation.nix).
-      specialisations = lib.mapAttrsToList (
-        _: spec: spec.configuration.system.build.toplevel
-      ) (hostConfig.specialisation or { });
+      specialisations = lib.mapAttrsToList
+        (
+          _: spec: spec.configuration.system.build.toplevel
+        )
+        (hostConfig.specialisation or { });
       # A few `system.build` entries are a string or a list of descriptions
       # rather than a derivation (`etcActivationCommands`, `fileSystems`).
       isDerivation = value: builtins.isAttrs value && value ? drvPath;
       generated = map (attr: build.${attr}) (
         lib.filter (attr: builtins.hasAttr attr build && isDerivation build.${attr}) deltaRootAttrs
       );
+      # Derivation-valued /etc entries: config-derived files that regenerate
+      # with the hardware scan (unit trees, generators, fstab-adjacent bits).
+      etcEntries = lib.filter isDerivation (
+        lib.mapAttrsToList (_: entry: entry.source) hostConfig.environment.etc
+      );
     in
-    [ build.toplevel ] ++ specialisations ++ generated;
+    [ build.toplevel ] ++ specialisations ++ generated ++ etcEntries;
 
   mkXfce =
     { packedHost ? null, hostToplevel ? null, deltaRoots ? [ ] }:
