@@ -1,1 +1,1 @@
-delta-closure-nono
+kitty-vscode

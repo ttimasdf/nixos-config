@@ -1,7 +1,6 @@
-{
-  pkgs,
-  isDarwin,
-  ...
+{ pkgs
+, isDarwin
+, ...
 }:
 {
   # https://nix-community.github.io/home-manager/options.xhtml#opt-programs.kitty.enable
@@ -27,6 +26,10 @@
       notify_on_cmd_finish = "unfocused 10";
     };
 
+    # Named action: opens the current window's working directory in VS Code.
+    # Also available from the command palette (kitty_mod+m).
+    actionAliases.open_in_vscode = "launch --type=background --cwd=current code .";
+
     # Mappable actions - kitty https://sw.kovidgoyal.net/kitty/actions/
     keybindings = {
       "ctrl+c" = "copy_or_interrupt"; # default to copy_or_noop
@@ -38,6 +41,7 @@
       # "kitty_mod+s" = "launch --stdin-source=@screen_scrollback --type=background sh -c 'cat > ~/Documents/kitty-log/$(date +%Y-%m-%d-%H-%M-%S).log'"; # log current terminal buffer
       "kitty_mod+d" = "detach_window new-tab"; # moves the window into a new tab
       "kitty_mod+f" = "detach_window ask"; # asks which tab to move the window into
+      "kitty_mod+i" = "open_in_vscode"; # free in kitty 0.48 defaults; i for IDE
       "ctrl+1" = "goto_tab 1";
       "ctrl+2" = "goto_tab 2";
       "ctrl+3" = "goto_tab 3";
