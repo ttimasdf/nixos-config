@@ -20,6 +20,7 @@ let
   adaptive-layouts-cfg = config.rabit.home.kitty.adaptive-layouts;
   session-snapshot-cfg = config.rabit.home.kitty.session-snapshot;
   pi-resume-cfg = config.rabit.home.kitty.session-snapshot.pi-resume;
+  wl-copy-shim-cfg = config.rabit.home.kitty.wl-copy-shim;
   kitty-package =
     if config.programs.kitty.package != null then config.programs.kitty.package else pkgs.kitty;
   needs-remote-control = new-tab-cfg.enable || session-snapshot-cfg.enable;
@@ -178,6 +179,24 @@ let
         desktopItem
       ];
     };
+
+  # wl-copy forks a resident daemon (to keep owning the Wayland clipboard
+  # selection) that chdir's to "/" and outlives its caller while staying in the
+  # caller's process group. Kitty resolves a window's cwd from the newest
+  # process in the foreground process group, so apps that spawn wl-copy in the
+  # background (e.g. pi's clipboard integration) make kitty treat "/" as the
+  # window's cwd until another app takes over the clipboard. Re-exec wl-copy in
+  # its own session so the daemon lands outside the spawner's process group.
+  wl-copy-shim = pkgs.writeShellApplication {
+    name = "wl-copy";
+    runtimeInputs = with pkgs; [
+      wl-clipboard
+      util-linux
+    ];
+    text = ''
+      exec setsid wl-copy "$@"
+    '';
+  };
 in
 {
   options.rabit.home.kitty.new-tab = {
@@ -251,6 +270,16 @@ in
     };
   };
 
+  options.rabit.home.kitty.wl-copy-shim.enable = mkEnableOption ''
+    a wl-copy shim in home.packages that re-execs wl-copy in its own session
+    (setsid), so the daemon wl-copy forks to own the Wayland clipboard
+    selection never lands in the spawner's process group. Kitty tracks a
+    window's cwd as the cwd of the newest process in the window's foreground
+    process group; a background wl-copy spawn (e.g. pi's clipboard
+    integration) otherwise makes kitty resolve the window's cwd to "/" until
+    another app takes over the clipboard. Linux only.
+  '';
+
   config = mkMerge [
     {
       assertions = [
@@ -280,6 +309,10 @@ in
           assertion = adaptive-layouts-cfg.enable -> adaptive-layouts-cfg.landscape.layouts != [ ];
           message = "${lib.showOption options.rabit.home.kitty.adaptive-layouts.landscape.layouts.loc} must not be empty";
         }
+        {
+          assertion = wl-copy-shim-cfg.enable -> config.programs.kitty.enable;
+          message = "${lib.showOption options.rabit.home.kitty.wl-copy-shim.enable.loc} requires ${lib.showOption options.programs.kitty.enable.loc} to be true";
+        }
       ];
     }
     (mkIf config.programs.kitty.enable {
@@ -297,6 +330,9 @@ in
     })
     (mkIf (config.programs.kitty.enable && new-tab-cfg.enable) {
       home.packages = [ kitty-new-tab ];
+    })
+    (mkIf (config.programs.kitty.enable && wl-copy-shim-cfg.enable && pkgs.stdenv.hostPlatform.isLinux) {
+      home.packages = [ wl-copy-shim ];
     })
     (mkIf (config.programs.kitty.enable && adaptive-layouts-cfg.enable) {
       programs.kitty.extraConfig = mkAfter ''

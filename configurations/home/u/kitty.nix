@@ -28,14 +28,24 @@
 
     # Named action: opens the current window's working directory in VS Code.
     # Also available from the command palette (kitty_mod+m).
-    actionAliases.open_in_vscode = "launch --type=background --cwd=current code .";
+    # `--cwd=last_reported` uses the shell's last OSC 7 cwd report: the directory
+    # the current program (e.g. pi) was launched from. Unlike `--cwd=current`,
+    # it is immune to resident helper daemons (e.g. wl-copy's) that linger in
+    # the window's foreground process group with cwd=/ and hijack kitty's cwd
+    # resolution (kitty picks the newest process in the group).
+    actionAliases.open_in_vscode = "launch --type=background --cwd=last_reported code .";
 
     # Mappable actions - kitty https://sw.kovidgoyal.net/kitty/actions/
     keybindings = {
       "ctrl+c" = "copy_or_interrupt"; # default to copy_or_noop
-      "kitty_mod+t" = "new_tab_with_cwd"; # default to new_tab
-      "ctrl+shift+enter" = "new_window_with_cwd"; # default to new_window
-      "kitty_mod+n" = "new_os_window_with_cwd"; # default to new_os_window
+      # *_with_cwd actions resolve `--cwd=current`: the cwd of the NEWEST process
+      # in the foreground process group. While a TUI (pi) runs, resident helper
+      # daemons it spawned (wl-copy's, cwd=/) hijack that resolution, so new
+      # tabs/windows/os_windows would open in /. Use the shell's last OSC 7 cwd
+      # report instead.
+      "kitty_mod+t" = "launch --type=tab --cwd=last_reported"; # default to new_tab
+      "ctrl+shift+enter" = "launch --type=window --cwd=last_reported"; # default to new_window
+      "kitty_mod+n" = "launch --type=os-window --cwd=last_reported"; # default to new_os_window
 
       "kitty_mod+m" = "command_palette";
       # "kitty_mod+s" = "launch --stdin-source=@screen_scrollback --type=background sh -c 'cat > ~/Documents/kitty-log/$(date +%Y-%m-%d-%H-%M-%S).log'"; # log current terminal buffer
@@ -75,4 +85,5 @@
   };
   rabit.home.kitty.session-snapshot.enable = true;
   rabit.home.kitty.session-snapshot.pi-resume.enable = true;
+  rabit.home.kitty.wl-copy-shim.enable = true;
 }

@@ -1,1 +1,1 @@
-kitty-vscode
+kitty-wlcopy-cwd
