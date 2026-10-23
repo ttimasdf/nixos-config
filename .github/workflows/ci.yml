@@ -1,0 +1,302 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+  schedule:
+    # Weekly full build against the real private module.
+    - cron: "0 20 * * 5"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  # Packages whose source is a licensed artifact that only the private binary
+  # cache can substitute. Without the cache they are skipped instead of
+  # failing every run; see docs/ci.md.
+  PRIVATE_SOURCE_PACKAGES: ida-pro jumpserver-client-3 wuying-cloud-desktop
+
+  # Licensed package sources fetched directly by the runner (see docs/ci.md).
+  # File names must match the names used by the packages' `requireFile`.
+  LICENSED_ASSET_FILES: |
+    ida-pro_92_x64linux.run
+    JumpServer-Client-Installer-linux-v3.0.4-amd64.deb
+    binaryninja_linux_commercial.6.1.10544-dev.7z
+    wuying-cloud-desktop-7.11.0-wuying.deb
+  ASSETS_URL: ${{ vars.ASSETS_URL }}
+  ASSETS_REPO: ${{ vars.ASSETS_REPO }}
+
+  # Packages that cannot be built from the standalone public-packages flake at
+  # all: they require a user-supplied argument that only the host overrides in
+  # configurations/home/* provide. Host builds still cover them.
+  STANDALONE_UNBUILDABLE_PACKAGES: binaryninja
+
+  # Repository variables, see docs/ci.md.
+  ATTIC_CACHE: ${{ vars.ATTIC_CACHE }}
+  ATTIC_ENDPOINT: ${{ vars.ATTIC_ENDPOINT }}
+  ATTIC_CACHE_URL: ${{ vars.ATTIC_CACHE_URL }}
+  ATTIC_PUBLIC_KEY: ${{ vars.ATTIC_PUBLIC_KEY }}
+
+jobs:
+  discover:
+    name: discover
+    runs-on: ubuntu-latest
+    outputs:
+      hosts: ${{ steps.matrix.outputs.hosts }}
+      packages: ${{ steps.matrix.outputs.packages }}
+      public-packages: ${{ steps.matrix.outputs.public-packages }}
+      private: ${{ steps.mode.outputs.private }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Set up Nix
+        uses: ./.github/actions/setup-nix
+        with:
+          cache: ${{ vars.ATTIC_CACHE }}
+          endpoint: ${{ vars.ATTIC_ENDPOINT }}
+          cache-url: ${{ vars.ATTIC_CACHE_URL }}
+          public-key: ${{ vars.ATTIC_PUBLIC_KEY }}
+
+      - name: Check the submodule pointer against flake.lock
+        run: |
+          pointer="$(git -C public-packages rev-parse HEAD)"
+          locked="$(nix flake metadata --json . | jq -r '.locks.nodes["known-rabbit-packages"].locked.rev')"
+          if [ "$pointer" != "$locked" ]; then
+            echo "::error::public-packages is at $pointer but flake.lock pins $locked"
+            echo "Run scripts/update-flake-input.sh known-rabbit-packages $pointer"
+            echo "and commit flake.lock together with the submodule pointer."
+            exit 1
+          fi
+
+      - name: Build matrix and evaluate every target
+        id: matrix
+        env:
+          ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
+        run: |
+          set -uo pipefail
+
+          # Hosts whose `system.build.toplevel` is not a buildable system
+          # (image and container builders) map to the artifact they exist for.
+          target_for() {
+            case "$1" in
+              brisling) echo "config.system.build.images.proxmox-lxc" ;;
+              savior) echo "config.system.build.images.iso-xfce" ;;
+              *) echo "config.system.build.toplevel" ;;
+            esac
+          }
+
+          hosts='[]'
+          failed=0
+          for host in $(nix eval --json .#nixosConfigurations --apply builtins.attrNames | jq -r '.[]'); do
+            target="$(target_for "$host")"
+            hosts="$(jq -c --arg h "$host" --arg t "$target" '. + [{host: $h, target: $t}]' <<<"$hosts")"
+            if nix eval --raw ".#nixosConfigurations.$host.$target.drvPath" >/dev/null 2>"$RUNNER_TEMP/$host.log"; then
+              echo "eval ok: $host ($target)"
+            else
+              echo "::error title=$host::evaluation failed"
+              cat "$RUNNER_TEMP/$host.log"
+              failed=1
+            fi
+          done
+
+          packages="$(nix eval --json .#packages.x86_64-linux --apply builtins.attrNames)"
+          public="$(nix eval --json path:./public-packages#packages.x86_64-linux --apply builtins.attrNames)"
+
+          skip="$STANDALONE_UNBUILDABLE_PACKAGES"
+          if [ -z "$ASSETS_URL" ] && [ -z "$ASSETS_REPO" ] \
+            && { [ -z "$ATTIC_TOKEN" ] || [ -z "$ATTIC_CACHE_URL" ]; }; then
+            skip="$skip $PRIVATE_SOURCE_PACKAGES"
+          fi
+          echo "not built from the standalone flake: $(echo "$skip" | xargs)"
+          public="$(jq -c --arg skip "$skip" \
+            'map(select(. as $n | ($skip | split(" ") | index($n)) | not))' <<<"$public")"
+
+
+          {
+            echo "hosts=$hosts"
+            echo "packages=$packages"
+            echo "public-packages=$public"
+          } >>"$GITHUB_OUTPUT"
+
+          exit "$failed"
+
+      - name: Decide shim or private module
+        id: mode
+        env:
+          DEPLOY_KEY: ${{ secrets.PRIVATE_MODULE_DEPLOY_KEY }}
+        run: |
+          # Pull requests may come from forks and never receive the key, so
+          # they validate the public shim. Pushes and the weekly run validate
+          # the real private module.
+          if [ "${{ github.event_name }}" != "pull_request" ] && [ -n "$DEPLOY_KEY" ]; then
+            echo "private=true" >>"$GITHUB_OUTPUT"
+          else
+            echo "private=false" >>"$GITHUB_OUTPUT"
+          fi
+
+  hosts:
+    name: host ${{ matrix.host }}
+    needs: discover
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.discover.outputs.hosts) }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Check out the private module
+        if: needs.discover.outputs.private == 'true'
+        uses: actions/checkout@v7
+        with:
+          repository: ttimasdf/nixos-config-private
+          path: private
+          ssh-key: ${{ secrets.PRIVATE_MODULE_DEPLOY_KEY }}
+
+      - name: Set up Nix
+        uses: ./.github/actions/setup-nix
+        with:
+          cache: ${{ vars.ATTIC_CACHE }}
+          endpoint: ${{ vars.ATTIC_ENDPOINT }}
+          cache-url: ${{ vars.ATTIC_CACHE_URL }}
+          public-key: ${{ vars.ATTIC_PUBLIC_KEY }}
+          token: ${{ secrets.ATTIC_TOKEN }}
+          assets-url: ${{ vars.ASSETS_URL }}
+          assets-repo: ${{ vars.ASSETS_REPO }}
+          assets-token: ${{ secrets.ASSETS_TOKEN }}
+          asset-files: ${{ env.LICENSED_ASSET_FILES }}
+
+      - name: Build ${{ matrix.host }}
+        env:
+          PRIVATE: ${{ needs.discover.outputs.private }}
+        run: |
+          # Build against the checked-out submodule instead of the revision
+          # pinned in flake.lock, so a package change and its consumer are
+          # tested together. `discover` verifies the pointer and the lock agree.
+          args=(--override-input known-rabbit-packages path:./public-packages)
+          if [ "$PRIVATE" = "true" ]; then
+            args+=(--override-input private-module path:./private)
+          fi
+          nix build \
+            ".#nixosConfigurations.${{ matrix.host }}.${{ matrix.target }}" \
+            --out-link "result-${{ matrix.host }}" \
+            "${args[@]}"
+
+      - name: Push to the private cache
+        env:
+          ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
+        run: |
+          if [ -z "$ATTIC_TOKEN" ] || [ -z "$ATTIC_CACHE" ]; then
+            echo "no Attic credentials: skipping push"
+            exit 0
+          fi
+          attic push "$ATTIC_CACHE" "$(readlink -f "result-${{ matrix.host }}")"
+
+  packages:
+    name: package ${{ matrix.package }}
+    needs: discover
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.discover.outputs.packages) }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Set up Nix
+        uses: ./.github/actions/setup-nix
+        with:
+          cache: ${{ vars.ATTIC_CACHE }}
+          endpoint: ${{ vars.ATTIC_ENDPOINT }}
+          cache-url: ${{ vars.ATTIC_CACHE_URL }}
+          public-key: ${{ vars.ATTIC_PUBLIC_KEY }}
+          token: ${{ secrets.ATTIC_TOKEN }}
+
+      - name: Build ${{ matrix.package }}
+        run: |
+          nix build \
+            ".#packages.x86_64-linux.${{ matrix.package }}" \
+            --out-link result-package \
+            --override-input known-rabbit-packages path:./public-packages
+
+      - name: Push to the private cache
+        env:
+          ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
+        run: |
+          if [ -z "$ATTIC_TOKEN" ] || [ -z "$ATTIC_CACHE" ]; then
+            echo "no Attic credentials: skipping push"
+            exit 0
+          fi
+          attic push "$ATTIC_CACHE" "$(readlink -f result-package)"
+
+  public-packages:
+    name: public-packages ${{ matrix.package }}
+    needs: discover
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.discover.outputs.public-packages) }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Set up Nix
+        uses: ./.github/actions/setup-nix
+        with:
+          cache: ${{ vars.ATTIC_CACHE }}
+          endpoint: ${{ vars.ATTIC_ENDPOINT }}
+          cache-url: ${{ vars.ATTIC_CACHE_URL }}
+          public-key: ${{ vars.ATTIC_PUBLIC_KEY }}
+          token: ${{ secrets.ATTIC_TOKEN }}
+          assets-url: ${{ vars.ASSETS_URL }}
+          assets-repo: ${{ vars.ASSETS_REPO }}
+          assets-token: ${{ secrets.ASSETS_TOKEN }}
+          asset-files: ${{ env.LICENSED_ASSET_FILES }}
+
+      - name: Build ${{ matrix.package }}
+        run: |
+          nix build \
+            "path:./public-packages#packages.x86_64-linux.${{ matrix.package }}" \
+            --out-link result-package
+
+      - name: Push to the private cache
+        env:
+          ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
+        run: |
+          if [ -z "$ATTIC_TOKEN" ] || [ -z "$ATTIC_CACHE" ]; then
+            echo "no Attic credentials: skipping push"
+            exit 0
+          fi
+          attic push "$ATTIC_CACHE" "$(readlink -f result-package)"
+
+  # Single required status check for branch protection.
+  ci:
+    name: ci
+    needs: [discover, hosts, packages, public-packages]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail unless every job succeeded
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1

@@ -1,0 +1,152 @@
+name: Setup Nix
+description: >-
+  Install Nix, reclaim runner disk space, and wire up the private binary cache
+  that supplies the licensed package sources.
+
+inputs:
+  cache:
+    description: Name of the Attic cache to push to
+    required: false
+    default: ""
+  endpoint:
+    description: Attic API endpoint, e.g. https://attic.example.com/
+    required: false
+    default: ""
+  cache-url:
+    description: Substituter URL of the private cache
+    required: false
+    default: ""
+  public-key:
+    description: Public signing key of the private cache
+    required: false
+    default: ""
+  token:
+    description: Attic JWT; omit to build without the private cache
+    required: false
+    default: ""
+  assets-url:
+    description: >-
+      Base URL of the directory holding the licensed package sources
+      (ida-pro, binaryninja, ...). Leave empty to skip fetching them.
+    required: false
+    default: ""
+  assets-repo:
+    description: >-
+      GitHub repository (owner/name) whose latest release holds the files;
+      alternative to assets-url
+    required: false
+    default: ""
+  assets-token:
+    description: Bearer token for assets-url, or token that can read assets-repo
+    required: false
+    default: ""
+  asset-files:
+    description: Newline-separated file names to fetch, exactly as requireFile names them
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Reclaim disk space
+      shell: bash
+      # GitHub-hosted runners leave ~14 GiB free, which is not enough for a
+      # NixOS toplevel next to the preinstalled toolchains.
+      run: |
+        sudo rm -rf \
+          /usr/local/lib/android \
+          /usr/local/lib/node_modules \
+          /usr/share/dotnet \
+          /opt/ghc \
+          /opt/hostedtoolcache/CodeQL \
+          /usr/local/share/boost
+        sudo docker image prune --all --force >/dev/null 2>&1 || true
+        df -h /
+
+    - name: Restore the Nix evaluation and fetcher caches
+      uses: actions/cache@v6
+      with:
+        path: ~/.cache/nix
+        key: nix-cache-${{ runner.os }}-${{ hashFiles('flake.lock', 'public-packages/flake.lock') }}
+        restore-keys: |
+          nix-cache-${{ runner.os }}-
+
+    - name: Install Nix
+      uses: cachix/install-nix-action@v31
+      with:
+        extra_nix_config: |
+          experimental-features = nix-command flakes
+          accept-flake-config = true
+
+    - name: Configure the private cache
+      if: inputs.cache-url != '' && inputs.public-key != '' && inputs.token != ''
+      shell: bash
+      env:
+        CACHE_URL: ${{ inputs.cache-url }}
+        CACHE_KEY: ${{ inputs.public-key }}
+        CACHE_TOKEN: ${{ inputs.token }}
+      run: |
+        # A private Attic cache needs credentials for reads as well as writes.
+        # Nix only reads them from a netrc file, never from the substituter URL.
+        host="${CACHE_URL#*://}"
+        host="${host%%/*}"
+        mkdir -p "$HOME/.config/nix"
+        printf 'machine %s password %s\n' "$host" "$CACHE_TOKEN" >"$HOME/.config/nix/netrc"
+        chmod 600 "$HOME/.config/nix/netrc"
+
+        cat >>"$GITHUB_ENV" <<__NIX_CONFIG__
+        NIX_CONFIG<<__INNER_NIX_CONFIG__
+        experimental-features = nix-command flakes
+        netrc-file = $HOME/.config/nix/netrc
+        substituters = $CACHE_URL https://cache.nixos.org
+        trusted-public-keys = $CACHE_KEY cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+        __INNER_NIX_CONFIG__
+        __NIX_CONFIG__
+
+    - name: Fetch licensed package sources
+      if: (inputs.assets-url != '' || inputs.assets-repo != '') && inputs.asset-files != ''
+      shell: bash
+      env:
+        ASSETS_URL: ${{ inputs.assets-url }}
+        ASSETS_REPO: ${{ inputs.assets-repo }}
+        ASSETS_TOKEN: ${{ inputs.assets-token }}
+        ASSET_FILES: ${{ inputs.asset-files }}
+      run: |
+        # `requireFile` is a fixed-output derivation, so the runner only needs
+        # the *content*; registering it in the store makes the derivation valid
+        # and Nix never runs the failing builder. A wrong file is caught by the
+        # derivation's own hash check.
+        dest="$RUNNER_TEMP/licensed"
+        mkdir -p "$dest"
+
+        auth=()
+        if [ -n "$ASSETS_TOKEN" ]; then
+          auth=(-H "Authorization: Bearer $ASSETS_TOKEN")
+        fi
+
+        while IFS= read -r file; do
+          [ -z "$file" ] && continue
+          echo "fetching $file"
+          if [ -n "$ASSETS_REPO" ]; then
+            GH_TOKEN="$ASSETS_TOKEN" gh release download \
+              --repo "$ASSETS_REPO" --pattern "$file" --dir "$dest"
+          else
+            curl -fsSL --retry 3 --retry-delay 2 "${auth[@]}" \
+              -o "$dest/$file" "${ASSETS_URL%/}/$file"
+          fi
+        done <<<"$ASSET_FILES"
+
+        for file in "$dest"/*; do
+          nix-store --add-fixed sha256 "$file"
+        done
+
+    - name: Install the Attic client
+      if: inputs.cache != '' && inputs.token != ''
+      shell: bash
+      run: |
+        nix profile add nixpkgs#attic-client
+        attic login "$ATTIC_CACHE" "$ATTIC_ENDPOINT" "$ATTIC_TOKEN"
+      env:
+        ATTIC_CACHE: ${{ inputs.cache }}
+        ATTIC_ENDPOINT: ${{ inputs.endpoint }}
+        ATTIC_TOKEN: ${{ inputs.token }}

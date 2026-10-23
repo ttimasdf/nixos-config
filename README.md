@@ -18,6 +18,7 @@ A modular, multi-host NixOS configuration with private module support so you can
 - **Modular Design**: Unifies [NixOS](https://nixos.org/), [nix-darwin](https://github.com/LnL7/nix-darwin), and [home-manager](https://github.com/nix-community/home-manager) configuration in a single flake using [nixos-unified](https://github.com/srid/nixos-unified).
 - **Auto-wiring**: Automatically discovers and imports configurations into the final flake output from the directory structure, see the chapter [Structure](#structure) below.
 - **Image Building**: Build ISO/VM/Cloud images from any machine config using `nh os build-image` (e.g., `nh os build-image --image-variant iso-xfce .#savior`). One installer variant per host carries that host's closure, so it can be installed offline: `--image-variant iso-xfce-install-<host>`.
+- **CI**: GitHub Actions builds every host, local package, and `public-packages` package; licensed sources such as `ida-pro` are substituted from a private Attic cache instead of being published. See [docs/ci.md](docs/ci.md).
 
 ## Using this config
 
@@ -434,6 +435,19 @@ Manually enter dev shell
 
 ```bash
 nix develop
+```
+
+### push-cache
+
+Push the last build result (or an explicit store path) to the private Attic
+cache that CI substitutes from. This is how licensed package sources such as
+`ida-pro` reach GitHub Actions without being published; see
+[the CI documentation](docs/ci.md).
+
+Inputs: PATH
+
+```bash
+attic push "${ATTIC_CACHE:-nixos-config}" "${PATH:-$(readlink -f result)}"
 ```
 
 ### pre-commit-hook
