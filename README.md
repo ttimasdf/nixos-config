@@ -123,6 +123,48 @@ For each user in `rabit.nixos.myusers` (which defaults to users automatically di
 See [NixOS Options Search: `users.user`](https://search.nixos.org/options?channel=unstable&query=users.user) for available options.
 
 
+### Secrets (SOPS)
+
+Secrets are managed with [sops-nix](https://github.com/Mic92/sops-nix): they are stored **encrypted** in `private/secrets/` (safe for the world-readable Nix store) and decrypted at boot into `/run/secrets` (tmpfs) using each host's SSH host key (ed25519 → age via `ssh-to-age`). Host files are encrypted only to that host plus your personal editing key, so a compromised host cannot read other hosts' secrets. Creation rules live in `private/.sops.yaml`.
+
+The devshell (`nix develop` / direnv) ships `sops` + `ssh-to-age` and sets `SOPS_AGE_KEY_FILE` to the dedicated identity `~/.config/sops/age/nixos-config.txt`.
+
+**Editing secrets** (from the devshell):
+
+```bash
+sops private/secrets/brisling.yaml          # $EDITOR opens decrypted; re-encrypts on save
+sops -d private/secrets/basenji/syncthing-key.pem   # decrypt to stdout (e.g. for rotation)
+```
+
+**Enrolling a host** — run on the host itself, then paste the key into `private/.sops.yaml` and re-encrypt the affected files:
+
+```bash
+nix shell nixpkgs#ssh-to-age -c ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
+# then, from this repo's devshell:
+sops updatekeys private/secrets/<host-file-or-dir>/*
+```
+
+> A host must be enrolled (and its secret files re-encrypted with `sops updatekeys`) **before** deploying a config that declares its `sops.secrets`, otherwise decryption fails at boot.
+
+**First deploy / fresh installs** — the encrypted files are baked into the store before first boot, but the SSH host key only exists after. Depending on the install path:
+
+- *Installer flow* (`nixos-install`): pre-seed the target's host key before installing, then enroll it, then install (order matters — `nixos-install` snapshots the secret files into the store):
+  ```bash
+  # in the installer, target mounted at /mnt:
+  ssh-keygen -t ed25519 -N "" -f /mnt/etc/ssh/ssh_host_ed25519_key -C root@<host>
+  # workstation: convert the printed .pub with ssh-to-age, fill private/.sops.yaml,
+  # sops updatekeys private/secrets/<host>..., THEN: nixos-install --flake .#<host>
+  ```
+- *Image-based hosts* (e.g. basenji Proxmox image): boot the image un-enrolled — host keys are generated on first boot, `sops-install-secrets` and only the secret-dependent services fail while the system itself boots fine — then enroll, `sops updatekeys`, and rebuild.
+- *Reinstall-invariant hosts*: keep a dedicated per-host ed25519 keypair in a password manager, `install -m600` it into the target's `/etc/ssh/` at install time; the host keeps the same age identity (and SSH identity) across reinstalls, no re-encryption ever needed.
+
+  Never bake host keys into built images — the private key would be world-readable in the image's nix store.
+
+Hosts enrolled so far: `viscacha`. Pending: `basenji`, `brisling`, `MNIX`, `wsl` (see TODOs in `private/.sops.yaml`). `savior` (rescue ISO) is excluded — it has no persistent host identity.
+
+Limitation: sops decrypts after `local-fs.target`, so disk-encryption keyfiles (e.g. the BitLocker `.BEK` files in `/root/.secrets/`) cannot be sops-managed and stay as plain root-owned files.
+
+
 ### Version Hint Feature
 
 The version hint feature allows you to append a custom string to your NixOS system label, which is useful for distinguishing between different builds or versions.

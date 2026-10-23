@@ -11,6 +11,9 @@
         gh
         nixfmt
         nix-update
+        # SOPS secret management (see modules/nixos/common/sops.nix)
+        sops
+        ssh-to-age
         (writeShellScriptBin "nixos-eval-config" ''
           if [ "$#" -lt 2 ]; then
             echo "usage: nixos-eval-config <host> <option> [nix-eval-options]..." >&2
@@ -28,6 +31,8 @@
       # Set NH_FLAKE environment variable to the current flake's path
       shellHook = ''
         export NH_FLAKE=$(pwd)
+        # Dedicated age identity for editing this repo's sops secrets
+        export SOPS_AGE_KEY_FILE=$HOME/.config/sops/age/nixos-config.txt
         # Force override SSH_AUTH_SOCK for nixos-rebuild (nix-copy-closure)
         export NIX_SSHOPTS="-o IdentityAgent=$SSH_AUTH_SOCK"
 
