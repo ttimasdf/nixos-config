@@ -155,8 +155,8 @@ in
 
   # region remote access
   # RustDesk client with the DRM/KMS unattended-wayland capture backend
-  # (master-era source build; see public-packages/packages/
-  # rustdesk-flutter-unattended-wayland). The hbbs/hbbr server side and the
+  # (thin override of the 1.5.0 release; see public-packages/overlays/
+  # rustdesk-unattended-wayland). The hbbs/hbbr server side and the
   # rendezvous/relay/key client settings live in the private module.
   services.rustdesk-unattended-wayland.enable = true;
   # endregion remote access
@@ -608,7 +608,7 @@ in
       "mihomo0"
       "mihomo1"
       "easytier0"
-      "astral"
+      "enmesh"
     ];
     checkReversePath = "loose";
 
