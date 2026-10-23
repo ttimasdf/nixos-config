@@ -494,6 +494,9 @@ in
       lib.warn
       "Enabling insecure package qtwebengine-5.15.19 due to wuying-cloud-desktop dependency"
       "qtwebengine-5.15.19"
+      lib.warn
+      "Enabling insecure package tmate-unstable-2022-08-07 due to programs.tmate dependency"
+      "tmate-unstable-2022-08-07"
     ];
   };
 

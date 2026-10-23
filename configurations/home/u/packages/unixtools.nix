@@ -29,7 +29,7 @@
   programs.fzf.enable = true;   # Fuzzy finder for files and history
   programs.jq.enable = true;    # JSON processor for command-line
   programs.btop.enable = true;  # System monitor with resource graphs
-  programs.tmate.enable = true; # Terminal sharing for collaboration
+  # programs.tmate.enable = true; # Terminal sharing for collaboration
   programs.ripgrep.enable = true; # Fast text search tool
   programs.fd.enable = true;    # Simple and fast file finder
   programs.yazi = {
