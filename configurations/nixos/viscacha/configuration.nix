@@ -39,11 +39,16 @@ in
   boot.loader.efi.canTouchEfiVariables = true;
 
   boot.kernelPackages = pkgs.linuxPackages_zen;
-  # Backport SPD write-protection handling as an out-of-tree module so
-  # kernel updates do not require rebuilding the entire kernel derivation.
-  boot.extraModulePackages = [
-    (pkgs.spd5118-module.override { kernel = config.boot.kernelPackages.kernel; })
-  ];
+  # FIXME: temporarily disabled. spd5118-module installs only `spd5118.ko` and no
+  # `spd5118.ko.cer`, so the kmodigest-based module aggregator fails with exit
+  # 123 ("cat: updates/drivers/hwmon/spd5118.ko.cer: No such file or directory").
+  # The backport is still needed: linux-zen 7.2.11 has no SPD write-protection
+  # handling in drivers/hwmon/spd5118.c, so resume will again log
+  # "dpm_run_callback(): spd5118_resume returns -6" until it is re-enabled with
+  # per-module certificates.
+  # boot.extraModulePackages = [
+  #   (pkgs.spd5118-module.override { kernel = config.boot.kernelPackages.kernel; })
+  # ];
   # boot.kernelPackages = pkgs.linuxPackages; # FIXME: nvidia diagnose
   boot.kernel.sysctl = {
     "net.ipv4.ip_forward" = 1;
@@ -432,8 +437,21 @@ in
     enable = true;
   };
 
+  # FIXME: temporarily disabled. The nixpkgs `ddcci-driver` package installs only
+  # `ddcci.ko`/`ddcci-backlight.ko` and no `.ko.cer` files, which breaks the
+  # kmodigest-based kernel module aggregator (exit 123).
   # Enable ddccontrol for controlling DDC/CI monitors
-  services.ddccontrol.enable = true;
+  # services.ddccontrol.enable = true;
+
+  # Eval-time reminder for the two temporarily disabled kernel module packages.
+  warnings = [
+    ''
+      viscacha: `services.ddccontrol` (ddcci-driver) and the patched out-of-tree
+      `spd5118-module` are disabled because neither package provides `.ko.cer`
+      files for the kernel module aggregator. Restore them once the packages
+      install per-module certificates. See configurations/nixos/viscacha/configuration.nix.
+    ''
+  ];
 
   systemd.services."user@".serviceConfig = {
     TimeoutStopSec = "30s";

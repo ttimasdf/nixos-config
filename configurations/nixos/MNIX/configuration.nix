@@ -218,8 +218,21 @@ in
     enable = true;
   };
 
+  # FIXME: temporarily disabled. The nixpkgs `ddcci-driver` package installs only
+  # `ddcci.ko`/`ddcci-backlight.ko` and no `.ko.cer` files, which breaks the
+  # kmodigest-based kernel module aggregator (exit 123).
   # Enable ddccontrol for controlling DDC/CI monitors
-  services.ddccontrol.enable = true;
+  # services.ddccontrol.enable = true;
+
+  # Eval-time reminder for the temporarily disabled kernel module package.
+  warnings = [
+    ''
+      MNIX: `services.ddccontrol` (ddcci-driver) is disabled because the package
+      provides no `.ko.cer` files for the kernel module aggregator. Restore it
+      once the package installs per-module certificates.
+      See configurations/nixos/MNIX/configuration.nix.
+    ''
+  ];
 
   # Add 'newuidmap' and 'sh' to the PATH for users' Systemd units.
   # Required for Rootless podman.
