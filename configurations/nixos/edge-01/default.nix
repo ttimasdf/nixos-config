@@ -9,6 +9,7 @@ in
   imports = [
     self.nixosModules.common
     private-module.nixosModules.all
+    ./hardware-configuration.nix
     ./configuration.nix
   ];
 }
