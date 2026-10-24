@@ -14,10 +14,10 @@
 { flake, pkgs, lib, modulesPath, ... }:
 
 {
-  ### VM basics — the proxmox format module provides fileSystems + bootloader
-  ### (equivalent to `nixos-generate -f proxmox`, without the external tool)
-  imports = [ "${modulesPath}/virtualisation/proxmox-image.nix" ];
+  ### Image: built via `nh os build-image --image-variant proxmox .#edge-01`
+  ### (upstream image registry; no format module baked into the host config)
   nixpkgs.hostPlatform = "x86_64-linux";
+  networking.hostName = "edge-01"; # was missing — VM leased as "nixos"
   boot.growPartition = true;
   services.qemuGuest.enable = true;
 
