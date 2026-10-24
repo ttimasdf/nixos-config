@@ -11,17 +11,12 @@
 #
 # Roles OFF in S1: no ip_forward, no zone firewall, no DHCP/DNS, no EasyTier.
 # Activated in S3 with physical presence.
-{ flake, pkgs, lib, ... }:
+{ flake, pkgs, lib, modulesPath, ... }:
 
-let
-  # Managed on the workstation; builder pulls only.
-  authorizedKeys = [
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDapIfzuMObd/aYexMBkHsB7cZl2mUSPEorAI9GbDaaa intra"
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINyhqNCbETubhbUf8aSzR0+6bZYkSpEo7Ri1WIuPdiyR nix-builder"
-  ];
-in
 {
-  ### VM basics (qcow/proxmox image provides fileSystems + bootloader)
+  ### VM basics — the proxmox format module provides fileSystems + bootloader
+  ### (equivalent to `nixos-generate -f proxmox`, without the external tool)
+  imports = [ "${modulesPath}/virtualisation/proxmox-image.nix" ];
   boot.growPartition = true;
   services.qemuGuest.enable = true;
 
@@ -68,7 +63,10 @@ in
     enable = true;
     settings.PermitRootLogin = "prohibit-password";
   };
-  users.users.root.openssh.authorizedKeys.keys = authorizedKeys;
+  users.users.root.openssh.authorizedKeys.keys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDapIfzuMObd/aYexMBkHsB7cZl2mUSPEorAI9GbDaaa intra"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINyhqNCbETubhbUf8aSzR0+6bZYkSpEo7Ri1WIuPdiyR nix-builder"
+  ];
 
   ### S3 will bring: nftables zone policy, DHCP-only dnsmasq, Technitium,
   ### Caddy + wildcard cert, EasyTier peer, mihomo listener. One rebuild away.
