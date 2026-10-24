@@ -1,9 +1,12 @@
 # edge-01 services — the services file.
 #
 # Landed:
-#   - Technitium DNS (authoritative lab.domain.invalid + recursor; split-horizon with Spaceship)
-#   - security.acme wildcard *.lab.domain.invalid (DNS-01 via Spaceship API; CT logs see only
-#     the wildcard — individual service names never appear)
+#   - Technitium DNS (authoritative zone for the lab domain + recursor;
+#     split-horizon with the registrar's public zone)
+#   - security.acme wildcard cert (DNS-01 via the registrar's API; CT logs see
+#     only the wildcard — individual service names never appear)
+#
+# The domain itself is a secret: rabitprivate.nixos.labDomain (private repo).
 #
 # Planned (see homelab-overhaul/progress/WORKING.md):
 #   - Caddy reverse proxy (consumes the wildcard via useACMEHost)
@@ -12,6 +15,9 @@
 #   - mihomo listener-only (egress chain endpoint for sandbox-01)
 { config, pkgs, ... }:
 
+let
+  labDomain = config.rabitprivate.nixos.labDomain;
+in
 {
   ### Technitium DNS — persistent state on /data (separate zvol = backup unit)
   virtualisation.oci-containers.containers.technitium = {
@@ -33,9 +39,9 @@
   security.acme = {
     acceptTerms = true;
     defaults.email = "cortex-red@rabit.pw";
-    certs."lab.domain.invalid" = {
-      domain = "lab.domain.invalid";
-      extraDomainNames = [ "*.lab.domain.invalid" ];
+    certs."${labDomain}" = {
+      domain = labDomain;
+      extraDomainNames = [ "*.${labDomain}" ];
       dnsProvider = "spaceship";
       environmentFile = "/var/lib/secrets/spaceship.env"; # delivered out-of-band, 0600 root
     };
