@@ -299,11 +299,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789023608,
-        "narHash": "sha256-Lv58l9xfxVQ96ooaQ33EDympz8RKoOiAUnC9FDiYeSg=",
+        "lastModified": 1792817491,
+        "narHash": "sha256-51g8euZWEkIQsVLSH52xFzuYNXWDi2W26Im68WTI+zw=",
         "owner": "ttimasdf",
         "repo": "nixos-config-module",
-        "rev": "1e8ef03e371080a46d4b9dfbbf67d2c3b67ec4eb",
+        "rev": "993cb780a730b2ca3e739b80dd5535c3bde09a4c",
         "type": "github"
       },
       "original": {
