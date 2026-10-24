@@ -35,7 +35,7 @@ in
 
   ### Technitium DNS — persistent state on /data (separate zvol = backup unit)
   virtualisation.oci-containers.containers.technitium = {
-    image = "docker.io/technitiumdns/dns-server:12.2";
+    image = "docker.io/technitium/dns-server:15.6.2";
     autoStart = true;
     ports = [
       # DNS on each zone address (zone clients point at their gateway)
