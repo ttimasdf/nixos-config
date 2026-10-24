@@ -21,6 +21,7 @@
   ### Networking
   networking.usePredictableInterfaceNames = false;
   networking.useDHCP = false;
+  networking.enableIPv6 = false; # v4-only decision; the old-LAN GUA caused dead v6 egress
   networking.firewall.enable = true; # default-deny inbound, ssh allowed
   networking.interfaces.eth0.ipv4.addresses = [ { address = "6.6.90.105"; prefixLength = 16; } ];
   networking.defaultGateway = { address = "6.6.90.1"; interface = "eth0"; };
@@ -45,6 +46,20 @@
     storage.graphroot = "/data/containers/storage";
     storage.runroot = "/run/containers/storage";
   };
+  # China registry mirrors (same set the legacy podman hosts use)
+  virtualisation.containers.registries.settings.registry = [
+    {
+      location = "docker.io";
+      mirror = [
+        { location = "docker.milktea.info"; }
+        { location = "docker.nju.edu.cn"; }
+      ];
+    }
+    {
+      location = "ghcr.io";
+      mirror = [ { location = "ghcr.nju.edu.cn"; } ];
+    }
+  ];
 
   ### Services land here as they migrate (fresh Forgejo first, per the plan).
 
