@@ -19,6 +19,11 @@
     fsType = "ext4";
   };
 
+  fileSystems."/data" = {
+    device = "/dev/disk/by-label/EDGE-DATA";
+    fsType = "ext4";
+  };
+
   swapDevices = [ ];
 
   boot.loader.grub.devices = [ "/dev/vda" ];
