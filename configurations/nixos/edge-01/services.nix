@@ -34,6 +34,7 @@ in
   '';
 
   ### Technitium DNS — persistent state on /data (separate zvol = backup unit)
+  systemd.tmpfiles.rules = [ "d /data/technitium 0755 root root -" ];
   virtualisation.oci-containers.containers.technitium = {
     image = "docker.io/technitium/dns-server:15.6.2";
     autoStart = true;
