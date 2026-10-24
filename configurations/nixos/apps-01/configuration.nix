@@ -10,9 +10,11 @@
 #                          (edge-01, 10.66.30.1) activates at S3.
 #
 # Image: nh os build-image --image-variant proxmox-lxc .#apps-01
-{ flake, pkgs, lib, ... }:
+{ flake, pkgs, lib, modulesPath, ... }:
 
 {
+  # The container IS the format — baked in (image attr + container boot bits for rebuilds)
+  imports = [ "${modulesPath}/virtualisation/proxmox-lxc.nix" ];
   nixpkgs.hostPlatform = "x86_64-linux";
   networking.hostName = "apps-01";
 
