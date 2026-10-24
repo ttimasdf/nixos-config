@@ -17,6 +17,7 @@
   ### VM basics — the proxmox format module provides fileSystems + bootloader
   ### (equivalent to `nixos-generate -f proxmox`, without the external tool)
   imports = [ "${modulesPath}/virtualisation/proxmox-image.nix" ];
+  nixpkgs.hostPlatform = "x86_64-linux";
   boot.growPartition = true;
   services.qemuGuest.enable = true;
 
