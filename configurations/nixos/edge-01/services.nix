@@ -58,10 +58,18 @@ in
       extraDomainNames = [ "*.${labDomain}" ];
       dnsProvider = "spaceship";
       environmentFile = "/var/lib/secrets/spaceship.env"; # delivered out-of-band, 0600 root
-      # TXT is served instantly by the registrar's authoritative NS; LE validates
-      # authoritatively. The default propagation poll trips over ISP negative caches.
-      dnsPropagationCheck = false;
+      # Poll the registrar's authoritative NS for propagation — the system
+      # resolver (ISP) negative-caches NXDOMAIN and fails the default check.
+      dnsResolver = "162.159.26.38:53"; # launch1.spaceship.net
     };
+  };
+
+  ### The container unit needs the proxy env itself (pre-start pulls don't
+  ### inherit podman.service env, and profile.d doesn't reach systemd units)
+  systemd.services.podman-technitium.environment = {
+    http_proxy = config.rabit.nixos.http_proxy;
+    https_proxy = config.rabit.nixos.http_proxy;
+    no_proxy = config.rabit.nixos.no_proxy;
   };
 
   ### Firewall: allow DNS + console from the zones (ssh already allowed by default policy)
