@@ -6,8 +6,8 @@
 #   eth0.20   10.66.20.1/24  — soc zone gateway (empty for now)
 #   eth0.30   10.66.30.1/24  — servers zone gateway (tag-path test target)
 #   eth0.90   10.66.90.1/24  — sandbox zone gateway (empty for now)
-#   eth0.10   ADDRESSLESS during S1 — the router holds 10.66.10.1 transitionally;
-#             edge-01 takes it at S3 (see homelab-overhaul/progress/WORKING.md).
+#   eth0.10   10.66.10.1/24   — mgmt zone gateway, edge owns .1 from day 1
+#             (the router's transitional leg uses 10.66.10.254)
 #
 # Roles OFF in S1: no ip_forward, no zone firewall, no DHCP/DNS, no EasyTier.
 # Activated in S3 with physical presence.
@@ -31,7 +31,7 @@
     vlan10 = {
       id = 10;
       interface = "eth0";
-    }; # addressless until S3 (router holds 10.66.10.1)
+    };
     vlan20 = {
       id = 20;
       interface = "eth0";
@@ -51,6 +51,7 @@
   };
 
   networking.interfaces = {
+    vlan10.ipv4.addresses = [ { address = "10.66.10.1"; prefixLength = 24; } ];
     vlan20.ipv4.addresses = [ { address = "10.66.20.1"; prefixLength = 24; } ];
     vlan30.ipv4.addresses = [ { address = "10.66.30.1"; prefixLength = 24; } ];
     vlan50.ipv4.addresses = [ { address = "10.66.50.2"; prefixLength = 24; } ];
@@ -69,8 +70,7 @@
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINyhqNCbETubhbUf8aSzR0+6bZYkSpEo7Ri1WIuPdiyR nix-builder"
   ];
 
-  ### S3 will bring: nftables zone policy, DHCP-only dnsmasq, Technitium,
-  ### Caddy + wildcard cert, EasyTier peer, mihomo listener. One rebuild away.
+  imports = [ ./services.nix ]; # Technitium, Caddy, EasyTier peer, dnsmasq, mihomo land there
 
   system.stateVersion = "26.11";
 }
