@@ -10,7 +10,7 @@
 #                          (edge-01, 10.66.30.1) activates at S3.
 #
 # Image: nh os build-image --image-variant proxmox-lxc .#apps-01
-{ flake, pkgs, lib, modulesPath, ... }:
+{ config, lib, pkgs, modulesPath, ... }:
 
 {
   # The container IS the format — baked in (image attr + container boot bits for rebuilds)
@@ -46,20 +46,25 @@
     storage.graphroot = "/data/containers/storage";
     storage.runroot = "/run/containers/storage";
   };
-  # China registry mirrors (same set the legacy podman hosts use)
-  virtualisation.containers.registries.settings.registry = [
-    {
-      location = "docker.io";
-      mirror = [
-        { location = "docker.milktea.info"; }
-        { location = "docker.nju.edu.cn"; }
-      ];
-    }
-    {
-      location = "ghcr.io";
-      mirror = [ { location = "ghcr.nju.edu.cn"; } ];
-    }
-  ];
+
+  ### Registry egress via mihomo (viscacha pattern): pulls through the CT-114 proxy
+  rabit.nixos.http_proxy = "http://6.6.6.1:28888";
+  rabit.nixos.no_proxy = "localhost,127.0.0.1,[::1],6.6.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/12";
+  systemd.services."podman".environment = {
+    http_proxy = config.rabit.nixos.http_proxy;
+    https_proxy = config.rabit.nixos.http_proxy;
+    no_proxy = config.rabit.nixos.no_proxy;
+  };
+  systemd.user.services."podman".environment = {
+    http_proxy = config.rabit.nixos.http_proxy;
+    https_proxy = config.rabit.nixos.http_proxy;
+    no_proxy = config.rabit.nixos.no_proxy;
+  };
+  environment.etc."profile.d/podman-proxy.sh".text = ''
+    export http_proxy=http://6.6.6.1:28888
+    export https_proxy=http://6.6.6.1:28888
+    export no_proxy=localhost,127.0.0.1,6.6.0.0/16,10.0.0.0/8
+  '';
 
   ### Services land here as they migrate (fresh Forgejo first, per the plan).
 
