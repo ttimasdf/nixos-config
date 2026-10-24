@@ -19,6 +19,20 @@ let
   labDomain = config.rabitprivate.nixos.labDomain;
 in
 {
+  ### Podman egress via mihomo (registry pulls), same pattern as apps-01
+  rabit.nixos.http_proxy = "http://6.6.6.1:28888";
+  rabit.nixos.no_proxy = "localhost,127.0.0.1,[::1],6.6.0.0/16,10.0.0.0/8,192.168.0.0/16,172.16.0.0/12";
+  systemd.services."podman".environment = {
+    http_proxy = config.rabit.nixos.http_proxy;
+    https_proxy = config.rabit.nixos.http_proxy;
+    no_proxy = config.rabit.nixos.no_proxy;
+  };
+  environment.etc."profile.d/podman-proxy.sh".text = ''
+    export http_proxy=http://6.6.6.1:28888
+    export https_proxy=http://6.6.6.1:28888
+    export no_proxy=localhost,127.0.0.1,6.6.0.0/16,10.0.0.0/8
+  '';
+
   ### Technitium DNS — persistent state on /data (separate zvol = backup unit)
   virtualisation.oci-containers.containers.technitium = {
     image = "docker.io/technitiumdns/dns-server:12.2";
@@ -44,6 +58,9 @@ in
       extraDomainNames = [ "*.${labDomain}" ];
       dnsProvider = "spaceship";
       environmentFile = "/var/lib/secrets/spaceship.env"; # delivered out-of-band, 0600 root
+      # TXT is served instantly by the registrar's authoritative NS; LE validates
+      # authoritatively. The default propagation poll trips over ISP negative caches.
+      dnsPropagationCheck = false;
     };
   };
 
