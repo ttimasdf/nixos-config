@@ -3,9 +3,6 @@
 # to /etc/nixos/configuration.nix instead.
 { config, lib, pkgs, modulesPath, ... }:
 
-let
-  zfsMountOptions = [ "nofail" "x-systemd-mount-timeout=60" ];
-in
 {
   imports = [
     (modulesPath + "/profiles/qemu-guest.nix")
@@ -29,41 +26,10 @@ in
     options = [ "fmask=0022" "dmask=0022" ];
   };
 
-  fileSystems."/bank" = {
-    device = "bank";
-    fsType = "zfs";
-    options = zfsMountOptions;
-  };
 
-  fileSystems."/bank/data" = {
-    device = "bank/data";
-    fsType = "zfs";
-    options = zfsMountOptions;
-  };
 
-  fileSystems."/bank/data/docs" = {
-    device = "bank/data/docs";
-    fsType = "zfs";
-    options = zfsMountOptions;
-  };
 
-  fileSystems."/bank/data/backups" = {
-    device = "bank/data/backups";
-    fsType = "zfs";
-    options = zfsMountOptions;
-  };
 
-  fileSystems."/bank/data/pictures" = {
-    device = "bank/data/pictures";
-    fsType = "zfs";
-    options = zfsMountOptions;
-  };
-
-  fileSystems."/bank/data/media" = {
-    device = "bank/data/media";
-    fsType = "zfs";
-    options = zfsMountOptions;
-  };
 
   swapDevices = [ ];
 
