@@ -19,12 +19,15 @@
     fsType = "ext4";
   };
 
-  fileSystems."/data" = {
+  # Service data volume — fleet convention: one data volume at /srv, per-service
+  # dirs bind-mounted into the paths NixOS modules expect. (was /data; 2026-10-26)
+  fileSystems."/srv" = {
     device = "/dev/disk/by-label/EDGE-DATA";
     fsType = "ext4";
   };
 
   swapDevices = [ ];
 
-  boot.loader.grub.devices = [ "/dev/vda" ];
-}
+  # grub retired 2026-10-26 (EFI migration) — systemd-boot is declared in
+  # configuration.nix; the image profile supplies the ESP /boot mount.
+} 

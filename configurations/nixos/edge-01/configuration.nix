@@ -21,6 +21,15 @@
   boot.growPartition = true;
   services.qemuGuest.enable = true;
 
+  ### Boot — EFI per fleet policy (progress/2026-10-25-boot-policy.md):
+  ### OVMF + persistent efidisk0 (PVE-side) + systemd-boot; grub retired.
+  ### Image layout: ESP-first (1G via the private image entry), root-last/growable.
+  boot.loader.grub.enable = false; # override the proxmox image profile's default
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.systemd-boot.configurationLimit = 5; # 1G ESP, edge kernel+initrd ~30M/gen
+  boot.loader.efi.canTouchEfiVariables = true;
+  boot.kernelParams = [ "console=tty0" "console=ttyS0,115200n8" ]; # qm terminal
+
   ### Networking — one trunk NIC, predictable names off => eth0
   networking.usePredictableInterfaceNames = false;
   networking.useDHCP = false;

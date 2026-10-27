@@ -33,21 +33,35 @@ in
     export no_proxy=localhost,127.0.0.1,6.6.0.0/16,10.0.0.0/8
   '';
 
-  ### Technitium DNS — persistent state on /data (separate zvol = backup unit)
-  systemd.tmpfiles.rules = [ "d /data/technitium 0755 root root -" ];
-  virtualisation.oci-containers.containers.technitium = {
-    image = "docker.io/technitium/dns-server:15.6.2";
-    autoStart = true;
-    ports = [
-      # DNS on each zone address (zone clients point at their gateway)
-      "10.66.10.1:53:53/udp" "10.66.10.1:53:53/tcp"
-      "10.66.20.1:53:53/udp" "10.66.20.1:53:53/tcp"
-      "10.66.30.1:53:53/udp" "10.66.30.1:53:53/tcp"
-      "10.66.90.1:53:53/udp" "10.66.90.1:53:53/tcp"
-      # web console: transitional access via the old LAN address
-      "6.6.90.13:5380:5380/tcp"
-    ];
-    volumes = [ "/data/technitium:/etc/dns" ];
+  ### Routing — edge is the inter-zone router (transitional: SNAT paths via
+  ### vlan10 ↔ other zones; S3 brings the nftables zone policy). Previously
+  ### ip_forward=1 was set as a SIDE EFFECT of netavark (container published
+  ### ports) — removing the Technitium container silently disabled routing.
+  ### Declared explicitly since 2026-10-26.
+  boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
+
+  ### Technitium DNS — NATIVE nixpkgs module (was pinned container; migrated
+  ### 2026-10-26). State lives on the /srv volume, bind-mounted into the
+  ### module's StateDirectory. No dnsmasq anywhere — Technitium's built-in
+  ### DHCP serves the zones at S3 (operator decision).
+  services.technitium-dns-server = {
+    enable = true;
+    openFirewall = false; # per-interface rules below remain the governing layer
+  };
+  # DynamicUser service — state lives under /var/lib/private/<name> (systemd
+  # relocates the public path there); the bind must target the PRIVATE path or
+  # the StateDirectory migration fails with EBUSY (learned 2026-10-26).
+  fileSystems."/var/lib/private/technitium-dns-server" = {
+    device = "/srv/technitium";
+    fsType = "none";
+    options = [ "bind" ];
+  };
+
+  ### ACME certs centralized on /srv too (same convention)
+  fileSystems."/var/lib/acme" = {
+    device = "/srv/acme";
+    fsType = "none";
+    options = [ "bind" ];
   };
 
   ### Wildcard cert — one cert, all services; subdomains never hit CT logs
@@ -58,19 +72,11 @@ in
       domain = labDomain;
       extraDomainNames = [ "*.${labDomain}" ];
       dnsProvider = "spaceship";
-      environmentFile = "/var/lib/secrets/spaceship.env"; # delivered out-of-band, 0600 root
+      environmentFile = "/run/secrets/rendered/spaceship.env"; # sops template from per-key YAML secrets (private edge-01 module)
       # Poll the registrar's authoritative NS for propagation — the system
       # resolver (ISP) negative-caches NXDOMAIN and fails the default check.
       dnsResolver = "162.159.26.38:53"; # launch1.spaceship.net
     };
-  };
-
-  ### The container unit needs the proxy env itself (pre-start pulls don't
-  ### inherit podman.service env, and profile.d doesn't reach systemd units)
-  systemd.services.podman-technitium.environment = {
-    http_proxy = config.rabit.nixos.http_proxy;
-    https_proxy = config.rabit.nixos.http_proxy;
-    no_proxy = config.rabit.nixos.no_proxy;
   };
 
   ### Firewall: allow DNS + console from the zones (ssh already allowed by default policy)
@@ -81,6 +87,8 @@ in
     vlan20.allowedUDPPorts = [ 53 ];
     vlan30.allowedTCPPorts = [ 53 ];
     vlan30.allowedUDPPorts = [ 53 ];
+    vlan50.allowedTCPPorts = [ 22 53 5380 ]; # routed mgmt path from old LAN via router↔vlan50 trunk (S3 cutover; was masked by SNAT before)
+    vlan50.allowedUDPPorts = [ 53 ];
     vlan90.allowedTCPPorts = [ 53 ];
     vlan90.allowedUDPPorts = [ 53 ];
     eth0.allowedTCPPorts = [ 5380 ]; # transitional console access from old LAN
