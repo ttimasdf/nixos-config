@@ -2,7 +2,7 @@
 { flake, ... }:
 
 let
-  inherit (flake.inputs) self private-module;
+  inherit (flake.inputs) self private-module known-rabbit-packages;
 in
 {
   imports = [
@@ -10,4 +10,8 @@ in
     private-module.nixosModules.all
     ./configuration.nix
   ];
+
+  # known-rabbit-packages: overlay brings pkgs.easytier-bin (release binaries)
+  # among other personal packages.
+  nixpkgs.overlays = [ known-rabbit-packages.overlays.default ];
 }

@@ -4,10 +4,9 @@
 # boundary (host uid 100000+), per the homelab overhaul decision.
 #
 # Networking:
-#   eth0  6.6.90.105/16  — old LAN, transitional (internet + provisioning; dies at S6)
-#   eth1  10.66.30.2/24  — servers zone; PVE tags VLAN 30 host-side (plain interface,
-#                          no guest 802.1Q — CTs differ from VMs here). Gateway
-#                          (edge-01, 10.66.30.1) activates at S3.
+#   eth0  10.66.30.2/24  — servers zone PRIMARY (PVE net0 tag=30). Default gw
+#                          edge-01 (10.66.30.1) — FLEET CONVENTION: net0 = new zone.
+#   eth1  6.6.90.105/16  — old LAN backup, no gateway (dies at S6)
 #
 # Image: nh os build-image --image-variant proxmox-lxc .#apps-01
 { config, lib, pkgs, modulesPath, ... }:
@@ -17,16 +16,17 @@
   imports = [ "${modulesPath}/virtualisation/proxmox-lxc.nix" ];
   nixpkgs.hostPlatform = "x86_64-linux";
   networking.hostName = "apps-01";
+  proxmoxLXC.manageHostName = true; # eval must see the real hostname — mkIf-hostname private modules key on it (the module's mkForce "" silently skipped them all)
 
   ### Networking
   networking.usePredictableInterfaceNames = false;
   networking.useDHCP = false;
   networking.enableIPv6 = false; # v4-only decision; the old-LAN GUA caused dead v6 egress
   networking.firewall.enable = true; # default-deny inbound, ssh allowed
-  networking.interfaces.eth0.ipv4.addresses = [ { address = "6.6.90.105"; prefixLength = 16; } ];
-  networking.defaultGateway = { address = "6.6.90.1"; interface = "eth0"; };
-  networking.nameservers = [ "6.6.90.1" "223.5.5.5" ];
-  networking.interfaces.eth1.ipv4.addresses = [ { address = "10.66.30.2"; prefixLength = 24; } ];
+  networking.interfaces.eth0.ipv4.addresses = [ { address = "10.66.30.2"; prefixLength = 24; } ];
+  networking.defaultGateway = { address = "10.66.30.1"; interface = "eth0"; };
+  networking.nameservers = [ "10.66.10.1" "6.6.90.1" ];
+  networking.interfaces.eth1.ipv4.addresses = [ { address = "6.6.90.105"; prefixLength = 16; } ];
 
   ### Access — appliance: root + keys only
   services.openssh = {
@@ -38,14 +38,40 @@
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINyhqNCbETubhbUf8aSzR0+6bZYkSpEo7Ri1WIuPdiyR nix-builder"
   ];
 
-  ### Podman — rootful; graphroot pinned on the /data mount point (PVE mp0)
+  ### Podman — rootful; storage on the /srv data volume (PVE mp0) via a bind
+  ### into podman's DEFAULT path — no graphroot override needed (fleet /srv
+  ### convention, 2026-10-26)
+  fileSystems."/var/lib/containers" = {
+    device = "/srv/containers";
+    fsType = "none";
+    options = [ "bind" ];
+  };
+
+  ### EasyTier control plane — web console + config server.
+  ### Internal peers use direct UDP (port via private module); roaming peers use
+  ### the frp-exposed endpoint. All frp/mesh addressing lives in the private
+  ### module — relay server addresses are confidential (operator rule 2026-10-27).
+  users.users.easytier = { isSystemUser = true; group = "easytier"; };
+  users.groups.easytier = { };
+  systemd.tmpfiles.rules = [ "d /srv/easytier-web 0700 easytier easytier -" ];
+  systemd.services.easytier-web = {
+    description = "EasyTier web console + config server";
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      User = "easytier";
+      Group = "easytier";
+      WorkingDirectory = "/srv/easytier-web";
+      ExecStart = "${pkgs.easytier-bin}/bin/easytier-web-embed --db /srv/easytier-web/et.db --api-server-addr 0.0.0.0 --api-server-port 11211 --config-server-protocol udp --config-server-port 22020";
+      Restart = "on-failure";
+      RestartSec = 5;
+    };
+  };
+  networking.firewall.allowedTCPPorts = [ 11211 ]; # console/API, internal (vlan30 ingress)
+  networking.firewall.allowedUDPPorts = [ 22020 ]; # config server, internal peers
   virtualisation.podman.enable = true;
   virtualisation.oci-containers.backend = "podman";
-  virtualisation.containers.storage.settings = {
-    storage.driver = "overlay";
-    storage.graphroot = "/data/containers/storage";
-    storage.runroot = "/run/containers/storage";
-  };
 
   ### Registry egress via mihomo (viscacha pattern): pulls through the CT-114 proxy
   rabit.nixos.http_proxy = "http://6.6.6.1:28888";
