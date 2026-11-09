@@ -9,6 +9,7 @@
 
 let
   inherit (flake.inputs) self;
+  inherit (config.rabitprivate.nixos.homelab) ipv4;
 in
 {
   imports = [
@@ -47,17 +48,41 @@ in
 
   # region network
   networking.hostName = "basenji";
-  # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/tasks/network-interfaces-systemd.nix
+  networking.useDHCP = false;
   networking.useNetworkd = true;
   networking.nftables.enable = true;
+  # MAC-pinned so a slot shuffle cannot rename the legs.
+  systemd.network.links."10-basenji-trunk" = {
+    matchConfig.MACAddress = "BC:24:11:58:B7:0E";
+    linkConfig.Name = "enp6s18";
+  };
+  networking.interfaces.enp6s18.ipv4.addresses = [
+    { address = ipv4.addresses.basenji; prefixLength = ipv4.prefixLength; }
+  ];
+  networking.defaultGateway = {
+    address = ipv4.zones.servers.address;
+    interface = "enp6s18";
+  };
+  # The second leg is on the upstream L2: keep the link up but completely deaf,
+  # or every 0.0.0.0 listener is reachable from the CPE segment.
+  systemd.network.links."05-basenji-upstream" = {
+    matchConfig.MACAddress = "BC:24:11:BE:A6:FE";
+    linkConfig.Name = "enp6s19";
+  };
+  systemd.network.networks."40-enp6s19" = {
+    matchConfig.Name = "enp6s19";
+    linkConfig.RequiredForOnline = false;
+    networkConfig = {
+      DHCP = "no";
+      IPv6AcceptRA = "no";
+      LinkLocalAddressing = "no";
+      ConfigureWithoutCarrier = false;
+    };
+  };
+  networking.nameservers = [ ipv4.zones.mgmt.address ];
+  services.qemuGuest.enable = true;
 
   services.resolved.settings.Resolve = lib.mkIf (config.services.resolved.enable) {
-    # DNSStubListener = false;
-    # compiled-in fallback DNS:
-    # 1.1.1.1#cloudflare-dns.com 8.8.8.8#dns.google 9.9.9.9#dns.quad9.net
-    # 1.0.0.1#cloudflare-dns.com 8.8.4.4#dns.google 149.112.112.112#dns.quad9.net
-    # 2606:4700:4700::1111#cloudflare-dns.com 2001:4860:4860::8888#dns.google 2620:fe::fe#dns.quad9.net
-    # 2606:4700:4700::1001#cloudflare-dns.com 2001:4860:4860::8844#dns.google 2620:fe::9#dns.quad9.net
     FallbackDNS = [
       "223.5.5.5#dns.alidns.com" "1.12.12.12#doh.pub"
       "223.6.6.6#dns.alidns.com" "120.53.53.53#doh.pub"
@@ -81,11 +106,10 @@ in
   # endregion ZFS pool configuration
 
   # region Cockpit web management
-  # Cockpit provides a web-based interface for system administration.
   services.cockpit = {
     enable = true;
     port = 9090;
-    openFirewall = true;
+    openFirewall = false; # no `address` option here, the per-leg rules scope it
     allowed-origins = [ "*" ];
     settings = {
       WebService = {
@@ -94,23 +118,24 @@ in
       };
     };
     plugins = with pkgs; [
-      cockpit-zfs
       cockpit-podman
       cockpit-files
-      cockpit-file-sharing
     ];
   };
-
   # endregion Cockpit web management
 
   # region Samba file sharing
-  # Ensure samba starts after the ZFS pool /bank is mounted
-  systemd.services.samba-smbd.requires = [ "bank.mount" ];
-  systemd.services.samba-smbd.after = [ "bank.mount" ];
+  # The datasets are native zfs mounts (not fstab), and their nested zfsutil
+  # units race the pool import, so smbd must order after zfs-mount.
+  systemd.services.samba-smbd = {
+    wants = [ "zfs-mount.service" ];
+    after = [ "zfs-mount.service" "zfs-import.target" ];
+    requires = [ "zfs-import.target" ];
+  };
 
   services.samba = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false; # per-leg rules below govern
     settings =
       let
         commonConfig = {
@@ -131,6 +156,13 @@ in
           security = "user";
           "map to guest" = "Bad User";
           "dns proxy" = "no";
+          # Bind at the app level too: otherwise nmbd advertises on every
+          # attached L2 and smbd accepts on any address.
+          interfaces = "lo enp6s18";
+          "bind interfaces only" = "yes";
+          # One file per source IP: log.smbd never records the client address.
+          "log level" = "1 auth:3";
+          "log file" = "/var/log/samba/log.%I";
         };
         # Samba shares
         backups = commonConfig // {
@@ -149,11 +181,21 @@ in
       };
   };
 
-  # Enable wsdd for Windows network discovery
   services.samba-wsdd = {
     enable = true;
     workgroup = "WORKGROUP";
-    openFirewall = true;
+    openFirewall = false; # per-leg rules below govern
+    interface = "enp6s18"; # else it multicasts on every leg
+  };
+  # Without rotation the per-IP logs accumulate one file per client forever.
+  services.logrotate.settings.samba = {
+    files = [ "/var/log/samba/log.*" ];
+    frequency = "weekly";
+    rotate = 4;
+    compress = true;
+    missingok = true;
+    notifempty = true;
+    create = "0640 root root";
   };
   # endregion Samba file sharing
 
@@ -191,7 +233,7 @@ in
   services.openssh = {
     enable = true;
     ports = [ 22 ];
-    openFirewall = true;
+    openFirewall = false; # per-leg rules below govern
     settings = {
       PasswordAuthentication = false;
       KbdInteractiveAuthentication = false;
@@ -202,11 +244,9 @@ in
   services.fail2ban.enable = true;
 
   environment.systemPackages = with pkgs; [
-    # Basic packages for editing nix config
     git
     nix-output-monitor
 
-    # System administration
     htop
     btop
     inetutils
@@ -214,23 +254,19 @@ in
     tcpdump
     dig.dnsutils
 
-    # Hardware info and monitoring
     inxi
     lm_sensors
     pciutils
     usbutils
     smartmontools
 
-    # ZFS utilities
     zfs
     zfstools
 
-    # File utilities
     ncdu
     _7zz-nls
     ripgrep
 
-    # Container tools
     dive
     podman-tui
     podman-compose
@@ -238,10 +274,29 @@ in
   # endregion software
 
   # region firewall
+  # Per-leg INPUT enumeration: every listener is named on the leg it serves.
+  # INVARIANT: openFirewall stays false on every service module — one `true`
+  # re-adds a wildcard allow and this enumeration stops being the truth.
   networking.firewall = {
     enable = true;
-    # Allow easytier TUN mode to work with system stack
-    trustedInterfaces = [ "easytier0" ];
+    interfaces.enp6s18 = {
+      allowedTCPPorts = [
+        22 # ssh
+        139 # smb (netbios session)
+        445 # smb
+        5357 # wsdd http
+        8384 # syncthing GUI
+        9090 # cockpit
+        22000 # syncthing transfer
+      ];
+      allowedUDPPorts = [
+        137 # netbios name service
+        138 # netbios datagram
+        3702 # wsdd discovery
+        21027 # syncthing local discovery
+        22000 # syncthing QUIC
+      ];
+    };
   };
   # endregion firewall
 
