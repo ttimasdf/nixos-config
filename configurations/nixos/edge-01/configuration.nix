@@ -10,6 +10,8 @@ let
   wiredSet = lib.concatStringsSep " " (map (iface: ''"${iface}"'') wired);
 in
 {
+  imports = [ ./services.nix ];
+
   nixpkgs.hostPlatform = "x86_64-linux";
   networking.hostName = "edge-01";
   boot.growPartition = true;
