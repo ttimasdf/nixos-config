@@ -17,12 +17,11 @@ in
   ];
 
   # region boot & kernel
-  boot.loader = {
-    grub = {
-      efiSupport = true;
-      device = "/dev/disk/by-diskseq/1";
-    };
-  };
+  boot.loader.systemd-boot.enable = true;
+  # Kernel+initrd live on the ESP and it is 249 MiB here, so depth is capped at 3.
+  boot.loader.systemd-boot.configurationLimit = 3;
+  boot.loader.efi.canTouchEfiVariables = true; # persists via efidisk0
+  boot.kernelParams = [ "console=tty0" "console=ttyS0,115200n8" ];
   boot.initrd.systemd = {
     enable = true;
     repart.enable = true;
@@ -33,11 +32,12 @@ in
     "net.ipv4.ip_forward" = 1;
   };
 
-  # ZFS support for the raid-z pool "bank"
   boot.supportedFilesystems.zfs = true;
-  # ZFS requires networking.hostId to be set
+  # ext4 root: a force-import would also pick up exported or foreign pools.
+  boot.zfs.forceImportRoot = false;
+  # Nothing else references the pool, so NixOS would not generate zfs-import@bank.
+  boot.zfs.extraPools = [ "bank" ];
   networking.hostId = "a8c4e2f1";
-
   # endregion boot & kernel
 
   # region user settings
@@ -67,8 +67,14 @@ in
   # endregion network
 
   # region ZFS pool configuration
-  # The "bank" pool will be configured via hardware-configuration.nix
-  # or manually imported with: zpool import bank
+  # vdev paths stay slot-based: the import is GUID-driven, so they are cosmetic.
+  #
+  # by-id names use VPD 0x83, which the hypervisor fills with the slot, so they
+  # re-point after a slot shuffle; VPD 0x80 carries the real serial.
+  services.udev.extraRules = ''
+    SUBSYSTEM=="block", KERNEL=="sd[a-z]", ENV{ID_SCSI_SERIAL}=="?*", SYMLINK+="disk/by-serial/$env{ID_SCSI_SERIAL}"
+  '';
+
   services.zfs.autoScrub.enable = true;
   services.zfs.autoScrub.pools = [ "bank" ];
   services.zfs.trim.enable = true;

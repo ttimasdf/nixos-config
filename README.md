@@ -161,9 +161,34 @@ sops updatekeys private/secrets/<host-file-or-dir>/*
 
   Never bake host keys into built images — the private key would be world-readable in the image's nix store.
 
-Hosts enrolled so far: `viscacha`. Pending: `basenji`, `brisling`, `MNIX`, `wsl` (see TODOs in `private/.sops.yaml`). `savior` (rescue ISO) is excluded — it has no persistent host identity.
+Hosts enrolled so far: `viscacha`, `basenji`, `edge-01`, `apps-01`, `brisling`. Pending: `MNIX`, `wsl` (see TODOs in `private/.sops.yaml`). `savior` (rescue ISO) is excluded — it has no persistent host identity.
 
-Limitation: sops decrypts after `local-fs.target`, so disk-encryption keyfiles (e.g. the BitLocker `.BEK` files in `/root/.secrets/`) cannot be sops-managed and stay as plain root-owned files.
+`sops-install-secrets` runs as an **activation script**, i.e. before systemd is
+started, so secrets already exist when anything in `local-fs.target` or later runs. The
+only things that cannot use them are those needed *earlier* — in the initrd, before
+`/run` exists.
+
+### Pool encryption keys
+
+A ZFS pool's `keylocation` can point straight at the tmpfs copy:
+
+```bash
+zfs set keylocation=file:///run/secrets/<name> <pool>
+```
+
+The host config then only declares `sops.secrets."<name>"` — no copy step, and the key
+never exists on disk. Two traps worth knowing:
+
+- A pool declared through `boot.zfs.extraPools` is imported by the generated
+  `zfs-import-<pool>.service`. The zfs package's `zfs-import@<pool>.service` is a no-op
+  template (systemd refuses it with "Service has no ExecStart="), so a drop-in or
+  `ExecStartPre` attached to it silently never runs.
+- `zpool import` runs without `-l`, so a missing key still imports the pool but leaves
+  the datasets `keystatus=unavailable`. Fix sops, then `zfs load-key -a && zfs mount -a`;
+  no re-import needed.
+
+The BitLocker `.BEK` files in `/root/.secrets/` on the bare-metal hosts stay plain
+root-owned files: they predate the sops rollout and unlock volumes outside the pool.
 
 
 ### Version Hint Feature
