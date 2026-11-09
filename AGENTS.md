@@ -98,6 +98,31 @@ Commit and push private changes in that repository; they are not recorded in
 this parent repository. Do not add private-source software to the public
 `public-packages/` repository.
 
+### Device Identity and Intra-Network Topology Stay Private
+Device identity — disk serials, `ata-*` by-id paths, `serial=` values and the
+`/dev/disk/by-serial/<serial>` mapping — belongs in
+`private/modules/nixos/configurations/<host>`, never in `configurations/`.
+The intra-network domain, host addresses, zone numbers and VLAN ids belong in
+`private/modules/nixos/homelab`, exposed as `config.rabitprivate.nixos.homelab`.
+Public files reference symbols only:
+
+```nix
+networking.interfaces.enp6s18.ipv4.addresses =
+  [ { address = ipv4.addresses.basenji; prefixLength = ipv4.prefixLength; } ];
+```
+
+When a public file needs the *mechanism*, never the value:
+
+```nix
+# public — brand-agnostic, no serial:
+SUBSYSTEM=="block", KERNEL=="sd[a-z]", ENV{ID_SCSI_SERIAL}=="?*", SYMLINK+="disk/by-serial/$env{ID_SCSI_SERIAL}"
+# private — the actual mapping:
+scsi1 = "/dev/disk/by-id/ata-WDC_…_WD-XXXXXXXX,iothread=1,serial=WD-XXXXXXXX";
+```
+
+Same rule for hardware UUIDs/serials in any new host's
+`hardware-configuration.nix`.
+
 ### Configuration Auto-Wiring
 Uses nixos-unified autowiring. Directory structure maps directly to flake outputs. No manual listing in `flake.nix` needed.
 
@@ -119,6 +144,8 @@ let inherit (flake.inputs) self; in
 - **NEVER change bootloader UUID** after initial install (viscacha:508, MNIX:501)
 - **NEVER put NixOS-specific config in `configurations/nixos/common/`** - shared between nixos and nix-darwin
 - **Public packages and overlays belong in `public-packages/`**; private packages and overlays belong in `private/`.
+- **NEVER commit a disk serial, an `ata-*` by-id path, or a `serial=` value to this repository** — device identity lives in `private/` only (see *Device Identity and Intra-Network Topology Stay Private*). Redact to `WD-…` first/last-chars form in prose.
+- **NEVER write an intra-network address, zone number, VLAN id or the intra domain in `configurations/`** — read `config.rabitprivate.nixos.homelab.*` instead; even a suffix or prefix octet is enough to infer the rest.
 - **Keep the submodule and locked `known-rabbit-packages` revision equal**; update and commit `flake.lock` and the submodule pointer together.
 - **Never replace `known-rabbit-packages` with `path:./public-packages`**; the submodule is workspace-only.
 - **NEVER leave `nixos-version-hint.txt` empty or "changeme"** - build will fail
