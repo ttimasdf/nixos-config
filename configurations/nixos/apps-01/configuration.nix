@@ -2,13 +2,8 @@
 #
 # Rootful Podman inside the LXC user namespace: the userns is the security
 # boundary, so container root cannot reach host root.
-{ config, pkgs, modulesPath, ... }:
+{ pkgs, modulesPath, ... }:
 
-let
-  inherit (config.rabitprivate.nixos.homelab) ipv4;
-  proxyUrl = "http://${ipv4.addresses.proxy}:28888";
-  noProxy = "localhost,127.0.0.1,[::1],10.0.0.0/8,192.168.0.0/16,172.16.0.0/12";
-in
 {
   imports = [ "${modulesPath}/virtualisation/proxmox-lxc.nix" ];
   nixpkgs.hostPlatform = "x86_64-linux";
@@ -21,14 +16,9 @@ in
   networking.useDHCP = false;
   networking.enableIPv6 = false;
   networking.firewall.enable = true; # default deny, ssh allowed
-  networking.interfaces.eth0.ipv4.addresses = [
-    { address = ipv4.addresses.apps-01; prefixLength = ipv4.prefixLength; }
-  ];
-  networking.defaultGateway = {
-    address = ipv4.zones.servers.address;
-    interface = "eth0";
-  };
-  networking.nameservers = [ ipv4.zones.mgmt.address ];
+  # Address, gateway, resolver and the registry proxy are applied by the
+  # private module; this file names none of them.
+  rabit.nixos.no_proxy = "localhost,127.0.0.1,[::1],10.0.0.0/8,192.168.0.0/16,172.16.0.0/12";
 
   services.openssh = {
     enable = true;
@@ -67,24 +57,6 @@ in
   networking.firewall.allowedUDPPorts = [ 22020 ]; # config server
   virtualisation.podman.enable = true;
   virtualisation.oci-containers.backend = "podman";
-
-  rabit.nixos.http_proxy = proxyUrl;
-  rabit.nixos.no_proxy = noProxy;
-  systemd.services."podman".environment = {
-    http_proxy = proxyUrl;
-    https_proxy = proxyUrl;
-    no_proxy = noProxy;
-  };
-  systemd.user.services."podman".environment = {
-    http_proxy = proxyUrl;
-    https_proxy = proxyUrl;
-    no_proxy = noProxy;
-  };
-  environment.etc."profile.d/podman-proxy.sh".text = ''
-    export http_proxy=${proxyUrl}
-    export https_proxy=${proxyUrl}
-    export no_proxy=localhost,127.0.0.1,10.0.0.0/8
-  '';
 
   system.stateVersion = "26.11";
 }

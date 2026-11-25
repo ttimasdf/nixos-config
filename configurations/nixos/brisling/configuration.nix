@@ -9,8 +9,6 @@
 
 let
   inherit (flake.inputs) self;
-  inherit (config.rabitprivate.nixos.homelab) ipv4;
-  cidr = name: "${ipv4.networks.${name}}/${toString ipv4.prefixLength}";
 in
 {
   imports = [
@@ -42,22 +40,9 @@ in
   boot.isContainer = true; # bare eval needs it (the image path also sets it)
   services.openssh.enable = true; # sops-nix derives the age key from the ssh host key
   networking.useHostResolvConf = false;
-  # Rescue box: route only the zones the router cannot reach, so the rest stay
-  # reachable through the router when edge-01 is down.
-  systemd.network = {
-    enable = true;
-    networks."10-eth0" = {
-      matchConfig.Name = "eth0";
-      address = [ "${ipv4.addresses.brisling}/${toString ipv4.prefixLength}" ];
-      gateway = [ ipv4.addresses.router-mgmt ];
-      dns = [ ipv4.zones.mgmt.address "223.5.5.5" ];
-      routes = map (name: { Destination = cidr name; Gateway = ipv4.zones.mgmt.address; }) [ "soc" "servers" "sandbox" ];
-      networkConfig = {
-        DHCP = "no";
-        IPv6AcceptRA = false;
-      };
-    };
-  };
+  # The leg itself — address, gateway, resolver and the routes back into the
+  # zones edge-01 cannot reach on its own — is declared by the private module.
+  systemd.network.enable = true;
   # endregion network
 
   # region software

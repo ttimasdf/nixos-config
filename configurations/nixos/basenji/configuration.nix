@@ -9,7 +9,6 @@
 
 let
   inherit (flake.inputs) self;
-  inherit (config.rabitprivate.nixos.homelab) ipv4;
 in
 {
   imports = [
@@ -56,13 +55,6 @@ in
     matchConfig.MACAddress = "BC:24:11:58:B7:0E";
     linkConfig.Name = "enp6s18";
   };
-  networking.interfaces.enp6s18.ipv4.addresses = [
-    { address = ipv4.addresses.basenji; prefixLength = ipv4.prefixLength; }
-  ];
-  networking.defaultGateway = {
-    address = ipv4.zones.servers.address;
-    interface = "enp6s18";
-  };
   # The second leg is on the upstream L2: keep the link up but completely deaf,
   # or every 0.0.0.0 listener is reachable from the CPE segment.
   systemd.network.links."05-basenji-upstream" = {
@@ -79,7 +71,6 @@ in
       ConfigureWithoutCarrier = false;
     };
   };
-  networking.nameservers = [ ipv4.zones.mgmt.address ];
   services.qemuGuest.enable = true;
 
   services.resolved.settings.Resolve = lib.mkIf (config.services.resolved.enable) {
