@@ -129,10 +129,24 @@ When a public file needs the *mechanism*, never the value:
 ```nix
 # public — brand-agnostic, no serial:
 SUBSYSTEM=="block", KERNEL=="sd[a-z]", ENV{ID_SCSI_SERIAL}=="?*", SYMLINK+="disk/by-serial/$env{ID_SCSI_SERIAL}"
-# private — the actual mapping:
-scsi1 = "/dev/disk/by-id/ata-WDC_…_WD-XXXXXXXX,iothread=1,serial=WD-XXXXXXXX";
 ```
 
+A per-slot table (a VM's `scsi*` disks, a pool's vdevs) belongs in a data file
+that the private module reads, not inline in a Nix expression:
+
+```json
+// private/files/<host>-disks.json
+{ "disks": { "scsi1": { "byId": "ata-WDC_…_WD-XXXXXXXX", "serial": "WD-XXXXXXXX" } } }
+```
+
+```nix
+# the module stays serial-free
+// lib.mapAttrs' (slot: disk: lib.nameValuePair slot
+  "/dev/disk/by-id/${disk.byId},iothread=1,serial=${disk.serial}") disks;
+```
+
+Rationale: a data file is one place to redact, diff and hand to the operator;
+splitting serials across Nix expressions is how they end up in a transcript.
 Same rule for hardware UUIDs/serials in any new host's
 `hardware-configuration.nix`.
 
@@ -157,7 +171,7 @@ let inherit (flake.inputs) self; in
 - **NEVER change bootloader UUID** after initial install (viscacha:508, MNIX:501)
 - **NEVER put NixOS-specific config in `configurations/nixos/common/`** - shared between nixos and nix-darwin
 - **Public packages and overlays belong in `public-packages/`**; private packages and overlays belong in `private/`.
-- **NEVER commit a disk serial, an `ata-*` by-id path, or a `serial=` value to this repository** — device identity lives in `private/` only (see *Device Identity and Intra-Network Topology Stay Private*). Redact to `WD-…` first/last-chars form in prose.
+- **NEVER commit a disk serial, an `ata-*` by-id path, or a `serial=` value to this repository** — device identity lives in `private/` only, as a data file the host module reads (`private/files/<host>-disks.json`) rather than inline Nix (see *Device Identity and Intra-Network Topology Stay Private*). Redact to `WD-…` first/last-chars form in prose.
 - **NEVER write an intra-network address, zone number, VLAN id or the intra domain in `configurations/`, and never read `rabitprivate.nixos.homelab.*` from there** — the private module applies the addressing; even a suffix or prefix octet, or the symbol set itself, is enough to infer the rest.
 - **Keep the submodule and locked `known-rabbit-packages` revision equal**; update and commit `flake.lock` and the submodule pointer together.
 - **Never replace `known-rabbit-packages` with `path:./public-packages`**; the submodule is workspace-only.
